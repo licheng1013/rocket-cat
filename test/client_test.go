@@ -7,13 +7,36 @@ import (
 	"testing"
 )
 
-func TestClient(t *testing.T) {
+func TestClient1(t *testing.T) {
 	kecClient, err := kcp.DialWithOptions("localhost:10000", nil, 10, 3)
 	if err != nil {
 		panic(err)
 	}
 	defaultMessage := message.DefaultMessage{Body: "Hello", Merge: router.GetMerge(0, 1)}
 
-	_, _ = kecClient.Write(message.GetObjectToBytes(defaultMessage))
+	for i := 0; i < 100; i++ {
+		go func() {
+			for true {
+				_, _ = kecClient.Write(message.GetObjectToBytes(defaultMessage))
+			}
+		}()
+	}
+	select {}
+}
+
+func TestClient2(t *testing.T) {
+	kecClient, err := kcp.DialWithOptions("localhost:10000", nil, 10, 3)
+	if err != nil {
+		panic(err)
+	}
+	defaultMessage := message.DefaultMessage{Body: "Hello", Merge: router.GetMerge(0, 1)}
+
+	for i := 0; i < 100; i++ {
+		go func() {
+			for true {
+				_, _ = kecClient.Write(message.GetObjectToBytes(defaultMessage))
+			}
+		}()
+	}
 	select {}
 }

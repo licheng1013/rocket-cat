@@ -19,7 +19,7 @@ type DefaultDecoder struct {
 func (d DefaultDecoder) DecoderBytes(bytes []byte) {
 	msg := message.GetBytesToObject(bytes)
 
-	// TODO 这里先固定写死这个类型
+	// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
 	m := message.DefaultMessage{}
 
 	router.GetObjectToToMap(msg, &m)
