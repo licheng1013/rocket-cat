@@ -3,6 +3,7 @@ package main
 import (
 	"google.golang.org/protobuf/proto"
 	"io-game-go/core"
+	"io-game-go/decoder"
 	"io-game-go/message"
 	"io-game-go/router"
 	"log"
@@ -21,20 +22,31 @@ func TestJsonServer(t *testing.T) {
 }
 
 func TestProtoServer(t *testing.T) {
+
 	// 默认的消息实现: DefaultMessage
 	router.AddFunc(router.GetMerge(0, 1), func(msg interface{}) interface{} {
 
 		info := message.Info{}
-		// 转换反序列话
 		err := proto.Unmarshal(msg.([]byte), &info)
 		if err != nil {
-			panic(err)
+			log.Panicln(err)
 		}
 		log.Println(info.String())
+		//log.Println(string(msg.([]byte)))
+
+		//info := message.Info{}
+		//// 转换反序列话
+		//err := proto.Unmarshal(msg.([]byte), &info)
+		//if err != nil {
+		//	panic(err)
+		//}
+		//log.Println(info.String())
 
 		return msg
 	})
 
 	server := core.NewGameServer()
+	// 设置编码器
+	server.SetDecoder(decoder.ProtoDecoder{})
 	server.Run()
 }
