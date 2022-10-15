@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/fwhezfwhez/errorx"
 	"github.com/xtaci/kcp-go/v5"
+	"google.golang.org/protobuf/proto"
 	"io"
 	"io-game-go/decoder"
+	"io-game-go/message"
 	"io-game-go/router"
 	"log"
 	"net"
@@ -58,12 +60,18 @@ func (g Server) Run() {
 				result := router.ExecuteFunc(merge, body)
 				if result != nil {
 					// 分发消息
+					var bytes []byte
 					switch result.(type) {
 					case []byte:
-						_, err := conn.Write(result.([]byte))
-						if err != nil {
-							log.Panicln(err)
-						}
+						bytes = result.([]byte)
+						break
+					case proto.Message:
+						bytes = message.MarshalBytes(result.(proto.Message))
+						break
+					}
+					_, err := conn.Write(bytes)
+					if err != nil {
+						log.Panicln(err)
 					}
 				}
 				//fmt.Println("receive from client:", buffer[:n])

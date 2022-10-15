@@ -27,7 +27,7 @@ func TestProtoServer(t *testing.T) {
 		info := message.Info{}
 		message.UnmarshalInterface(msg, &info)
 		log.Println(info.String())
-		return msg
+		return &info
 	})
 
 	server := core.NewGameServer()
