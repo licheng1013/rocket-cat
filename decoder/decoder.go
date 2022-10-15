@@ -16,6 +16,7 @@ type Decoder interface {
 type DefaultDecoder struct {
 }
 
+// DecoderBytes 实现此方法可获取一些功能！
 func (d DefaultDecoder) DecoderBytes(bytes []byte) message.Message {
 	msg := message.GetBytesToObject(bytes)
 
