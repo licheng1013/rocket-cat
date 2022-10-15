@@ -15,6 +15,11 @@ type GameServer struct {
 	Port int
 }
 
+// SetDecoder 设置编码器默认: decoder.DefaultDecoder
+func (g GameServer) SetDecoder(d decoder.Decoder) {
+	decoder.SetDecoder(d)
+}
+
 func NewGameServer() *GameServer {
 	g := &GameServer{}
 	g.Port = 10000
