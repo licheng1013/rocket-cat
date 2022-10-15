@@ -24,7 +24,7 @@ func connect(num int) {
 	if err != nil {
 		panic(err)
 	}
-	defaultMessage := message.DefaultMessage{Body: "Hello" + fmt.Sprint(num), Merge: router.GetMerge(0, 1)}
+	defaultMessage := message.DefaultMessage{Body: []byte("Hello" + fmt.Sprint(num)), Merge: router.GetMerge(0, 1)}
 	// 获取服务单的消息
 	go func() {
 		var buffer = make([]byte, 1024, 1024)
@@ -39,11 +39,8 @@ func connect(num int) {
 				break
 			}
 
-			msg := message.GetBytesToObject(buffer[:n])
 			// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
-			m := message.DefaultMessage{}
-			router.GetObjectToToMap(msg, &m)
-			log.Println(num, "服务端数据: ", m)
+			log.Println(num, "服务端数据: ", string(buffer[:n]))
 		}
 	}()
 	for i := 0; i < 100; i++ {

@@ -7,9 +7,10 @@ type Message interface {
 }
 
 // DefaultMessage 必须实现 Message 接口
+// Json处理则必须先转换为json才能继续处理其他东西
 type DefaultMessage struct {
 	Merge int64
-	Body  string
+	Body  []byte
 }
 
 func (d DefaultMessage) GetMerge() int64 {

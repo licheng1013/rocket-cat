@@ -28,7 +28,7 @@ func GetSubCmd(merge int64) int64 {
 	return merge & 0xFFFF
 }
 
-// AddFunc 添加路由,如果需要返回给客户端数据，需要返回数组字节: []byte
+// AddFunc 添加路由,如果需要返回给客户端数据，需要返回数组字节: []byte  默认的消息实现: message.DefaultMessage 是把里面的body返回到上传
 func AddFunc(merge int64, method func(msg interface{}) interface{}) {
 	if routerMap[merge] == nil {
 		routerMap[merge] = method
