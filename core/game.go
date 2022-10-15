@@ -6,12 +6,14 @@ import (
 	"github.com/xtaci/kcp-go/v5"
 	"io"
 	"io-game-go/decoder"
+	"io-game-go/router"
 	"log"
 	"net"
 )
 
 type GameServer struct {
-	Port int
+	Port    int
+	ConnMap map[string]net.Conn
 }
 
 func NewGameServer() *GameServer {
@@ -46,7 +48,19 @@ func (g GameServer) Run() {
 					fmt.Println(errorx.Wrap(e))
 					break
 				}
-				decoder.GetDecoder().DecoderBytes(buffer[:n])
+
+				m := decoder.GetDecoder().DecoderBytes(buffer[:n])
+				result := router.ExecuteFunc(m.GetMerge(), m)
+				if result != nil {
+					// 分发消息
+					switch result.(type) {
+					case []byte:
+						_, err := conn.Write(result.([]byte))
+						if err != nil {
+							log.Panicln(err)
+						}
+					}
+				}
 				//fmt.Println("receive from client:", buffer[:n])
 			}
 		}(conn)

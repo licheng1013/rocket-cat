@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-var routerMap = make(map[int]func(msg interface{}))
+var routerMap = make(map[int]func(msg interface{}) interface{})
 
 type CmdInfo struct {
 	Cmd      int
@@ -28,8 +28,8 @@ func GetSubCmd(merge int) int {
 	return merge & 0xFFFF
 }
 
-// AddFunc 添加路由
-func AddFunc(merge int, method func(msg interface{})) {
+// AddFunc 添加路由,如果需要返回给客户端数据，需要返回数组字节: []byte
+func AddFunc(merge int, method func(msg interface{}) interface{}) {
 	if routerMap[merge] == nil {
 		routerMap[merge] = method
 	} else {
@@ -38,8 +38,8 @@ func AddFunc(merge int, method func(msg interface{})) {
 }
 
 // ExecuteFunc 执行消息
-func ExecuteFunc(merge int, v interface{}) {
-	routerMap[merge](v)
+func ExecuteFunc(merge int, v interface{}) interface{} {
+	return routerMap[merge](v)
 }
 
 // GetObjectToToMap 转换map为结构体
