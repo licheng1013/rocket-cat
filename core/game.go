@@ -12,8 +12,7 @@ import (
 )
 
 type GameServer struct {
-	Port    int
-	ConnMap map[string]net.Conn
+	Port int
 }
 
 func NewGameServer() *GameServer {
