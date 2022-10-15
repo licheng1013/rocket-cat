@@ -11,22 +11,22 @@ import (
 	"net"
 )
 
-type GameServer struct {
+type Server struct {
 	Port int
 }
 
 // SetDecoder 设置编码器默认: decoder.DefaultDecoder
-func (g GameServer) SetDecoder(d decoder.Decoder) {
+func (g Server) SetDecoder(d decoder.Decoder) {
 	decoder.SetDecoder(d)
 }
 
-func NewGameServer() *GameServer {
-	g := &GameServer{}
+func NewGameServer() *Server {
+	g := &Server{}
 	g.Port = 10000
 	return g
 }
 
-func (g GameServer) Run() {
+func (g Server) Run() {
 	log.SetFlags(log.LstdFlags + log.Lshortfile)
 	log.Println("kcp listens on ", g.Port)
 
@@ -53,6 +53,7 @@ func (g GameServer) Run() {
 					break
 				}
 
+				// 编码解码
 				merge, body := decoder.GetDecoder().DecoderBytes(buffer[:n])
 				result := router.ExecuteFunc(merge, body)
 				if result != nil {
