@@ -10,6 +10,7 @@ import (
 	"io-game-go/router"
 	"log"
 	"testing"
+	"time"
 )
 
 func TestClient1(t *testing.T) {
@@ -18,6 +19,59 @@ func TestClient1(t *testing.T) {
 
 func TestClient2(t *testing.T) {
 	connectProto(2)
+}
+
+func TestClient3(t *testing.T) {
+	connectProto(3)
+}
+
+func TestClient(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		kecClient, err := kcp.DialWithOptions("localhost:10000", nil, 10, 3)
+		if err != nil {
+			panic(err)
+		}
+		info := message.Info{Info: "Hello" + fmt.Sprint(i)}
+		marshal := message.MarshalBytes(&info)
+
+		defaultMessage := message.ProtoMessage{Body: marshal, Merge: router.GetMerge(0, 1)}
+		// 获取服务单的消息
+		go func() {
+			var buffer = make([]byte, 1024, 1024)
+			for {
+				// 读取长度 n
+				n, e := kecClient.Read(buffer)
+				if e != nil {
+					if e == io.EOF {
+						break
+					}
+					fmt.Println(errorx.Wrap(e))
+					break
+				}
+
+				// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
+
+				v := message.Info{}
+				err := proto.Unmarshal(buffer[:n], &v)
+				if err != nil {
+					log.Panicln(err)
+				}
+				log.Println("服务器消息: ", v.String())
+
+			}
+		}()
+		go func() {
+			for true {
+				marshal, err := proto.Marshal(&defaultMessage)
+				if err != nil {
+					log.Panicln(err)
+				}
+				_, _ = kecClient.Write(marshal)
+			}
+		}()
+
+	}
+	time.Sleep(100 * time.Second)
 }
 
 // proto消息编码器
@@ -33,7 +87,7 @@ func connectProto(num int) {
 	// 获取服务单的消息
 	go func() {
 		var buffer = make([]byte, 1024, 1024)
-		for {
+		for true {
 			// 读取长度 n
 			n, e := kecClient.Read(buffer)
 			if e != nil {
@@ -55,17 +109,15 @@ func connectProto(num int) {
 
 		}
 	}()
-	for i := 0; i < 100; i++ {
-		go func() {
-			for true {
-				marshal, err := proto.Marshal(&defaultMessage)
-				if err != nil {
-					log.Panicln(err)
-				}
-				_, _ = kecClient.Write(marshal)
+	go func() {
+		for true {
+			marshal, err := proto.Marshal(&defaultMessage)
+			if err != nil {
+				log.Panicln(err)
 			}
-		}()
-	}
+			_, _ = kecClient.Write(marshal)
+		}
+	}()
 	select {}
 }
 
@@ -93,12 +145,10 @@ func connectJson(num int) {
 			log.Println(num, "服务端数据: ", string(buffer[:n]))
 		}
 	}()
-	for i := 0; i < 100; i++ {
-		go func() {
-			for true {
-				_, _ = kecClient.Write(message.GetObjectToBytes(defaultMessage))
-			}
-		}()
-	}
+	go func() {
+		for true {
+			_, _ = kecClient.Write(message.GetObjectToBytes(defaultMessage))
+		}
+	}()
 	select {}
 }

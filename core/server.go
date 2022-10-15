@@ -11,7 +11,13 @@ import (
 	"io-game-go/router"
 	"log"
 	"net"
+	"sync"
+	"time"
 )
+
+var lock sync.Mutex
+var v = 0
+var t = time.Now().UnixMilli()
 
 type Server struct {
 	Port int
@@ -43,6 +49,8 @@ func (g Server) Run() {
 			log.Panicln(e)
 		}
 		go func(conn net.Conn) {
+			go ConnTimer(conn)
+
 			var buffer = make([]byte, 1024, 1024)
 			for {
 				// 读取长度 n
@@ -75,6 +83,17 @@ func (g Server) Run() {
 						log.Panicln(err)
 					}
 				}
+				lock.Lock()
+				v++
+				lock.Unlock()
+
+				startTime := time.Now().UnixMilli()
+				if startTime-t > 1000 {
+					log.Println("执行次数: ", v)
+					v = 0
+					t = startTime
+				}
+
 				//fmt.Println("receive from client:", buffer[:n])
 			}
 		}(conn)
