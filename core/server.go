@@ -30,7 +30,7 @@ func NewGameServer() *Server {
 
 func (g Server) Run() {
 	log.SetFlags(log.LstdFlags + log.Lshortfile)
-	log.Println("kcp listens on ", g.Port)
+	log.Println("监听端口: ", g.Port)
 
 	addr := ":" + fmt.Sprint(g.Port)
 	lis, err := kcp.ListenWithOptions(addr, nil, 10, 3)
@@ -57,6 +57,7 @@ func (g Server) Run() {
 
 				// 编码解码
 				merge, body := decoder.GetDecoder().DecoderBytes(buffer[:n])
+				// 处理对于函数
 				result := router.ExecuteFunc(merge, body)
 				if result != nil {
 					// 分发消息
