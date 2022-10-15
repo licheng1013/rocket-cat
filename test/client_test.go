@@ -20,17 +20,14 @@ func TestClient2(t *testing.T) {
 	connectProto(2)
 }
 
+// proto消息编码器
 func connectProto(num int) {
 	kecClient, err := kcp.DialWithOptions("localhost:10000", nil, 10, 3)
 	if err != nil {
 		panic(err)
 	}
 	info := message.Info{Info: "Hello" + fmt.Sprint(num)}
-	marshal, err := proto.Marshal(&info)
-	if err != nil {
-		log.Println(err)
-	}
-	//marshal := []byte("HelloWorld")
+	marshal := message.MarshalBytes(&info)
 
 	defaultMessage := message.ProtoMessage{Body: marshal, Merge: router.GetMerge(0, 1)}
 	// 获取服务单的消息
