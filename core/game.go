@@ -33,7 +33,7 @@ func (g GameServer) Run() {
 	for {
 		conn, e := lis.AcceptKCP()
 		if e != nil {
-			panic(e)
+			log.Panicln(e)
 		}
 		go func(conn net.Conn) {
 			var buffer = make([]byte, 1024, 1024)
@@ -48,8 +48,8 @@ func (g GameServer) Run() {
 					break
 				}
 
-				m := decoder.GetDecoder().DecoderBytes(buffer[:n])
-				result := router.ExecuteFunc(m.GetMerge(), m)
+				merge, body := decoder.GetDecoder().DecoderBytes(buffer[:n])
+				result := router.ExecuteFunc(merge, body)
 				if result != nil {
 					// 分发消息
 					switch result.(type) {

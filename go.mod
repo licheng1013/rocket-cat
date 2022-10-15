@@ -3,6 +3,7 @@ module io-game-go
 require (
 	github.com/fwhezfwhez/errorx v1.1.0
 	github.com/xtaci/kcp-go/v5 v5.6.1
+	google.golang.org/protobuf v1.28.0
 )
 
 require (
@@ -21,7 +22,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
