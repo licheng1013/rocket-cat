@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/duke-git/lancet/v2/netutil"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
@@ -40,6 +39,7 @@ func (n *Nacos) Register(ip string, port uint64, serviceName string) {
 		Ip:          ip,
 		Port:        port,
 		ServiceName: serviceName,
+		GroupName:   "DEFAULT_GROUP",
 		Weight:      10,
 		Enable:      true,
 		Healthy:     true,
@@ -123,20 +123,19 @@ func (n *Nacos) heartbeat() {
 	go func() {
 		for true {
 			time.Sleep(1 * time.Second)
-			url := "/nacos/v1/ns/instance/beat"
+			url := "/nacos/v2/ns/health/instance"
 			params := map[string]string{}
 			params["serviceName"] = n.registerParam.ServiceName
 			params["ip"] = n.registerParam.Ip
 			params["port"] = strconv.FormatUint(n.registerParam.Port, 10)
-			marshal, _ := json.Marshal(map[string]string{})
-			params["beat"] = string(marshal)
+			params["healthy"] = "true"
 
 			for _, config := range n.serverConfigs {
-				httpUrl := fmt.Sprintf("http://%s:%s%s", config.IpAddr, strconv.FormatUint(config.Port, 10), url)
+				httpUrl := fmt.Sprintf("http://%v:%v%v", config.IpAddr, strconv.FormatUint(config.Port, 10), url)
 				fmt.Println("心跳地址: " + httpUrl)
 				resp, err := netutil.HttpPut(httpUrl, nil, params)
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 				}
 				body, _ := io.ReadAll(resp.Body)
 				fmt.Println("心跳结果: " + string(body))
