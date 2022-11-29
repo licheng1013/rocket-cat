@@ -1,12 +1,12 @@
-package gateway
+package server
 
 import (
 	"testing"
 	"time"
 )
 
-func TestGateway(t *testing.T) {
-	gateway := &Gateway{}
+func TestServer(t *testing.T) {
+	gateway := &Server{}
 	gateway.Register()
 	time.Sleep(5 * time.Second)
 	gateway.Nacos.AllInstances()

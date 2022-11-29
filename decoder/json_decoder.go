@@ -15,7 +15,7 @@ func (d JsonDecoder) DecoderBytes(bytes []byte) (int64, interface{}) {
 	// 这里转换成了map
 	msg := message.GetBytesToObject(bytes)
 	// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
-	m := message.DefaultMessage{}
+	m := message.JsonMessage{}
 	router.GetObjectToToMap(msg, &m)
 	return m.GetMerge(), m.Body
 }

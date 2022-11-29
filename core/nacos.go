@@ -15,11 +15,20 @@ type Nacos struct {
 	namingClient  naming_client.INamingClient
 }
 
-// Register 暂时先先写内部地址
-func (n *Nacos) Register(ip string, port uint64) {
-	port = 8848
-	ip = "192.168.101.10"
-	serviceName := "gateway-game"
+func (n *Nacos) SetServerConfig(ip string, port uint64) {
+	// 创建serverConfig的另一种方式 -> 此处链接nacos的配置
+	n.serverConfigs = []constant.ServerConfig{
+		*constant.NewServerConfig(ip, port, constant.WithScheme("http"),
+			constant.WithContextPath("/nacos")),
+	}
+}
+
+// Register 注册进入Nacos,必须先调用 SetServerConfig 才能使用
+// 这里设置的都是客户端地址和ip远程调用获取则是这里注册的 ip 和 端口
+func (n *Nacos) Register(ip string, port uint64, serviceName string) {
+	if len(n.serverConfigs) == 0 {
+		print("未设置Nacos服务端配置")
+	}
 	n.registerParam = vo.RegisterInstanceParam{
 		Ip:          ip,
 		Port:        port,
@@ -33,13 +42,6 @@ func (n *Nacos) Register(ip string, port uint64) {
 		Port:        port,
 		ServiceName: serviceName,
 	}
-
-	// 创建serverConfig的另一种方式
-	n.serverConfigs = []constant.ServerConfig{
-		*constant.NewServerConfig(ip, port, constant.WithScheme("http"),
-			constant.WithContextPath("/nacos")),
-	}
-
 	n.init()
 }
 
