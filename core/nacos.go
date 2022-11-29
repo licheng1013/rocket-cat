@@ -1,12 +1,18 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/duke-git/lancet/v2/netutil"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/model"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+	"io"
+	"log"
+	"strconv"
+	"time"
 )
 
 type Nacos struct {
@@ -59,6 +65,7 @@ func (n *Nacos) init() {
 	}
 	if success {
 		fmt.Println("注册成功！")
+		n.heartbeat()
 	}
 }
 
@@ -109,4 +116,31 @@ func (n *Nacos) SelectOneHealthyInstance(serverName string) *model.Instance {
 		print(err)
 	}
 	return instances
+}
+
+// 心跳功能
+func (n *Nacos) heartbeat() {
+	go func() {
+		for true {
+			time.Sleep(1 * time.Second)
+			url := "/nacos/v1/ns/instance/beat"
+			params := map[string]string{}
+			params["serviceName"] = n.registerParam.ServiceName
+			params["ip"] = n.registerParam.Ip
+			params["port"] = strconv.FormatUint(n.registerParam.Port, 10)
+			marshal, _ := json.Marshal(map[string]string{})
+			params["beat"] = string(marshal)
+
+			for _, config := range n.serverConfigs {
+				httpUrl := fmt.Sprintf("http://%s:%s%s", config.IpAddr, strconv.FormatUint(config.Port, 10), url)
+				fmt.Println("心跳地址: " + httpUrl)
+				resp, err := netutil.HttpPut(httpUrl, nil, params)
+				if err != nil {
+					log.Fatal(err)
+				}
+				body, _ := io.ReadAll(resp.Body)
+				fmt.Println("心跳结果: " + string(body))
+			}
+		}
+	}()
 }

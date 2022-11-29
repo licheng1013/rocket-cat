@@ -1,6 +1,7 @@
 module io-game-go
 
 require (
+	github.com/duke-git/lancet/v2 v2.1.10
 	github.com/fwhezfwhez/errorx v1.1.0
 	github.com/nacos-group/nacos-sdk-go/v2 v2.1.2
 	github.com/xtaci/kcp-go/v5 v5.6.1

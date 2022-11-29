@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io-game-go/core"
 	"testing"
-	"time"
 )
 
 func TestGateway(t *testing.T) {
@@ -14,6 +13,5 @@ func TestGateway(t *testing.T) {
 	instances2 := gateway.Nacos.SelectOneHealthyInstance(core.ServerName)
 	fmt.Println(instances1)
 	fmt.Println(instances2)
-	time.Sleep(30 * time.Second)
 	gateway.Nacos.Logout()
 }
