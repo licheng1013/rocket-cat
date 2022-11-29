@@ -6,10 +6,15 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	gateway := &Server{}
-	gateway.Register()
-	time.Sleep(5 * time.Second)
-	gateway.Nacos.AllInstances()
-	time.Sleep(30 * time.Second)
-	gateway.Nacos.Logout()
+	server1 := test(8002)
+	server2 := test(8003)
+	time.Sleep(100 * time.Second)
+	server1.Nacos.Logout()
+	server2.Nacos.Logout()
+}
+
+func test(port uint64) *Server {
+	server := &Server{}
+	server.Register(port)
+	return server
 }

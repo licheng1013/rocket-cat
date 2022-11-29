@@ -5,6 +5,7 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
+	"github.com/nacos-group/nacos-sdk-go/v2/model"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 )
 
@@ -81,4 +82,31 @@ func (n *Nacos) AllInstances() {
 		print(err)
 	}
 	fmt.Println("所有实例: ", instances)
+}
+
+// SelectInstances 获取指定条件的实例
+func (n *Nacos) SelectInstances(serverName string) []model.Instance {
+	// SelectInstances 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
+	instances, err := n.namingClient.SelectInstances(vo.SelectInstancesParam{
+		ServiceName: serverName,
+		GroupName:   n.registerParam.GroupName,
+		HealthyOnly: true, //true 健康的实例
+	})
+	if err != nil {
+		print(err)
+	}
+	return instances
+}
+
+// SelectOneHealthyInstance 获取指定条件的实例
+func (n *Nacos) SelectOneHealthyInstance(serverName string) *model.Instance {
+	// SelectInstances 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
+	instances, err := n.namingClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
+		ServiceName: serverName,
+		GroupName:   n.registerParam.GroupName,
+	})
+	if err != nil {
+		print(err)
+	}
+	return instances
 }
