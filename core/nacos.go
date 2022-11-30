@@ -124,6 +124,7 @@ func (n *Nacos) heartbeat() {
 		for true {
 			time.Sleep(1 * time.Second)
 			url := "/nacos/v2/ns/health/instance"
+			heads := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 			params := map[string]string{}
 			params["serviceName"] = n.registerParam.ServiceName
 			params["ip"] = n.registerParam.Ip
@@ -133,7 +134,7 @@ func (n *Nacos) heartbeat() {
 			for _, config := range n.serverConfigs {
 				httpUrl := fmt.Sprintf("http://%v:%v%v", config.IpAddr, strconv.FormatUint(config.Port, 10), url)
 				fmt.Println("心跳地址: " + httpUrl)
-				resp, err := netutil.HttpPut(httpUrl, nil, params)
+				resp, err := netutil.HttpPut(httpUrl, heads, params)
 				if err != nil {
 					log.Println(err)
 				}

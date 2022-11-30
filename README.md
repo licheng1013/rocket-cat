@@ -13,3 +13,12 @@
 - [ ] 支持Tcp
 - [ ] 支持Websocket
 
+
+
+## Nacos
+- 单机启动： startup.cmd -m standalone
+
+
+## 使用技术
+- [https://github.com/duke-git/lancet/blob/main/README_zh-CN.md](https://github.com/duke-git/lancet/blob/main/README_zh-CN.md)
+- [https://nacos.io/zh-cn/docs/v2/quickstart/quick-start.html](https://nacos.io/zh-cn/docs/v2/quickstart/quick-start.html)
