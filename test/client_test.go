@@ -126,7 +126,7 @@ func connectJson(num int) {
 	if err != nil {
 		panic(err)
 	}
-	defaultMessage := message.DefaultMessage{Body: []byte("Hello" + fmt.Sprint(num)), Merge: router.GetMerge(0, 1)}
+	defaultMessage := message.JsonMessage{Body: []byte("Hello" + fmt.Sprint(num)), Merge: router.GetMerge(0, 1)}
 	// 获取服务单的消息
 	go func() {
 		var buffer = make([]byte, 1024, 1024)

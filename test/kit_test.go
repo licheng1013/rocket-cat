@@ -8,12 +8,12 @@ import (
 )
 
 func TestKit(t *testing.T) {
-	defaultMessage := message.DefaultMessage{Body: []byte("Hello"), Merge: 2}
+	defaultMessage := message.JsonMessage{Body: []byte("Hello"), Merge: 2}
 	bytes := message.GetObjectToBytes(defaultMessage)
 	log.Println("转换为字节: ", bytes)
 
 	msg := message.GetBytesToObject(bytes)
-	m := message.DefaultMessage{}
+	m := message.JsonMessage{}
 	router.GetObjectToToMap(msg, &m)
 
 	log.Println("转换为对象: ", m)
