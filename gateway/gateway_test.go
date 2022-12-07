@@ -11,7 +11,7 @@ func TestGateway(t *testing.T) {
 	gateway.Register()
 	instances1 := gateway.Nacos.SelectOneHealthyInstance(core.ServerName)
 	instances2 := gateway.Nacos.SelectOneHealthyInstance(core.ServerName)
-	fmt.Println(instances1)
-	fmt.Println(instances2)
+	fmt.Println(instances1.Ip)
+	fmt.Println(instances2.Ip)
 	gateway.Nacos.Logout()
 }

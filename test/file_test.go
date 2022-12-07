@@ -63,7 +63,7 @@ func Test2(t *testing.T) {
 
 func Test1(t *testing.T) {
 	fmt.Println("HelloWorld")
-	filePath := "E:\\my-study\\blog-doc\\docs\\game\\"
+	filePath := "E:\\my-study\\blog-doc\\docs\\java\\"
 	names, _ := fileutil.ListFileNames(filePath)
 	fmt.Println(names)
 	for i := range names {
@@ -76,7 +76,7 @@ func Test1(t *testing.T) {
 			// # 一级用于作为评论来用不能增加图标
 			b, _ := regexp.MatchString("^##.*", line)
 			if b {
-				time.Sleep(10)
+				time.Sleep(30)
 				fileLine[k] = line + Icon[random.RandInt(0, len(Icon)-1)]
 				fmt.Println(fileLine[k])
 			}

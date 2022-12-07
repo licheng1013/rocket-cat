@@ -2,15 +2,12 @@ package core
 
 import (
 	"fmt"
-	"github.com/duke-git/lancet/v2/netutil"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/model"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
-	"io"
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -60,13 +57,11 @@ func (n *Nacos) init() {
 	}
 	n.namingClient = namingClient
 	success, err := n.namingClient.RegisterInstance(n.registerParam)
-	if err != nil {
-		print(err)
+	if err != nil || !success {
+		print("注册失败:", err)
 	}
-	if success {
-		fmt.Println("注册成功！")
-		n.heartbeat()
-	}
+	log.Println("开启心跳功能！")
+	n.heartbeat()
 }
 
 func (n *Nacos) Logout() {
@@ -122,25 +117,20 @@ func (n *Nacos) SelectOneHealthyInstance(serverName string) *model.Instance {
 func (n *Nacos) heartbeat() {
 	go func() {
 		for true {
-			time.Sleep(1 * time.Second)
-			url := "/nacos/v2/ns/health/instance"
-			heads := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
-			params := map[string]string{}
-			params["serviceName"] = n.registerParam.ServiceName
-			params["ip"] = n.registerParam.Ip
-			params["port"] = strconv.FormatUint(n.registerParam.Port, 10)
-			params["healthy"] = "true"
-
-			for _, config := range n.serverConfigs {
-				httpUrl := fmt.Sprintf("http://%v:%v%v", config.IpAddr, strconv.FormatUint(config.Port, 10), url)
-				fmt.Println("心跳地址: " + httpUrl)
-				resp, err := netutil.HttpPut(httpUrl, heads, params)
-				if err != nil {
-					log.Println(err)
-				}
-				body, _ := io.ReadAll(resp.Body)
-				fmt.Println("心跳结果: " + string(body))
+			instance, err := n.namingClient.UpdateInstance(
+				vo.UpdateInstanceParam{
+					Ip:          n.registerParam.Ip,
+					Port:        n.registerParam.Port,
+					Weight:      n.registerParam.Weight,
+					Enable:      n.registerParam.Enable,
+					Healthy:     n.registerParam.Healthy,
+					ServiceName: n.registerParam.ServiceName,
+				})
+			if err != nil || !instance {
+				log.Panicln("更新实例失败!", err)
 			}
+			//log.Println("实例更新成功！")
+			time.Sleep(1 * time.Second)
 		}
 	}()
 }
