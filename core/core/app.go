@@ -44,13 +44,18 @@ func (g *App) SetDecoder(d decoder.Decoder) {
 // NewGameServer 获取一个框架实例
 func NewGameServer(register register.Register) *App {
 	g := &App{}
-	g.port = 10000
+	g.port = 10020
 	g.beforeFunc = func() {}
 	g.stopFunc = func() {}
 	g.decoder = decoder.JsonDecoder{}
 	g.rpc = rpc.HttpRpc{}
 	g.register = register
 	return g
+}
+
+// SetProt 设置启动端口
+func (g *App) SetProt(port uint64) {
+	g.port = port
 }
 
 // Run 启动框架

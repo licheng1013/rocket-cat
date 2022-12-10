@@ -7,6 +7,7 @@ import (
 
 func main() {
 	gateway := core.NewGateway()
+	gateway.App.SetProt(8001)
 	gateway.App.SetBeforeFunc(func() {
 		log.SetFlags(log.LstdFlags + log.Lshortfile)
 	})

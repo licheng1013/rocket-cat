@@ -3,6 +3,6 @@ go 1.19
 use (
 	core
 	gateway
-	server
+	service
 	example
 )
