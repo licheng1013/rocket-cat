@@ -1,10 +1,10 @@
 package main
 
 import (
-	"io-game-go/core"
-	"io-game-go/decoder"
-	"io-game-go/message"
-	"io-game-go/router"
+	"core/core"
+	"core/decoder"
+	"core/message"
+	"core/router"
 	"log"
 	"testing"
 	"time"

@@ -1,4 +1,4 @@
-module io-game-go
+module core
 
 require (
 	github.com/duke-git/lancet/v2 v2.1.10

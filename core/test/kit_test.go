@@ -1,8 +1,8 @@
 package main
 
 import (
-	"io-game-go/message"
-	"io-game-go/router"
+	"core/message"
+	"core/router"
 	"log"
 	"testing"
 )

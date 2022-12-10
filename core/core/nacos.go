@@ -18,6 +18,10 @@ type Nacos struct {
 	namingClient  naming_client.INamingClient
 }
 
+func NewNacos() *Nacos {
+	return &Nacos{}
+}
+
 func (n *Nacos) SetServerConfig(ip string, port uint64) {
 	// 创建serverConfig的另一种方式 -> 此处链接nacos的配置
 	n.serverConfigs = []constant.ServerConfig{
@@ -46,10 +50,9 @@ func (n *Nacos) Register(ip string, port uint64, serviceName string) {
 		Port:        port,
 		ServiceName: serviceName,
 	}
-	n.init()
 }
 
-func (n *Nacos) init() {
+func (n *Nacos) Init() {
 	// 创建服务发现客户端的另一种方式 (推荐)
 	namingClient, err := clients.NewNamingClient(vo.NacosClientParam{ServerConfigs: n.serverConfigs})
 	if err != nil {
@@ -60,8 +63,6 @@ func (n *Nacos) init() {
 	if err != nil || !success {
 		print("注册失败:", err)
 	}
-	log.Println("开启心跳功能！")
-	n.heartbeat()
 }
 
 func (n *Nacos) Logout() {
@@ -113,8 +114,8 @@ func (n *Nacos) SelectOneHealthyInstance(serverName string) *model.Instance {
 	return instances
 }
 
-// 心跳功能
-func (n *Nacos) heartbeat() {
+// Heartbeat 心跳功能
+func (n *Nacos) Heartbeat() {
 	go func() {
 		for true {
 			instance, err := n.namingClient.UpdateInstance(

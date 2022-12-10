@@ -1,13 +1,13 @@
 package main
 
 import (
+	"core/message"
+	"core/router"
 	"fmt"
 	"github.com/fwhezfwhez/errorx"
 	"github.com/xtaci/kcp-go/v5"
 	"google.golang.org/protobuf/proto"
 	"io"
-	"io-game-go/message"
-	"io-game-go/router"
 	"log"
 	"testing"
 	"time"

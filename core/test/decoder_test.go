@@ -1,8 +1,8 @@
 package main
 
 import (
+	"core/message"
 	"google.golang.org/protobuf/proto"
-	"io-game-go/message"
 	"log"
 	"testing"
 )

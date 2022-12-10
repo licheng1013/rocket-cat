@@ -1,17 +1,10 @@
-package gateway
+package main
 
 import (
-	"fmt"
-	"io-game-go/core"
+	"log"
 	"testing"
 )
 
 func TestGateway(t *testing.T) {
-	gateway := &Gateway{}
-	gateway.Register()
-	instances1 := gateway.Nacos.SelectOneHealthyInstance(core.ServerName)
-	instances2 := gateway.Nacos.SelectOneHealthyInstance(core.ServerName)
-	fmt.Println(instances1.Ip)
-	fmt.Println(instances2.Ip)
-	gateway.Nacos.Logout()
+	log.Println("HelloWorld")
 }

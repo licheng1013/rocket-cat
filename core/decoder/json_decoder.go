@@ -1,8 +1,8 @@
 package decoder
 
 import (
-	"io-game-go/message"
-	"io-game-go/router"
+	"core/message"
+	"core/router"
 )
 
 type JsonDecoder struct {
