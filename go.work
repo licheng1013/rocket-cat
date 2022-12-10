@@ -4,4 +4,5 @@ use (
 	core
 	gateway
 	server
+	example
 )

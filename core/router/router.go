@@ -39,6 +39,10 @@ func AddFunc(merge int64, method func(msg interface{}) interface{}) {
 
 // ExecuteFunc 执行消息
 func ExecuteFunc(merge int64, v interface{}) interface{} {
+	if routerMap[merge] == nil {
+		log.Println("路由", merge, "未注册")
+		return nil
+	}
 	return routerMap[merge](v)
 }
 

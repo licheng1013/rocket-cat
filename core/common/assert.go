@@ -1,4 +1,4 @@
-package core
+package common
 
 // 断言工具
 

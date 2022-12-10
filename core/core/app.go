@@ -1,54 +1,71 @@
 package core
 
 import (
-	"context"
+	"core/common"
 	"core/decoder"
-	"core/message"
-	"core/router"
+	"core/register"
+	"core/rpc"
 	"fmt"
 	"github.com/fwhezfwhez/errorx"
 	"github.com/xtaci/kcp-go/v5"
-	"google.golang.org/protobuf/proto"
 	"io"
 	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
+// App 整个框架实例，请使用 NewGameServer 初始化
 type App struct {
-	Port       uint64
-	Listener   *kcp.Listener
-	BeforeFunc func()
+	// 监听端口
+	port uint64
+	// Kcp 连接监听 TODO 后续需要调整！
+	listener *kcp.Listener
+	// 启动前钩子
+	beforeFunc func()
+	// 开启收到消息日志
+	EnableMessageLog bool
+	// 解码器默认使用Json解码编码
+	decoder decoder.Decoder
+	// 关机钩子
+	stopFunc func()
+	// rpc请求
+	rpc rpc.Rpc
+	// 注册中心
+	register register.Register
 }
 
-// SetDecoder 设置编码器默认: decoder.DefaultDecoder
+// SetDecoder 设置编码器
 func (g *App) SetDecoder(d decoder.Decoder) {
-	decoder.SetDecoder(d)
+	g.decoder = d
 }
 
-func NewGameServer() *App {
+// NewGameServer 获取一个框架实例
+func NewGameServer(register register.Register) *App {
 	g := &App{}
-	g.Port = 10000
-	g.BeforeFunc = func() {}
+	g.port = 10000
+	g.beforeFunc = func() {}
+	g.stopFunc = func() {}
+	g.decoder = decoder.JsonDecoder{}
+	g.rpc = rpc.HttpRpc{}
+	g.register = register
 	return g
 }
 
+// Run 启动框架
 func (g *App) Run() {
-	g.BeforeFunc()
+	g.beforeFunc()
 	go func() {
-		log.Println("监听端口: ", g.Port)
-		addr := ":" + fmt.Sprint(g.Port)
+		log.Println("监听端口: ", g.port)
+		addr := ":" + fmt.Sprint(g.port)
 		lis, err := kcp.ListenWithOptions(addr, nil, 10, 3)
-		AssertErr(err)
-		g.Listener = lis
+		common.AssertErr(err)
+		g.listener = lis
 		for {
-			conn, err := g.Listener.AcceptKCP()
-			AssertErr(err)
+			conn, err := g.listener.AcceptKCP()
+			common.AssertErr(err)
 			go func(conn net.Conn) {
-				conn.RemoteAddr().String()
 				var buffer = make([]byte, 1024, 1024)
 				for {
 					// 读取长度 n
@@ -61,51 +78,38 @@ func (g *App) Run() {
 						break
 					}
 					// 编码解码
-					merge, body := decoder.GetDecoder().DecoderBytes(buffer[:n])
-					// 处理对于函数
-					result := router.ExecuteFunc(merge, body)
-					if result != nil {
-						// 分发消息
-						var bytes []byte
-						switch result.(type) {
-						case []byte:
-							bytes = result.([]byte)
-							break
-						case proto.Message:
-							bytes = message.MarshalBytes(result.(proto.Message))
-							break
-						}
+					merge, body := g.decoder.DecoderBytes(buffer[:n])
+					if g.EnableMessageLog {
+						log.Println("请求路由: ", merge, "请求数据: ", string(body.([]byte)))
+					}
+					// 处理对于函数 TODO 这里进行远程调用！
+					result := g.rpc.Call(g.register.RequestUrl(), merge, body)
+					bytes := decoder.ParseResult(result)
+					if len(bytes) != 0 {
 						_, err := conn.Write(bytes)
-						AssertErr(err)
+						common.AssertErr(err)
 					}
 				}
 			}(conn)
 		}
-
 	}()
 
-}
-
-
-
-
-// Stop 框架停止钩子！
-func (g *App) Stop(v func()) {
 	log.Println("等待关闭...")
 	quit := make(chan os.Signal, 1) // 创建一个接收信号的通道
 	// kill -2 发送 syscall.SIGINT 信号，我们常用的Ctrl+C就是触发系统SIGINT信号
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) // 此处不会阻塞
 	<-quit                                               // 阻塞在此，当接收到上述两种信号时才会往下执行
 	log.Println("正在关机...")
-	// 创建一个5秒超时的context
-	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	// 5秒内优雅关闭服务（将未处理完的请求处理完再关闭服务），超过5秒就超时退出
-	v()
-	_ = g.Listener.Close()
+	g.stopFunc()
+	_ = g.listener.Close()
+}
+
+// SetStopFunc Stop 框架停止钩子！ 启动之前停止他
+func (g *App) SetStopFunc(v func()) {
+	g.stopFunc = v
 }
 
 // SetBeforeFunc 注册前置钩子，在框架启动的时候处理某些东西！
 func (g *App) SetBeforeFunc(v func()) {
-	g.BeforeFunc = v
+	g.beforeFunc = v
 }

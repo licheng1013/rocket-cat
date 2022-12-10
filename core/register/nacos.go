@@ -1,6 +1,7 @@
-package core
+package register
 
 import (
+	"core/common"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
@@ -10,11 +11,21 @@ import (
 	"time"
 )
 
+// Nacos 请使用构造方法获取实例  NewNacos
 type Nacos struct {
 	registerParam vo.RegisterInstanceParam
 	logoutParam   vo.DeregisterInstanceParam
 	serverConfigs []constant.ServerConfig
 	namingClient  naming_client.INamingClient
+}
+
+func (n *Nacos) RequestUrl() RequestInfo {
+	instance := n.SelectOneHealthyInstance(common.ServicerName)
+	if instance == nil {
+		log.Println("远程调用没有可用的实例！")
+		return RequestInfo{}
+	}
+	return RequestInfo{instance.Ip, instance.Port}
 }
 
 func NewNacos() *Nacos {
