@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
@@ -71,7 +70,7 @@ func (n *Nacos) Logout() {
 		print(err)
 	}
 	if success {
-		fmt.Println("注销成功！")
+		log.Println("注销成功！")
 	}
 }
 
@@ -84,7 +83,7 @@ func (n *Nacos) AllInstances() {
 	if err != nil {
 		print(err)
 	}
-	fmt.Println("所有实例: ", instances)
+	log.Println("所有实例: ", instances)
 }
 
 // SelectInstances 获取指定条件的实例
