@@ -2,30 +2,65 @@ package core
 
 import (
 	"core/common"
+	"core/pkc"
 	"core/register"
+	"fmt"
+	"log"
+	"net"
+	"net/http"
+	"net/rpc"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 // Service 构建服务
 type Service struct {
 	Nacos *register.Nacos
-	App   *App
+	Port  uint64
 }
 
-func NewService() *Service {
+// NewService 设置启动端口地址
+func NewService(port uint64) *Service {
 	g := &Service{}
+	g.Port = port
 	g.Nacos = register.NewNacos()
-	g.App = NewGameServer(g.Nacos)
 	return g
 }
 
-// Run 注册中心地址和端口
+// Run 设置注册中心地址和端口
 func (n *Service) Run(ip string, port uint64) {
 	n.Nacos.SetServerConfig(ip, port)
-	n.Nacos.Register("192.168.101.10", n.App.port, common.ServicerName)
+	n.Nacos.Register("192.168.101.10", n.Port, common.ServicerName)
 	n.Nacos.Init()      //初始化
 	n.Nacos.Heartbeat() //心跳服务
-	n.App.SetStopFunc(func() {
-		n.Nacos.Logout()
-	})
-	n.App.Run()
+	n.RpcLient()        //注册rpc
+	n.Stop()
+	n.Nacos.Logout()
+}
+
+func (n *Service) RpcLient() {
+	go func() {
+		/*将服务对象进行注册*/
+		err := rpc.Register(new(pkc.Result))
+		if err != nil {
+			err.Error()
+		}
+		rpc.HandleHTTP()
+		/* 固定端口进行监听*/
+		listen, err := net.Listen("tcp", "192.168.101.10:"+fmt.Sprint(n.Port))
+		if err != nil {
+			panic(err.Error())
+		}
+		_ = http.Serve(listen, nil)
+	}()
+}
+
+func (n *Service) Stop() {
+	log.Println("等待关闭...")
+	quit := make(chan os.Signal, 1) // 创建一个接收信号的通道
+	// kill -2 发送 syscall.SIGINT 信号，我们常用的Ctrl+C就是触发系统SIGINT信号
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) // 此处不会阻塞
+	<-quit                                               // 阻塞在此，当接收到上述两种信号时才会往下执行
+	log.Println("正在关机...")
 }

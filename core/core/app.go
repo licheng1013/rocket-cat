@@ -3,8 +3,8 @@ package core
 import (
 	"core/common"
 	"core/decoder"
+	"core/pkc"
 	"core/register"
-	"core/rpc"
 	"fmt"
 	"github.com/fwhezfwhez/errorx"
 	"github.com/xtaci/kcp-go/v5"
@@ -31,7 +31,7 @@ type App struct {
 	// 关机钩子
 	stopFunc func()
 	// rpc请求
-	rpc rpc.Rpc
+	rpc pkc.Rpc
 	// 注册中心
 	register register.Register
 }
@@ -48,7 +48,7 @@ func NewGameServer(register register.Register) *App {
 	g.beforeFunc = func() {}
 	g.stopFunc = func() {}
 	g.decoder = decoder.JsonDecoder{}
-	g.rpc = rpc.HttpRpc{}
+	g.rpc = pkc.HttpRpc{}
 	g.register = register
 	return g
 }
@@ -87,9 +87,12 @@ func (g *App) Run() {
 					if g.EnableMessageLog {
 						log.Println("请求路由: ", merge, "请求数据: ", string(body.([]byte)))
 					}
+
+					rpcResult := &pkc.RpcResult{}
 					// 处理对于函数 TODO 这里进行远程调用！
-					result := g.rpc.Call(g.register.RequestUrl(), merge, body)
-					bytes := decoder.ParseResult(result)
+					err := g.rpc.Call(g.register.RequestUrl(), pkc.RequestInfo{Merage: merge, Body: body}, rpcResult)
+					common.AssertErr(err)
+					bytes := decoder.ParseResult(rpcResult.Result)
 					if len(bytes) != 0 {
 						_, err := conn.Write(bytes)
 						common.AssertErr(err)

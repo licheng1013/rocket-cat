@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+// 测试客户端连接
 func main() {
 	connectJson(1)
 }
@@ -64,7 +65,7 @@ func connectProto(num int) {
 }
 
 func connectJson(num int) {
-	kecClient, err := kcp.DialWithOptions("localhost:10000", nil, 10, 3)
+	kecClient, err := kcp.DialWithOptions("localhost:8001", nil, 10, 3)
 	if err != nil {
 		panic(err)
 	}
