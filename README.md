@@ -5,11 +5,15 @@
 
 ## 描述
 - 一个go简单游戏服务器实现，目前是的。
+- 打造一个简单的游戏服务器框架，易扩展，易使用，易阅读
 
 ## 功能
-- [x] 支持Kcp
+### 传输结构
 - [x] 支持Json
 - [x] 支持Proto
+
+### 连接协议
+- [x] 支持Kcp
 - [ ] 支持Tcp
 - [ ] 支持Websocket
 
@@ -20,4 +24,3 @@
 
 ## 工具类
 - [Lancet](https://github.com/duke-git/lancet/blob/main/README_zh-CN.md)
-
