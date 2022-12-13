@@ -1,18 +1,18 @@
 package message
 
 import (
-	"go-util/util"
+	"gitee.com/licheng1013/go-util/common"
 	"google.golang.org/protobuf/proto"
 	"log"
 )
 
 func GetObjectToBytes(a any) []byte {
-	return []byte(util.JsonToStr(a))
+	return []byte(common.JsonUtil.JsonToStr(a))
 }
 
 func GetBytesToObject(bytes []byte) any {
 	v := GetMessage()
-	util.JsonToObj(string(bytes), &v)
+	common.JsonUtil.JsonToMap(string(bytes), &v)
 	return v
 }
 

@@ -1,7 +1,7 @@
 module core
 
 require (
-	github.com/duke-git/lancet/v2 v2.1.10
+	gitee.com/licheng1013/go-util v0.1.8
 	github.com/fwhezfwhez/errorx v1.1.0
 	github.com/nacos-group/nacos-sdk-go/v2 v2.1.2
 	github.com/xtaci/kcp-go/v5 v5.6.1
@@ -52,16 +52,14 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/klauspost/cpuid/v2 v2.0.14 // indirect
 	github.com/klauspost/reedsolomon v1.10.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/templexxx/cpu v0.0.7 // indirect
 	github.com/templexxx/xorsimd v0.4.1 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
-	go-util v0.0.5
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
 	golang.org/x/sys v0.0.0-20220624220833-87e55d714810 // indirect
 )
-
-replace go-util => gitee.com/licheng1013/go-util v0.0.5
 
 go 1.19
