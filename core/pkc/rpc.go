@@ -21,3 +21,13 @@ func (r *Result) Invok(rpcInfo RequestInfo, rpcResulet *RpcResult) error {
 	// TODO 这里是业务逻辑的处理！
 	return nil
 }
+
+
+type RequestInfo struct {
+	Merage int64
+	Body   interface{}
+}
+
+type RpcResult struct {
+	Result []byte
+}

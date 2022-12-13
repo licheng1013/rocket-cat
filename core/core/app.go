@@ -50,7 +50,7 @@ func NewGameServer(register register.Register) *App {
 	g.beforeFunc = func() {}
 	g.stopFunc = func() {}
 	g.decoder = decoder.JsonDecoder{}
-	g.rpc = pkc.HttpRpc{}
+	g.rpc = pkc.DefaultRpc{}
 	g.register = register
 	return g
 }

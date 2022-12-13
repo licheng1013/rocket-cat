@@ -2,13 +2,9 @@ package core
 
 import (
 	"core/common"
-	"core/pkc"
 	"core/register"
 	"fmt"
 	"log"
-	"net"
-	"net/http"
-	"net/rpc"
 	"os"
 	"os/signal"
 	"syscall"
@@ -19,6 +15,7 @@ type Service struct {
 	Nacos *register.Nacos
 	Port  uint64
 	Ip string
+	rpcCell func(ip string,port uint64)
 }
 
 // NewService 设置启动端口地址
@@ -38,26 +35,13 @@ func (n *Service) Run(ip string, port uint64) {
 	n.Nacos.Register(ip, n.Port, common.ServicerName)
 	n.Nacos.Init()      //初始化
 	n.Nacos.Heartbeat() //心跳服务
-	n.RpcLient()        //注册rpc
+	n.rpcCell(n.Ip,n.Port)        //注册rpc
 	n.Stop()
 	n.Nacos.Logout()
 }
 
-func (n *Service) RpcLient() {
-	go func() {
-		/*将服务对象进行注册*/
-		err := rpc.Register(new(pkc.Result))
-		if err != nil {
-			err.Error()
-		}
-		rpc.HandleHTTP()
-		/* 固定端口进行监听*/
-		listen, err := net.Listen("tcp", "192.168.101.10:"+fmt.Sprint(n.Port))
-		if err != nil {
-			panic(err.Error())
-		}
-		_ = http.Serve(listen, nil)
-	}()
+func (n *Service) RpcLient(f func(ip string,port uint64)) {
+	n.rpcCell = f
 }
 
 func (n *Service) Stop() {
