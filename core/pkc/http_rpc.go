@@ -1,6 +1,7 @@
 package pkc
 
 import (
+	"core/common"
 	"core/register"
 	"fmt"
 	"log"
@@ -11,15 +12,13 @@ type HttpRpc struct {
 }
 
 func (HttpRpc) Call(requestUrl register.RequestInfo, info RequestInfo, rpcResult *RpcResult) error {
-	log.Println("执行远程调用信息: ", requestUrl)
+	//log.Println("执行远程调用信息: ", requestUrl)
 	cli, err := rpc.DialHTTP("tcp", requestUrl.Ip+":"+fmt.Sprint(requestUrl.Port))
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 	err = cli.Call("Result.Invok", info, &rpcResult)
-	if err != nil {
-		panic(err)
-	}
+	common.AssertErr(err)
 	fmt.Println("远程结果:", string(rpcResult.Result))
 	return nil
 }

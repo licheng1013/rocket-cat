@@ -18,20 +18,24 @@ import (
 type Service struct {
 	Nacos *register.Nacos
 	Port  uint64
+	Ip string
 }
 
 // NewService 设置启动端口地址
-func NewService(port uint64) *Service {
+func NewService(ip string, port uint64) *Service {
 	g := &Service{}
 	g.Port = port
+	g.Ip = ip
 	g.Nacos = register.NewNacos()
 	return g
 }
 
 // Run 设置注册中心地址和端口
 func (n *Service) Run(ip string, port uint64) {
-	n.Nacos.SetServerConfig(ip, port)
-	n.Nacos.Register("192.168.101.10", n.Port, common.ServicerName)
+	log.Println("nacos注册地址: http://"+ ip +":"+fmt.Sprint(port))
+	log.Println("service注册地址: http://"+ n.Ip +":"+fmt.Sprint(n.Port))
+	n.Nacos.SetServerConfig(n.Ip, port)
+	n.Nacos.Register(ip, n.Port, common.ServicerName)
 	n.Nacos.Init()      //初始化
 	n.Nacos.Heartbeat() //心跳服务
 	n.RpcLient()        //注册rpc

@@ -6,11 +6,10 @@ import (
 )
 
 func main() {
-	gateway := core.NewGateway()
-	gateway.App.SetProt(8001)
+	ip := "192.168.101.10"
+	gateway := core.NewGateway(ip,8001)
 	gateway.App.SetBeforeFunc(func() {
 		log.SetFlags(log.LstdFlags + log.Lshortfile)
 	})
-	gateway.App.EnableMessageLog = true
-	gateway.Run("192.168.101.10", 8848)
+	gateway.Run(ip, 8848)
 }

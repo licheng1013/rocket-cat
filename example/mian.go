@@ -26,7 +26,7 @@ func connectProto(num int) {
 	info := message.Info{Info: "Hello" + fmt.Sprint(num)}
 	marshal := message.MarshalBytes(&info)
 
-	defaultMessage := message.ProtoMessage{Body: marshal, Merge: router.GetMerge(0, 1)}
+	defaultMessage := message.ProtoMessage{Body: marshal, Merge: router.GetMerge(1, 1)}
 	// 获取服务单的消息
 	go func() {
 		var buffer = make([]byte, 1024, 1024)
@@ -69,13 +69,17 @@ func connectJson(num int) {
 	if err != nil {
 		panic(err)
 	}
-	defaultMessage := message.JsonMessage{Body: []byte("Hello" + fmt.Sprint(num)), Merge: router.GetMerge(0, 1)}
+	defaultMessage := message.JsonMessage{Body: []byte("Hello" + fmt.Sprint(num)), Merge: router.GetMerge(1, 1)}
 	// 获取服务单的消息
+	unix := time.Now().UnixMilli()
+	fmt.Println(unix)
+	var count int64
 	go func() {
 		var buffer = make([]byte, 1024, 1024)
 		for {
+			count++
 			// 读取长度 n
-			n, e := kecClient.Read(buffer)
+			_, e := kecClient.Read(buffer)
 			if e != nil {
 				if e == io.EOF {
 					break
@@ -85,13 +89,19 @@ func connectJson(num int) {
 			}
 
 			// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
-			log.Println(num, "服务端数据: ", string(buffer[:n]))
+			//log.Println(num, "服务端数据: ", string(buffer[:n]))
+
+			newUnix := time.Now().UnixMilli()
+			if newUnix-unix > 1000 {
+				fmt.Println("1秒请求数:",fmt.Sprint(count))
+				unix = newUnix
+			}
 		}
 	}()
 	go func() {
 		for true {
 			_, _ = kecClient.Write(message.GetObjectToBytes(defaultMessage))
-			time.Sleep(1 * time.Second)
+			//time.Sleep(1 * time.Second)
 		}
 	}()
 	select {}

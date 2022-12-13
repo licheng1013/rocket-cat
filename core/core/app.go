@@ -34,6 +34,8 @@ type App struct {
 	rpc pkc.Rpc
 	// 注册中心
 	register register.Register
+	// ip地址
+	ip string
 }
 
 // SetDecoder 设置编码器
@@ -120,4 +122,9 @@ func (g *App) SetStopFunc(v func()) {
 // SetBeforeFunc 注册前置钩子，在框架启动的时候处理某些东西！
 func (g *App) SetBeforeFunc(v func()) {
 	g.beforeFunc = v
+}
+
+// SetIp 设置ip
+func (g *App) SetIp(ip string) {
+	g.ip = ip
 }
