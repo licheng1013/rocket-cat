@@ -44,10 +44,10 @@ func connectProto(num int) {
 			n, e := kecClient.Read(buffer)
 			if e != nil {
 				if e == io.EOF {
-					break
+					continue
 				}
 				fmt.Println(errorx.Wrap(e))
-				break
+				continue
 			}
 
 			// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
@@ -74,7 +74,11 @@ func connectProto(num int) {
 			if err != nil {
 				log.Panicln(err)
 			}
-			_, _ = kecClient.Write(marshal)
+			num, err = kecClient.Write(marshal)
+			log.Println("写入: "+fmt.Sprint(num))
+			if err != nil {
+				log.Println(err)
+			}
 			time.Sleep(200 * time.Millisecond)
 		}
 	}()

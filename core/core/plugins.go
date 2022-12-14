@@ -1,7 +1,7 @@
 package core
 
 
-// PluginFunc 每次链接时的插件
-type PluginFunc interface {
+// Plugin 插件
+type Plugin interface {
 	Invok(app *App)
 }

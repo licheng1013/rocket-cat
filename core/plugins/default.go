@@ -8,10 +8,12 @@ import (
 
 
 type CountLinkPlugin struct {
-	Count int64
 }
 
 func (c *CountLinkPlugin) Invok(app *core.App) {
-	c.Count++
-	fmt.Println("连接数: "+fmt.Sprint(c.Count))
+	fmt.Println("连接数: "+fmt.Sprint(len(app.Conns)))
+}
+
+type Heartbeat struct {
+
 }

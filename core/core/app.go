@@ -3,6 +3,7 @@ package core
 import (
 	"core/common"
 	"core/decoder"
+	"core/message"
 	"core/pkc"
 	"core/register"
 	"fmt"
@@ -37,14 +38,18 @@ type App struct {
 	// ip地址
 	ip string
 	// 客户端连接
-	conns []net.Conn
-	// 插件列表
-	plugins []PluginFunc
+	Conns []net.Conn
+	// 请求消息
+	Result message.Message
+	// 建立连接时候触发的插件！
+	Connecteds []Plugin
+	// 处理业务逻辑之前的插件！
+	ServiceBefores []Plugin
 }
 
 // AddPlugin 添加插件
-func (g *App) AddPlugin(pluginFunc PluginFunc)  {
-	g.plugins = append(g.plugins, pluginFunc)
+func (g *App) AddPlugin(pluginFunc Plugin)  {
+	g.Connecteds = append(g.Connecteds, pluginFunc)
 }
 
 
@@ -89,9 +94,9 @@ func (g *App) Run() {
 			conn, err := g.listener.AcceptKCP()
 			common.AssertErr(err)
 			go func(conn net.Conn) {
-				g.conns = append(g.conns, conn)
-				for i := range g.plugins { //执行插件逻辑
-					g.plugins[i].Invok(g)
+				g.Conns = append(g.Conns, conn)
+				for i := range g.Connecteds { //执行插件逻辑
+					g.Connecteds[i].Invok(g)
 				}
 				var buffer = make([]byte, 1024, 1024)
 				for {
@@ -99,15 +104,19 @@ func (g *App) Run() {
 					n, e := conn.Read(buffer)
 					if e != nil {
 						if e == io.EOF {
-							break
+							continue
 						}
 						fmt.Println(errorx.Wrap(e))
-						break
 					}
 					// 编码解码
 					msg := g.decoder.DecoderBytes(buffer[:n])
 					if g.EnableMessageLog {
 						log.Println("请求路由: ", msg.GetMerge(), "请求数据: ", string(msg.GetBody()))
+					}
+
+					g.Result = msg
+					for i := range g.ServiceBefores { //执行插件逻辑
+						g.ServiceBefores[i].Invok(g)
 					}
 
 					rpcResult := pkc.RpcResult{}
