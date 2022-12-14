@@ -5,4 +5,5 @@ use (
 	gateway
 	service
 	example
+	test
 )

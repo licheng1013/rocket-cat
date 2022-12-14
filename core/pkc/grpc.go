@@ -37,7 +37,7 @@ func (g *Grpc) Call(requestUrl register.RequestInfo, info message.Message, rpcRe
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
-	log.Println("请求结果:" + string(invoke.Result))
+	//log.Println("请求结果:" + string(invoke.Result))
 	rpcResult.Result = invoke.GetResult()
 	rpcResult.Error = invoke.Error
 	return nil

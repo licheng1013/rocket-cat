@@ -15,14 +15,14 @@
 syntax = "proto3";
 
 // 导出路径
-option go_package = "core/proto";
+option go_package = "core/protof";
 import "proto_message.proto";
 
 
 // The greeting service definition.
 service GrpcService {
   // Sends a greeting
-  rpc Invoke (ProtoMessage) returns (GrpcResult) {}
+  rpc Invoke (  ProtoMessage) returns ( GrpcResult) {}
 }
 
 
