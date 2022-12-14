@@ -8,6 +8,10 @@ import (
 type JsonDecoder struct {
 }
 
+func NewJsonDecoder() *JsonDecoder {
+	return &JsonDecoder{}
+}
+
 // DecoderBytes 实现此方法可获取一些功能！
 // 数据解析处理的核心方法，在这里你新建一个类去实现  Decoder 来完成自定义的的玩法
 // 默认的编码器消息 message.DefaultMessage 需要进行json转换

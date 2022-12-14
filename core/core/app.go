@@ -45,6 +45,12 @@ func (g *App) SetDecoder(d decoder.Decoder) {
 	g.decoder = d
 }
 
+// SetRpc 设置Rpc调用处理
+func (g *App) SetRpc(p pkc.Rpc)  {
+	g.rpc = p
+}
+
+
 // NewGameServer 获取一个框架实例
 func NewGameServer(register register.Register) *App {
 	g := &App{}
@@ -66,7 +72,7 @@ func (g *App) SetProt(port uint64) {
 func (g *App) Run() {
 	g.beforeFunc()
 	go func() {
-		log.Println("监听端口: ", g.port)
+		log.Println(fmt.Sprintf("监听端口: %v:%v", g.ip, g.port))
 		addr := ":" + fmt.Sprint(g.port)
 		lis, err := kcp.ListenWithOptions(addr, nil, 10, 3)
 		common.AssertErr(err)

@@ -6,6 +6,7 @@ import (
 	"core/register"
 	"flag"
 	"fmt"
+	"gitee.com/licheng1013/go-util/common"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -21,8 +22,7 @@ func NewGreeterClient(cc grpc.ClientConnInterface) RpcHandle {
 }
 
 func (Grpc) Call(requestUrl register.RequestInfo, info message.Message, rpcResult *RpcResult) error {
-	addr := flag.String("addr", requestUrl.Ip+":"+fmt.Sprint(requestUrl.Port), "the address to connect to")
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(fmt.Sprintf("%v:%v",requestUrl.Ip,requestUrl.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -36,10 +36,11 @@ func (Grpc) Call(requestUrl register.RequestInfo, info message.Message, rpcResul
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
-	log.Printf("Greeting: %s", rpcResult.Result)
+	log.Println("请求结果:"+string(rpcResult.Result))
 	return nil
 }
 
+// RpcListen 被调用逻辑处理
 func ( Grpc) RpcListen(ip string, p uint64)  {
 	port := flag.Int("port", int(p), "The server port")
 	go func() {
@@ -49,21 +50,21 @@ func ( Grpc) RpcListen(ip string, p uint64)  {
 		}
 		s := grpc.NewServer()
 		RegisterGreeterServer(s, GrpcResult{})
-		log.Printf("server listening at %v", lis.Addr())
+		log.Printf("监听端口 %v", lis.Addr())
 		if err := s.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}
 	}()
 }
 
-func RegisterGreeterServer(s grpc.ServiceRegistrar, srv GrpcResult) {
+func RegisterGreeterServer(s grpc.ServiceRegistrar, srv RpcHandle) {
 	s.RegisterService(&GreeterServicedesc, srv)
 }
 
 // GreeterServicedesc 是 Greeter 服务的 grpc.ServiceDesc。它仅适用于直接与 grpc.RegisterService 一起使用，不能进行自省或修改（即使是副本）
 var GreeterServicedesc = grpc.ServiceDesc{
 	ServiceName: "helloworld.Greeter",
-	HandlerType: (*GrpcResult)(nil),
+	HandlerType: (*RpcHandle)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Invok",
@@ -77,6 +78,13 @@ type GrpcResult struct {
 }
 
 func (g GrpcResult) Invok(rpcInfo message.Message, rpcResulet *RpcResult) error {
-	fmt.Println("被调用了!")
+	protoMessage := message.ProtoMessage{}
+	common.JsonUtil.MapTosStruct(rpcInfo,&protoMessage)
+
+	//fmt.Println("被调用了!")
+	err := g.cc.Invoke(context.Background(), "Invok",&protoMessage,&rpcResulet)
+	if err != nil {
+		log.Println(err)
+	}
 	return nil
 }

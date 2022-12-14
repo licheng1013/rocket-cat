@@ -9,6 +9,10 @@ import (
 type ProtoDecoder struct {
 }
 
+func NewProtoDecoder() *ProtoDecoder {
+	return &ProtoDecoder{}
+}
+
 func (p ProtoDecoder) DecoderBytes(bytes []byte) message.Message {
 	msg := message.ProtoMessage{}
 	// 转换反序列话
