@@ -7,6 +7,7 @@ import (
 	"core/register"
 	"flag"
 	"fmt"
+	"gitee.com/licheng1013/go-util/common"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -15,20 +16,20 @@ import (
 )
 
 type Grpc struct {
-	conn *grpc.ClientConn
+	conn []*grpc.ClientConn
 }
 
 func (g *Grpc) Call(requestUrl register.RequestInfo, info message.Message, rpcResult *RpcResult) error {
-	if g.conn == nil {
+	if len(g.conn) <= 10 { //TODO 设置最大连接数！
 		conn, err := grpc.Dial(fmt.Sprintf("%v:%v", requestUrl.Ip, requestUrl.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			log.Fatalf("did not connect: %v", err)
 		}
-		g.conn = conn
+		g.conn = append(g.conn, conn)
 	}
 
 	//defer g.conn.Close() //假设不关闭如何！
-	c := protof.NewGrpcServiceClient(g.conn)
+	c := protof.NewGrpcServiceClient(g.conn[common.RandomUtil.RandomRangeNum(len(g.conn))])
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
