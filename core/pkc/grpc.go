@@ -20,7 +20,7 @@ type Grpc struct {
 }
 
 func (g *Grpc) Call(requestUrl register.RequestInfo, info message.Message, rpcResult *RpcResult) error {
-	if len(g.conn) <= 10 { //TODO 设置最大连接数！
+	if len(g.conn) <= 100 { //TODO 设置最大连接数！
 		conn, err := grpc.Dial(fmt.Sprintf("%v:%v", requestUrl.Ip, requestUrl.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			log.Fatalf("did not connect: %v", err)

@@ -38,7 +38,15 @@ type App struct {
 	ip string
 	// 客户端连接
 	conns []net.Conn
+	// 插件列表
+	plugins []PluginFunc
 }
+
+// AddPlugin 添加插件
+func (g *App) AddPlugin(pluginFunc PluginFunc)  {
+	g.plugins = append(g.plugins, pluginFunc)
+}
+
 
 // SetDecoder 设置编码器
 func (g *App) SetDecoder(d decoder.Decoder) {
@@ -76,11 +84,15 @@ func (g *App) Run() {
 		lis, err := kcp.ListenWithOptions(addr, nil, 10, 3)
 		common.AssertErr(err)
 		g.listener = lis
-		for {
+		// TODO 未来加入TCP,WEBSOCKET
+		for { //监听链接！
 			conn, err := g.listener.AcceptKCP()
 			common.AssertErr(err)
 			go func(conn net.Conn) {
 				g.conns = append(g.conns, conn)
+				for i := range g.plugins { //执行插件逻辑
+					g.plugins[i].Invok(g)
+				}
 				var buffer = make([]byte, 1024, 1024)
 				for {
 					// 读取长度 n
@@ -110,7 +122,7 @@ func (g *App) Run() {
 						continue
 					}
 					msg.SetBody(bytes)
-
+					//获取结果返回！
 					_, err = conn.Write(msg.GetBytesResult())
 					common.AssertErr(err)
 				}

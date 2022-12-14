@@ -15,7 +15,7 @@ import (
 
 // 测试客户端连接
 func main() {
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 10; i++ {
 		go func(i int) {
 			connectProto(i)
 		}(i)
@@ -75,7 +75,7 @@ func connectProto(num int) {
 				log.Panicln(err)
 			}
 			_, _ = kecClient.Write(marshal)
-			//time.Sleep(200 * time.Millisecond)
+			time.Sleep(200 * time.Millisecond)
 		}
 	}()
 	select {}
