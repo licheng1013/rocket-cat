@@ -12,22 +12,25 @@ import (
 )
 
 type DefaultRpc struct {
-
+	cli *rpc.Client
 }
 
-func (DefaultRpc) Call(requestUrl register.RequestInfo, info message.Message, rpcResult *RpcResult) error {
+func (d *DefaultRpc) Call(requestUrl register.RequestInfo, info message.Message, rpcResult *RpcResult) error {
 	//log.Println("执行远程调用信息: ", requestUrl)
-	cli, err := rpc.DialHTTP("tcp", requestUrl.Ip+":"+fmt.Sprint(requestUrl.Port))
-	if err != nil {
-		log.Println(err)
+	if d.cli == nil {
+		cli, err := rpc.DialHTTP("tcp", requestUrl.Ip+":"+fmt.Sprint(requestUrl.Port))
+		if err != nil {
+			log.Println(err)
+		}
+		d.cli = cli
 	}
-	err = cli.Call("Result.Invok", info, &rpcResult)
+	err := d.cli.Call("Result.Invok", info, &rpcResult)
 	common.AssertErr(err)
 	log.Println("远程结果:", string(rpcResult.Result))
 	return nil
 }
 
-func ( DefaultRpc) RpcListen(ip string, port uint64)  {
+func ( *DefaultRpc) RpcListen(ip string, port uint64)  {
 	go func() {
 		/*将服务对象进行注册*/
 		err := rpc.Register(new(Result))

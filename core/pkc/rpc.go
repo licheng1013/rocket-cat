@@ -31,5 +31,5 @@ func (r *Result) Invok(rpcInfo message.Message, rpcResulet *RpcResult) error {
 
 type RpcResult struct {
 	Result []byte
-	Error  error
+	Error  string
 }

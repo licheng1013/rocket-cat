@@ -6,5 +6,6 @@ type Message interface {
 	GetHeartbeat() bool
 	GetCode() int64
 	GetMessage() string
+	SetBody([]byte)
+	GetBytesResult() []byte
 }
-

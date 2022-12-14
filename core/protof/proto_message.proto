@@ -1,6 +1,7 @@
 syntax = "proto3";
 
-option go_package = "./;message";
+// 导出路径
+option go_package = "core/proto";
 
 message ProtoMessage{
   int64 merge = 1;

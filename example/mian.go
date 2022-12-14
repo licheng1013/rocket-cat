@@ -2,6 +2,7 @@ package main
 
 import (
 	"core/message"
+	"core/protof"
 	"core/router"
 	"fmt"
 	"github.com/fwhezfwhez/errorx"
@@ -14,23 +15,31 @@ import (
 
 // 测试客户端连接
 func main() {
-	connectJson(1)
+	for i := 0; i < 100; i++ {
+		go func(i int) {
+			connectProto(i)
+		}(i)
+	}
+	select {}
 }
 
 // proto消息编码器
 func connectProto(num int) {
-	kecClient, err := kcp.DialWithOptions("localhost:10000", nil, 10, 3)
+	kecClient, err := kcp.DialWithOptions("localhost:8001", nil, 10, 3)
 	if err != nil {
 		panic(err)
 	}
-	info := message.Info{Info: "Hello" + fmt.Sprint(num)}
-	marshal := message.MarshalBytes(&info)
-
-	defaultMessage := message.ProtoMessage{Body: marshal, Merge: router.GetMerge(1, 1)}
+	info := "HelloWorld"
+	defaultMessage := protof.ProtoMessage{Body: []byte(info), Merge: router.GetMerge(1, 1)}
+	// 获取服务单的消息
+	unix := time.Now().UnixMilli()
+	var count int64
+	fmt.Println(unix)
 	// 获取服务单的消息
 	go func() {
-		var buffer = make([]byte, 1024, 1024)
+		var buffer = make([]byte, 1024*8)
 		for true {
+			count++
 			// 读取长度 n
 			n, e := kecClient.Read(buffer)
 			if e != nil {
@@ -42,13 +51,20 @@ func connectProto(num int) {
 			}
 
 			// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
-
-			v := message.Info{}
+			v := protof.ProtoMessage{}
 			err := proto.Unmarshal(buffer[:n], &v)
 			if err != nil {
 				log.Panicln(err)
 			}
-			log.Println("服务器消息: ", v.String())
+			// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
+			//log.Println(num, "服务端数据: ", string(v.Body))
+
+			newUnix := time.Now().UnixMilli()
+			if newUnix-unix > 1000 {
+				fmt.Println(fmt.Sprint(num)+"线程1秒请求数:", fmt.Sprint(count))
+				unix = newUnix
+				count = 0
+			}
 
 		}
 	}()
@@ -59,6 +75,7 @@ func connectProto(num int) {
 				log.Panicln(err)
 			}
 			_, _ = kecClient.Write(marshal)
+			//time.Sleep(200 * time.Millisecond)
 		}
 	}()
 	select {}
@@ -93,8 +110,9 @@ func connectJson(num int) {
 
 			newUnix := time.Now().UnixMilli()
 			if newUnix-unix > 1000 {
-				fmt.Println("1秒请求数:",fmt.Sprint(count))
+				fmt.Println("1秒请求数:", fmt.Sprint(count))
 				unix = newUnix
+				count = 0
 			}
 		}
 	}()

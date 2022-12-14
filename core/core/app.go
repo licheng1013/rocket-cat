@@ -46,10 +46,9 @@ func (g *App) SetDecoder(d decoder.Decoder) {
 }
 
 // SetRpc 设置Rpc调用处理
-func (g *App) SetRpc(p pkc.Rpc)  {
+func (g *App) SetRpc(p pkc.Rpc) {
 	g.rpc = p
 }
-
 
 // NewGameServer 获取一个框架实例
 func NewGameServer(register register.Register) *App {
@@ -58,7 +57,7 @@ func NewGameServer(register register.Register) *App {
 	g.beforeFunc = func() {}
 	g.stopFunc = func() {}
 	g.decoder = decoder.JsonDecoder{}
-	g.rpc = pkc.DefaultRpc{}
+	g.rpc = &pkc.DefaultRpc{}
 	g.register = register
 	return g
 }
@@ -94,14 +93,14 @@ func (g *App) Run() {
 						break
 					}
 					// 编码解码
-					message := g.decoder.DecoderBytes(buffer[:n])
+					msg := g.decoder.DecoderBytes(buffer[:n])
 					if g.EnableMessageLog {
-						log.Println("请求路由: ", message.GetMerge(), "请求数据: ", string(message.GetBody()))
+						log.Println("请求路由: ", msg.GetMerge(), "请求数据: ", string(msg.GetBody()))
 					}
 
 					rpcResult := pkc.RpcResult{}
 					// 处理对于函数 TODO 这里进行远程调用！
-					err := g.rpc.Call(g.register.RequestUrl(), message, &rpcResult)
+					err := g.rpc.Call(g.register.RequestUrl(), msg, &rpcResult)
 					if err != nil { // 出现错误则打印他，重新监听数据
 						log.Println(err)
 						continue
@@ -110,7 +109,9 @@ func (g *App) Run() {
 					if len(bytes) == 0 { //解析数据为空则不继续请求
 						continue
 					}
-					_, err = conn.Write(bytes)
+					msg.SetBody(bytes)
+
+					_, err = conn.Write(msg.GetBytesResult())
 					common.AssertErr(err)
 				}
 			}(conn)
