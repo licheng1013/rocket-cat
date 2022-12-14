@@ -3,6 +3,9 @@ syntax = "proto3";
 option go_package = "./;message";
 
 message ProtoMessage{
-   int64 merge = 1;
-    bytes body = 2;
+  int64 merge = 1;
+  bytes body = 2;
+  bool heartbeat = 3;
+  int64 code = 4;
+  string message = 5;
 }

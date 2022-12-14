@@ -36,6 +36,8 @@ type App struct {
 	register register.Register
 	// ip地址
 	ip string
+	// 客户端连接
+	conns []net.Conn
 }
 
 // SetDecoder 设置编码器
@@ -73,6 +75,7 @@ func (g *App) Run() {
 			conn, err := g.listener.AcceptKCP()
 			common.AssertErr(err)
 			go func(conn net.Conn) {
+				g.conns = append(g.conns, conn)
 				var buffer = make([]byte, 1024, 1024)
 				for {
 					// 读取长度 n
@@ -85,20 +88,24 @@ func (g *App) Run() {
 						break
 					}
 					// 编码解码
-					merge, body := g.decoder.DecoderBytes(buffer[:n])
+					message := g.decoder.DecoderBytes(buffer[:n])
 					if g.EnableMessageLog {
-						log.Println("请求路由: ", merge, "请求数据: ", string(body.([]byte)))
+						log.Println("请求路由: ", message.GetMerge(), "请求数据: ", string(message.GetBody()))
 					}
 
-					rpcResult := &pkc.RpcResult{}
+					rpcResult := pkc.RpcResult{}
 					// 处理对于函数 TODO 这里进行远程调用！
-					err := g.rpc.Call(g.register.RequestUrl(), pkc.RequestInfo{Merage: merge, Body: body}, rpcResult)
-					common.AssertErr(err)
-					bytes := decoder.ParseResult(rpcResult.Result)
-					if len(bytes) != 0 {
-						_, err := conn.Write(bytes)
-						common.AssertErr(err)
+					err := g.rpc.Call(g.register.RequestUrl(), message, &rpcResult)
+					if err != nil { // 出现错误则打印他，重新监听数据
+						log.Println(err)
+						continue
 					}
+					bytes := decoder.ParseResult(rpcResult.Result)
+					if len(bytes) == 0 { //解析数据为空则不继续请求
+						continue
+					}
+					_, err = conn.Write(bytes)
+					common.AssertErr(err)
 				}
 			}(conn)
 		}

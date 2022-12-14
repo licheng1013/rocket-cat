@@ -1,12 +1,10 @@
 package message
 
-var message interface{} = JsonMessage{}
-
 type Message interface {
 	GetMerge() int64
+	GetBody() []byte
+	GetHeartbeat() bool
+	GetCode() int64
+	GetMessage() string
 }
 
-// GetMessage  获取消息解析
-func GetMessage() interface{} {
-	return message
-}

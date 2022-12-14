@@ -4,12 +4,32 @@ package message
 // JsonMessage 必须实现 Message 接口
 // Json处理则必须先转换为json才能继续处理其他东西
 type JsonMessage struct {
-	Merge int64
-	Body  []byte
+	Merge     int64  `json:"merge,omitempty"`
+	Body      []byte `json:"body,omitempty"`
+	Heartbeat bool   `json:"heartbeat,omitempty"`
+	Code      int64  `json:"code,omitempty"`
+	Message   string `json:"message,omitempty"`
 }
 
-func (d JsonMessage) GetMerge() int64 {
-	return d.Merge
+func (j JsonMessage) GetMerge() int64 {
+	return j.Merge
 }
+
+func (j JsonMessage) GetBody() []byte {
+	return j.Body
+}
+
+func (j JsonMessage) GetHeartbeat() bool {
+	return j.Heartbeat
+}
+
+func (j JsonMessage) GetCode() int64 {
+	return j.Code
+}
+
+func (j JsonMessage) GetMessage() string {
+	return j.Message
+}
+
 
 

@@ -8,7 +8,7 @@ import (
 // Decoder 对数据的解码器
 type Decoder interface {
 	// DecoderBytes 收到客户端的数据
-	DecoderBytes(bytes []byte) (int64, interface{})
+	DecoderBytes(bytes []byte) message.Message
 }
 
 func ParseResult(result interface{}) []byte {

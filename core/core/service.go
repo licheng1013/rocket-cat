@@ -20,6 +20,7 @@ type Service struct {
 
 // NewService 设置启动端口地址
 func NewService(ip string, port uint64) *Service {
+	log.SetFlags(log.LstdFlags + log.Lshortfile)
 	g := &Service{}
 	g.Port = port
 	g.Ip = ip
@@ -30,7 +31,6 @@ func NewService(ip string, port uint64) *Service {
 // Run 设置注册中心地址和端口
 func (n *Service) Run(ip string, port uint64) {
 	log.Println("nacos注册地址: http://"+ ip +":"+fmt.Sprint(port))
-	log.Println("service注册地址: http://"+ n.Ip +":"+fmt.Sprint(n.Port))
 	n.Nacos.SetServerConfig(n.Ip, port)
 	n.Nacos.Register(ip, n.Port, common.ServicerName)
 	n.Nacos.Init()      //初始化

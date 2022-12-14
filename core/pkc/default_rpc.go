@@ -2,6 +2,7 @@ package pkc
 
 import (
 	"core/common"
+	"core/message"
 	"core/register"
 	"fmt"
 	"log"
@@ -11,9 +12,10 @@ import (
 )
 
 type DefaultRpc struct {
+
 }
 
-func (DefaultRpc) Call(requestUrl register.RequestInfo, info RequestInfo, rpcResult *RpcResult) error {
+func (DefaultRpc) Call(requestUrl register.RequestInfo, info message.Message, rpcResult *RpcResult) error {
 	//log.Println("执行远程调用信息: ", requestUrl)
 	cli, err := rpc.DialHTTP("tcp", requestUrl.Ip+":"+fmt.Sprint(requestUrl.Port))
 	if err != nil {
@@ -21,7 +23,7 @@ func (DefaultRpc) Call(requestUrl register.RequestInfo, info RequestInfo, rpcRes
 	}
 	err = cli.Call("Result.Invok", info, &rpcResult)
 	common.AssertErr(err)
-	fmt.Println("远程结果:", string(rpcResult.Result))
+	log.Println("远程结果:", string(rpcResult.Result))
 	return nil
 }
 
@@ -35,6 +37,7 @@ func ( DefaultRpc) RpcListen(ip string, port uint64)  {
 		rpc.HandleHTTP()
 		/* 固定端口进行监听*/
 		listen, err := net.Listen("tcp", ip+":"+fmt.Sprint(port))
+		log.Println("Rpc监听地址: "+ ip +":"+fmt.Sprint(port))
 		if err != nil {
 			panic(err.Error())
 		}

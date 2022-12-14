@@ -11,7 +11,7 @@ func GetObjectToBytes(a any) []byte {
 }
 
 func GetBytesToObject(bytes []byte) any {
-	v := GetMessage()
+	var v interface{}
 	common.JsonUtil.JsonToMap(string(bytes), &v)
 	return v
 }

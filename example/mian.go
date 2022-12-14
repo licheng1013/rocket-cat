@@ -79,7 +79,7 @@ func connectJson(num int) {
 		for {
 			count++
 			// 读取长度 n
-			_, e := kecClient.Read(buffer)
+			n, e := kecClient.Read(buffer)
 			if e != nil {
 				if e == io.EOF {
 					break
@@ -89,7 +89,7 @@ func connectJson(num int) {
 			}
 
 			// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
-			//log.Println(num, "服务端数据: ", string(buffer[:n]))
+			log.Println(num, "服务端数据: ", string(buffer[:n]))
 
 			newUnix := time.Now().UnixMilli()
 			if newUnix-unix > 1000 {
