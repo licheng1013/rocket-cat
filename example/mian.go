@@ -15,7 +15,7 @@ import (
 
 // 测试客户端连接
 func main() {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1; i++ {
 		go func(i int) {
 			connectProto(i)
 		}(i)
@@ -57,7 +57,7 @@ func connectProto(num int) {
 				log.Panicln(err)
 			}
 			// TODO 这里是对数据处理实现部分，目前这个支持固定到字类
-			//log.Println(num, "服务端数据: ", string(v.Body))
+			log.Println(num, "服务端数据: ", string(v.Body))
 
 			newUnix := time.Now().UnixMilli()
 			if newUnix-unix > 1000 {
@@ -74,12 +74,12 @@ func connectProto(num int) {
 			if err != nil {
 				log.Panicln(err)
 			}
-			num, err = kecClient.Write(marshal)
-			log.Println("写入: "+fmt.Sprint(num))
+			_, err = kecClient.Write(marshal)
+			//log.Println("写入: "+fmt.Sprint(num))
 			if err != nil {
 				log.Println(err)
 			}
-			time.Sleep(200 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 		}
 	}()
 	select {}

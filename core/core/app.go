@@ -47,11 +47,10 @@ type App struct {
 	ServiceBefores []Plugin
 }
 
-// AddPlugin 添加插件
-func (g *App) AddPlugin(pluginFunc Plugin)  {
+// AddConnectPlugin 添加插件,连接时插件,建立连接时会触发此插件！
+func (g *App) AddConnectPlugin(pluginFunc Plugin) {
 	g.Connecteds = append(g.Connecteds, pluginFunc)
 }
-
 
 // SetDecoder 设置编码器
 func (g *App) SetDecoder(d decoder.Decoder) {
@@ -93,49 +92,7 @@ func (g *App) Run() {
 		for { //监听链接！
 			conn, err := g.listener.AcceptKCP()
 			common.AssertErr(err)
-			go func(conn net.Conn) {
-				g.Conns = append(g.Conns, conn)
-				for i := range g.Connecteds { //执行插件逻辑
-					g.Connecteds[i].Invok(g)
-				}
-				var buffer = make([]byte, 1024, 1024)
-				for {
-					// 读取长度 n
-					n, e := conn.Read(buffer)
-					if e != nil {
-						if e == io.EOF {
-							continue
-						}
-						fmt.Println(errorx.Wrap(e))
-					}
-					// 编码解码
-					msg := g.decoder.DecoderBytes(buffer[:n])
-					if g.EnableMessageLog {
-						log.Println("请求路由: ", msg.GetMerge(), "请求数据: ", string(msg.GetBody()))
-					}
-
-					g.Result = msg
-					for i := range g.ServiceBefores { //执行插件逻辑
-						g.ServiceBefores[i].Invok(g)
-					}
-
-					rpcResult := pkc.RpcResult{}
-					// 处理对于函数 TODO 这里进行远程调用！
-					err := g.rpc.Call(g.register.RequestUrl(), msg, &rpcResult)
-					if err != nil { // 出现错误则打印他，重新监听数据
-						log.Println(err)
-						continue
-					}
-					bytes := decoder.ParseResult(rpcResult.Result)
-					if len(bytes) == 0 { //解析数据为空则不继续请求
-						continue
-					}
-					msg.SetBody(bytes)
-					//获取结果返回！
-					_, err = conn.Write(msg.GetBytesResult())
-					common.AssertErr(err)
-				}
-			}(conn)
+			go listenerKcp(conn, g)
 		}
 	}()
 
@@ -147,6 +104,54 @@ func (g *App) Run() {
 	log.Println("正在关机...")
 	g.stopFunc()
 	_ = g.listener.Close()
+}
+
+// Kcp监听方法！
+func listenerKcp(conn net.Conn, g *App) {
+	g.Conns = append(g.Conns, conn)
+	for i := range g.Connecteds { //执行插件逻辑
+		g.Connecteds[i].Invok(g)
+	}
+	var buffer = make([]byte, 1024, 1024)
+	for {
+		// 读取长度 n
+		n, e := conn.Read(buffer)
+		if e != nil {
+			if e == io.EOF {
+				continue
+			}
+			fmt.Println(errorx.Wrap(e))
+		}
+		result, err := g.handle(buffer[:n])
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		if len(result.GetBytesResult()) == 0 {
+			continue
+		}
+		//获取结果返回！
+		_, err = conn.Write(result.GetBytesResult())
+		common.AssertErr(err)
+	}
+}
+
+func (g *App) handle(bytes []byte) (result message.Message, err error) {
+	// 编码解码
+	msg := g.decoder.DecoderBytes(bytes)
+	if g.EnableMessageLog {
+		log.Println("请求路由: ", msg.GetMerge(), "请求数据: ", string(msg.GetBody()))
+	}
+	g.Result = msg
+	for i := range g.ServiceBefores { //执行调用远程时候执行的插件逻辑！
+		g.ServiceBefores[i].Invok(g)
+	}
+	rpcResult := pkc.RpcResult{}
+	// 处理对于函数 TODO 这里进行远程调用！
+	err = g.rpc.Call(g.register.RequestUrl(), msg, &rpcResult)
+	byteData := decoder.ParseResult(rpcResult.Result)
+	msg.SetBody(byteData)
+	return msg, err
 }
 
 // SetStopFunc Stop 框架停止钩子！ 启动之前停止他
