@@ -5,16 +5,18 @@ import (
 	"core/decoder"
 	"core/message"
 	"core/pkc"
+	"core/plugins"
 	"core/register"
 	"fmt"
-	"github.com/fwhezfwhez/errorx"
 	"github.com/xtaci/kcp-go/v5"
 	"io"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 )
 
 // App 整个框架实例，请使用 NewGameServer 初始化
@@ -39,12 +41,14 @@ type App struct {
 	ip string
 	// 客户端连接
 	Conns []net.Conn
-	// 请求消息
-	Result message.Message
 	// 建立连接时候触发的插件！
 	Connecteds []Plugin
 	// 处理业务逻辑之前的插件！
 	ServiceBefores []Plugin
+	// 开启心跳功能
+	EnableHearbeat bool
+	// 心跳超时Map管理
+	TimeOutMap sync.Map
 }
 
 // AddConnectPlugin 添加插件,连接时插件,建立连接时会触发此插件！
@@ -71,6 +75,7 @@ func NewGameServer(register register.Register) *App {
 	g.decoder = decoder.JsonDecoder{}
 	g.rpc = &pkc.DefaultRpc{}
 	g.register = register
+	g.TimeOutMap = sync.Map{}
 	return g
 }
 
@@ -95,6 +100,33 @@ func (g *App) Run() {
 			go listenerKcp(conn, g)
 		}
 	}()
+	// 心跳检查器
+	go func() {
+		if !g.EnableHearbeat {
+			return
+		}
+		log.Println("启动心跳功能...")
+		for true {
+			g.TimeOutMap.Range(func(key, value any) bool {
+				// 最大超时3秒
+				if time.Now().UnixMilli()-value.(int64) > 3000 {
+					log.Println("超时:", key.(uint32))
+					for i := range g.Conns {
+						session := g.Conns[i].(*kcp.UDPSession)
+						if session.GetConv() == key.(uint32) {
+							err := session.Close()
+							if err != nil {
+								log.Println("关闭连接:",key)
+								g.TimeOutMap.Delete(key)
+							}
+						}
+					}
+				}
+				return true
+			})
+			time.Sleep(3 * time.Second)
+		}
+	}()
 
 	log.Println("等待关闭...")
 	quit := make(chan os.Signal, 1) // 创建一个接收信号的通道
@@ -109,8 +141,17 @@ func (g *App) Run() {
 // Kcp监听方法！
 func listenerKcp(conn net.Conn, g *App) {
 	g.Conns = append(g.Conns, conn)
+	// 对链接的信息封装
+	session := conn.(*kcp.UDPSession)
+	meta := plugins.Meta{}
+	meta.SessionId = session.GetConv()
+	meta.Conn = session
+	meta.App = g.Conns
+	meta.TimeOutMap = &g.TimeOutMap
+	g.TimeOutMap.Store(meta.SessionId, time.Now().UnixMilli())
+
 	for i := range g.Connecteds { //执行插件逻辑
-		g.Connecteds[i].Invok(g)
+		g.Connecteds[i].Invok(meta)
 	}
 	var buffer = make([]byte, 1024, 1024)
 	for {
@@ -120,9 +161,10 @@ func listenerKcp(conn net.Conn, g *App) {
 			if e == io.EOF {
 				continue
 			}
-			fmt.Println(errorx.Wrap(e))
+			log.Println("退出循环!")
+			break
 		}
-		result, err := g.handle(buffer[:n])
+		result, err := g.handle(buffer[:n], meta)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -136,15 +178,21 @@ func listenerKcp(conn net.Conn, g *App) {
 	}
 }
 
-func (g *App) handle(bytes []byte) (result message.Message, err error) {
+func (g *App) handle(bytes []byte, meta plugins.Meta) (result message.Message, err error) {
 	// 编码解码
 	msg := g.decoder.DecoderBytes(bytes)
+	meta.Message = msg
+	if msg.GetHeartbeat() && g.EnableHearbeat { //如果是心跳请求则立即返回
+		// TODO 心跳处理
+		heartbeat := plugins.Heartbeat{}
+		heartbeat.Invok(meta)
+	}
+
 	if g.EnableMessageLog {
 		log.Println("请求路由: ", msg.GetMerge(), "请求数据: ", string(msg.GetBody()))
 	}
-	g.Result = msg
 	for i := range g.ServiceBefores { //执行调用远程时候执行的插件逻辑！
-		g.ServiceBefores[i].Invok(g)
+		g.ServiceBefores[i].Invok(meta)
 	}
 	rpcResult := pkc.RpcResult{}
 	// 处理对于函数 TODO 这里进行远程调用！

@@ -15,7 +15,7 @@ import (
 
 // 测试客户端连接
 func main() {
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 2; i++ {
 		go func(i int) {
 			connectProto(i)
 		}(i)
