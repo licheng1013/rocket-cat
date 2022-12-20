@@ -119,6 +119,8 @@ func (g *App) Run() {
 								log.Println("关闭连接:",key)
 								g.TimeOutMap.Delete(key)
 							}
+							g.Conns = append(g.Conns[:i], g.Conns[i+1:]...)//删除这个元素
+							break
 						}
 					}
 				}

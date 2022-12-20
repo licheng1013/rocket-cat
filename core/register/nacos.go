@@ -138,7 +138,7 @@ func (n *Nacos) Heartbeat() {
 					ServiceName: n.registerParam.ServiceName,
 				})
 			if err != nil || !instance {
-				log.Panicln("更新实例失败!", err)
+				log.Panicln("更新实例失败,请检查Nacos!", err)
 			}
 			//log.Println("实例更新成功！")
 			time.Sleep(1 * time.Second)
