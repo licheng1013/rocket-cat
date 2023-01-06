@@ -1,6 +1,6 @@
 package message
 
-import "gitee.com/licheng1013/go-util/common"
+import "github.com/licheng1013/go-util/common"
 
 // JsonMessage 必须实现 Message 接口
 // Json处理则必须先转换为json才能继续处理其他东西

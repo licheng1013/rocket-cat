@@ -7,7 +7,7 @@ import (
 	"core/register"
 	"flag"
 	"fmt"
-	"gitee.com/licheng1013/go-util/common"
+	"github.com/licheng1013/go-util/common"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"

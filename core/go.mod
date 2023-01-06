@@ -3,6 +3,7 @@ module core
 require (
 	gitee.com/licheng1013/go-util v0.1.8
 	github.com/fwhezfwhez/errorx v1.1.0
+	github.com/licheng1013/go-util v0.1.12
 	github.com/nacos-group/nacos-sdk-go/v2 v2.1.2
 	github.com/xtaci/kcp-go/v5 v5.6.1
 	google.golang.org/protobuf v1.28.0
@@ -42,7 +43,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	google.golang.org/genproto v0.0.0-20200825200019-8632dd797987 // indirect
-	google.golang.org/grpc v1.48.0 // indirect
+	google.golang.org/grpc v1.48.0
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
