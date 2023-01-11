@@ -107,6 +107,7 @@ func (g *App) Run() {
 		}
 		log.Println("启动心跳功能...")
 		for true {
+			time.Sleep(3 * time.Second)
 			g.TimeOutMap.Range(func(key, value any) bool {
 				// 最大超时3秒
 				if time.Now().UnixMilli()-value.(int64) > 3000 {
@@ -126,7 +127,6 @@ func (g *App) Run() {
 				}
 				return true
 			})
-			time.Sleep(3 * time.Second)
 		}
 	}()
 
@@ -163,7 +163,8 @@ func listenerKcp(conn net.Conn, g *App) {
 			if e == io.EOF {
 				continue
 			}
-			log.Println("退出循环!")
+			g.TimeOutMap.Delete(session.GetConv()) // 出现错误移除链接
+			log.Println("读取异常: ",e.Error())
 			break
 		}
 		result, err := g.handle(buffer[:n], meta)
@@ -184,7 +185,7 @@ func (g *App) handle(bytes []byte, meta plugins.Meta) (result message.Message, e
 	// 编码解码
 	msg := g.decoder.DecoderBytes(bytes)
 	meta.Message = msg
-	if msg.GetHeartbeat() && g.EnableHearbeat { //如果是心跳请求则立即返回
+	if msg.GetHeartbeat() && g.EnableHearbeat { //心跳请求，更新心跳
 		// TODO 心跳处理
 		heartbeat := plugins.Heartbeat{}
 		heartbeat.Invok(meta)

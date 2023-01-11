@@ -18,10 +18,10 @@ type Heartbeat struct {
 }
 
 
-// Invok TODO 这段代码暂时不知道咋写，写在那一块!
+// Invok TODO 暂定心跳处理功能!
 func (h Heartbeat) Invok(app Meta) {
 	udpSession := app.Conn.(*kcp.UDPSession)
 	sessionId := udpSession.GetConv()
-	fmt.Println("SessionId: ", sessionId)
+	//log.Println("SessionId: ", sessionId)
 	app.TimeOutMap.Store(sessionId,time.Now().UnixMilli())
 }

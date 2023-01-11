@@ -30,7 +30,7 @@ func connectProto(num int) {
 		panic(err)
 	}
 	info := "HelloWorld"
-	defaultMessage := protof.ProtoMessage{Body: []byte(info), Merge: router.GetMerge(1, 1)}
+	defaultMessage := protof.ProtoMessage{Body: []byte(info), Merge: router.GetMerge(1, 1),Heartbeat: true}
 	// 获取服务单的消息
 	unix := time.Now().UnixMilli()
 	var count int64
