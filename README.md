@@ -31,3 +31,9 @@
 
 ## 工具类
 - [Lancet](https://github.com/duke-git/lancet/blob/main/README_zh-CN.md)
+
+## 如何调试
+- 运行 nacos 单机
+- 运行 gateway 网关
+- 运行 service 服务
+- 运行 example 客户端
