@@ -37,3 +37,6 @@
 - 运行 gateway 网关
 - 运行 service 服务
 - 运行 example 客户端
+
+## 插件
+- [x] 心跳功能预览完成
