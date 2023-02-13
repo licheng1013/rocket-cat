@@ -19,6 +19,7 @@ func TestProtoDecoder(t *testing.T) {
 	// 优化
 	decoder := ProtoDecoder{}
 	msg := decoder.DecoderBytes(protoMessage.GetBytesResult())
+	t.Log("Hello")
 	t.Log(msg)
 	var v user2
 	message.MsgKit.BytesToStruct(msg.GetBody(), &v)

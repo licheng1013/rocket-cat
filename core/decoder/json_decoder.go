@@ -16,9 +16,10 @@ func NewJsonDecoder() *JsonDecoder {
 	return &JsonDecoder{}
 }
 
-// DecoderBytes 解码
-func (d JsonDecoder) DecoderBytes(bytes []byte) (m message.JsonMessage) {
+// DecoderBytes 处理客户端返回的数据
+func (d JsonDecoder) DecoderBytes(bytes []byte) message.Message {
+	json := message.JsonMessage{}
 	// 这里转换成了map
-	message.MsgKit.BytesToStruct(bytes, &m)
-	return
+	message.MsgKit.BytesToStruct(bytes, &json)
+	return &json
 }
