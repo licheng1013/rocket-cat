@@ -2,27 +2,12 @@ package decoder
 
 import (
 	"core/message"
-	"google.golang.org/protobuf/proto"
 )
 
 // Decoder 对数据的解码器
 type Decoder interface {
 	// DecoderBytes 收到客户端的数据
 	DecoderBytes(bytes []byte) message.Message
-}
-
-func ParseResult(result interface{}) []byte {
-	// 分发消息
-	var bytes []byte
-	if result != nil {
-		switch result.(type) {
-		case []byte:
-			bytes = result.([]byte)
-			break
-		case proto.Message:
-			bytes = message.MarshalBytes(result.(proto.Message))
-			break
-		}
-	}
-	return bytes
+	// EncodeBytes 封装编码
+	EncodeBytes(result interface{}) []byte
 }

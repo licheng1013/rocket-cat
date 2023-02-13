@@ -117,10 +117,10 @@ func (g *App) Run() {
 						if session.GetConv() == key.(uint32) {
 							err := session.Close()
 							if err != nil {
-								log.Println("关闭连接:",key)
+								log.Println("关闭连接:", key)
 								g.TimeOutMap.Delete(key)
 							}
-							g.Conns = append(g.Conns[:i], g.Conns[i+1:]...)//删除这个元素
+							g.Conns = append(g.Conns[:i], g.Conns[i+1:]...) //删除这个元素
 							break
 						}
 					}
@@ -164,7 +164,7 @@ func listenerKcp(conn net.Conn, g *App) {
 				continue
 			}
 			g.TimeOutMap.Delete(session.GetConv()) // 出现错误移除链接
-			log.Println("读取异常: ",e.Error())
+			log.Println("读取异常: ", e.Error())
 			break
 		}
 		result, err := g.handle(buffer[:n], meta)
@@ -200,7 +200,7 @@ func (g *App) handle(bytes []byte, meta plugins.Meta) (result message.Message, e
 	rpcResult := pkc.RpcResult{}
 	// 处理对于函数 TODO 这里进行远程调用！
 	err = g.rpc.Call(g.register.RequestUrl(), msg, &rpcResult)
-	byteData := decoder.ParseResult(rpcResult.Result)
+	byteData := g.decoder.EncodeBytes(rpcResult.Result)
 	msg.SetBody(byteData)
 	return msg, err
 }
