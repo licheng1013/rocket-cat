@@ -1,8 +1,6 @@
 module core
 
 require (
-	gitee.com/licheng1013/go-util v0.1.8
-	github.com/fwhezfwhez/errorx v1.1.0
 	github.com/licheng1013/go-util v0.1.12
 	github.com/nacos-group/nacos-sdk-go/v2 v2.1.2
 	github.com/xtaci/kcp-go/v5 v5.6.1
@@ -50,7 +48,7 @@ require (
 )
 
 require (
-	github.com/gofrs/uuid v4.0.0+incompatible // indirect
+	gitee.com/licheng1013/go-util v0.1.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.14 // indirect
 	github.com/klauspost/reedsolomon v1.10.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
