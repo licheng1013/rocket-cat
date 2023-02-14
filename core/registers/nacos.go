@@ -30,14 +30,14 @@ func (n *Nacos) SetServerConfig(ip string, port uint64) {
 	}
 }
 
-func (n *Nacos) Register(info RegisterInfo, name string) {
+func (n *Nacos) Register(info RegisterInfo) {
 	if len(n.serverConfigs) == 0 {
 		panic("未设置Nacos配置: SetServerConfig")
 	}
 	n.registerParam = vo.RegisterInstanceParam{
 		Ip:          info.Ip,
 		Port:        uint64(info.Port),
-		ServiceName: name,
+		ServiceName: info.Name,
 		GroupName:   "DEFAULT_GROUP",
 		Weight:      10,
 		Enable:      true,
@@ -128,7 +128,6 @@ func (n *Nacos) Heartbeat() {
 			if err != nil || !instance {
 				log.Panicln("更新实例失败,请检查Nacos!", err)
 			}
-			//log.Println("实例更新成功！")
 			time.Sleep(1 * time.Second)
 		}
 	}()

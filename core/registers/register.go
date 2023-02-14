@@ -13,4 +13,5 @@ type Register interface {
 type RegisterInfo struct {
 	Ip   string
 	Port uint16
+	Name string
 }
