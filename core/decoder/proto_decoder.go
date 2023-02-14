@@ -2,12 +2,10 @@ package decoder
 
 import (
 	"core/message"
-	"core/protof"
 	"google.golang.org/protobuf/proto"
 )
 
 type ProtoDecoder struct {
-
 }
 
 func (p ProtoDecoder) EncodeBytes(result interface{}) []byte {
@@ -20,7 +18,7 @@ func NewProtoDecoder() *ProtoDecoder {
 }
 
 func (p ProtoDecoder) DecoderBytes(bytes []byte) message.Message {
-	msg := protof.ProtoMessage{}
+	msg := message.ProtoMessage{}
 	// 转换反序列话
 	err := proto.Unmarshal(bytes, &msg)
 	if err != nil {

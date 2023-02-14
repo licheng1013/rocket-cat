@@ -6,7 +6,7 @@
 - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
 -  格式： protoc --go_out 目标路径 文件路径
-- protoc --go_out=. --go_opt=paths=source_relative proto_message.proto
+- protoc --go_out=. --go_opt=paths=source_relative message.proto
 
 
 ## Grpc

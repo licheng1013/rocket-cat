@@ -3,10 +3,11 @@ syntax = "proto3";
 // 导出路径
 option go_package = "core/protof";
 
-message ProtoMessage{
+message Message{
   int64 merge = 1;
   bytes body = 2;
   bool heartbeat = 3;
   int64 code = 4;
   string message = 5;
+  string headers = 6;
 }

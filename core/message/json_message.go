@@ -10,6 +10,11 @@ type JsonMessage struct {
 	Heartbeat bool   `json:"heartbeat,omitempty"`
 	Code      int64  `json:"code,omitempty"`
 	Message   string `json:"message,omitempty"`
+	Headers   string `json:"headers,omitempty"`
+}
+
+func (j *JsonMessage) GetHeaders() string {
+	return j.Headers
 }
 
 func (j *JsonMessage) GetBytesResult() []byte {
