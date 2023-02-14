@@ -1,7 +1,6 @@
-package register
+package registers
 
 import (
-	"core/common"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
@@ -19,15 +18,6 @@ type Nacos struct {
 	namingClient  naming_client.INamingClient
 }
 
-func (n *Nacos) RequestUrl() RequestInfo {
-	instance := n.SelectOneHealthyInstance(common.ServicerName)
-	if instance == nil {
-		log.Println("远程调用没有可用的实例！")
-		return RequestInfo{}
-	}
-	return RequestInfo{instance.Ip, instance.Port}
-}
-
 func NewNacos() *Nacos {
 	return &Nacos{}
 }
@@ -40,25 +30,23 @@ func (n *Nacos) SetServerConfig(ip string, port uint64) {
 	}
 }
 
-// Register 注册进入Nacos,必须先调用 SetServerConfig 才能使用
-// 这里设置的都是客户端地址和ip远程调用获取则是这里注册的 ip 和 端口
-func (n *Nacos) Register(ip string, port uint64, serviceName string) {
+func (n *Nacos) Register(info RegisterInfo, name string) {
 	if len(n.serverConfigs) == 0 {
-		print("未设置Nacos服务端配置")
+		panic("未设置Nacos配置: SetServerConfig")
 	}
 	n.registerParam = vo.RegisterInstanceParam{
-		Ip:          ip,
-		Port:        port,
-		ServiceName: serviceName,
+		Ip:          info.Ip,
+		Port:        uint64(info.Port),
+		ServiceName: name,
 		GroupName:   "DEFAULT_GROUP",
 		Weight:      10,
 		Enable:      true,
 		Healthy:     true,
 	}
 	n.logoutParam = vo.DeregisterInstanceParam{
-		Ip:          ip,
-		Port:        port,
-		ServiceName: serviceName,
+		Ip:          n.registerParam.Ip,
+		Port:        n.registerParam.Port,
+		ServiceName: n.registerParam.ServiceName,
 	}
 }
 

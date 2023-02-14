@@ -1,7 +1,7 @@
 package decoder
 
 import (
-	"core/message"
+	"github.com/io-game-go/message"
 	"testing"
 )
 

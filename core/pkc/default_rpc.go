@@ -1,10 +1,10 @@
 package pkc
 
 import (
-	"core/common"
-	"core/message"
-	"core/register"
 	"fmt"
+	"github.com/io-game-go/common"
+	"github.com/io-game-go/message"
+	"github.com/io-game-go/register"
 	"log"
 	"net"
 	"net/http"
@@ -15,7 +15,7 @@ type DefaultRpc struct {
 	cli *rpc.Client
 }
 
-func (d *DefaultRpc) Call(requestUrl register.RequestInfo, info message.Message, rpcResult *RpcResult) error {
+func (d *DefaultRpc) Call(requestUrl registers.RequestInfo, info message.Message, rpcResult *RpcResult) error {
 	//log.Println("执行远程调用信息: ", requestUrl)
 	if d.cli == nil {
 		cli, err := rpc.DialHTTP("tcp", requestUrl.Ip+":"+fmt.Sprint(requestUrl.Port))
@@ -30,7 +30,7 @@ func (d *DefaultRpc) Call(requestUrl register.RequestInfo, info message.Message,
 	return nil
 }
 
-func ( *DefaultRpc) RpcListen(ip string, port uint64)  {
+func (*DefaultRpc) RpcListen(ip string, port uint64) {
 	go func() {
 		/*将服务对象进行注册*/
 		err := rpc.Register(new(Result))
@@ -40,7 +40,7 @@ func ( *DefaultRpc) RpcListen(ip string, port uint64)  {
 		rpc.HandleHTTP()
 		/* 固定端口进行监听*/
 		listen, err := net.Listen("tcp", ip+":"+fmt.Sprint(port))
-		log.Println("Rpc监听地址: "+ ip +":"+fmt.Sprint(port))
+		log.Println("Rpc监听地址: " + ip + ":" + fmt.Sprint(port))
 		if err != nil {
 			panic(err.Error())
 		}

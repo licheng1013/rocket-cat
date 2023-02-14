@@ -1,7 +1,7 @@
 package message
 
 import (
-	"core/protof"
+	"github.com/io-game-go/protof"
 	"google.golang.org/protobuf/proto"
 )
 

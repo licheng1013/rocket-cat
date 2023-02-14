@@ -1,8 +1,8 @@
 package router
 
 import (
-	"core/message"
 	"fmt"
+	"github.com/io-game-go/message"
 	"log"
 )
 

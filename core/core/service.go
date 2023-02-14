@@ -1,7 +1,7 @@
 package core
 
 import (
-	"core/router"
+	"github.com/io-game-go/router"
 	"log"
 	"os"
 	"os/signal"

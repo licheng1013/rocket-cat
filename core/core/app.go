@@ -1,9 +1,9 @@
 package core
 
 import (
-	"core/decoder"
-	"core/pkc"
-	"core/register"
+	"github.com/io-game-go/decoder"
+	"github.com/io-game-go/pkc"
+	"github.com/io-game-go/register"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
 	"net"
@@ -31,7 +31,7 @@ type App struct {
 	// rpc请求
 	rpc pkc.Rpc
 	// 注册中心
-	register register.Register
+	register registers.Register
 	// ip地址
 	ip string
 	// 客户端连接
@@ -53,7 +53,7 @@ func (g *App) SetRpc(p pkc.Rpc) {
 }
 
 // NewGameServer 获取一个框架实例
-func NewGameServer(register register.Register) *App {
+func NewGameServer(register registers.Register) *App {
 	g := &App{}
 	g.port = 10020
 	g.beforeFunc = func() {}

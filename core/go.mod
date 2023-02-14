@@ -1,4 +1,4 @@
-module core
+module github.com/io-game-go
 
 require (
 	github.com/licheng1013/go-util v0.1.12

@@ -1,9 +1,9 @@
 package core
 
 import (
-	"core/connect"
-	"core/decoder"
-	"core/router"
+	"github.com/io-game-go/connect"
+	"github.com/io-game-go/decoder"
+	"github.com/io-game-go/router"
 )
 
 // Gateway 请使用 NewGateway 创建

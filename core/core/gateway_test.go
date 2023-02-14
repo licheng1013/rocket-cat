@@ -1,10 +1,10 @@
 package core
 
 import (
-	"core/connect"
-	"core/decoder"
-	"core/message"
 	"github.com/gorilla/websocket"
+	"github.com/io-game-go/connect"
+	"github.com/io-game-go/decoder"
+	"github.com/io-game-go/message"
 	"log"
 	"net/url"
 	"os"
