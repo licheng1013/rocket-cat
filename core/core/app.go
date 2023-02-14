@@ -3,7 +3,7 @@ package core
 import (
 	"github.com/io-game-go/decoder"
 	"github.com/io-game-go/pkc"
-	"github.com/io-game-go/register"
+	"github.com/io-game-go/registers"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
 	"net"

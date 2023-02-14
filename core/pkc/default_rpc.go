@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/io-game-go/common"
 	"github.com/io-game-go/message"
-	"github.com/io-game-go/register"
+	"github.com/io-game-go/registers"
 	"log"
 	"net"
 	"net/http"
@@ -15,7 +15,7 @@ type DefaultRpc struct {
 	cli *rpc.Client
 }
 
-func (d *DefaultRpc) Call(requestUrl registers.RequestInfo, info message.Message, rpcResult *RpcResult) error {
+func (d *DefaultRpc) Call(requestUrl registers.RegisterInfo, info message.Message, rpcResult *RpcResult) error {
 	//log.Println("执行远程调用信息: ", requestUrl)
 	if d.cli == nil {
 		cli, err := rpc.DialHTTP("tcp", requestUrl.Ip+":"+fmt.Sprint(requestUrl.Port))
