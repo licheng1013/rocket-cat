@@ -12,10 +12,6 @@ func (d JsonDecoder) EncodeBytes(result interface{}) []byte {
 	return result.([]byte)
 }
 
-func NewJsonDecoder() *JsonDecoder {
-	return &JsonDecoder{}
-}
-
 // DecoderBytes 处理客户端返回的数据
 func (d JsonDecoder) DecoderBytes(bytes []byte) message.Message {
 	json := message.JsonMessage{}

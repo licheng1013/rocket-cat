@@ -13,10 +13,6 @@ func (p ProtoDecoder) EncodeBytes(result interface{}) []byte {
 	return bytes
 }
 
-func NewProtoDecoder() *ProtoDecoder {
-	return &ProtoDecoder{}
-}
-
 func (p ProtoDecoder) DecoderBytes(bytes []byte) message.Message {
 	msg := message.ProtoMessage{}
 	// 转换反序列话
