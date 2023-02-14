@@ -3,44 +3,50 @@
 - 2022/10/14
 - 目前还是一个实验性项目
 
-## 描述
+### 描述
 - 一个go简单游戏服务器实现，目前是的。
 - 打造一个简单的游戏服务器框架，易扩展，易使用。
 - 网关与逻辑服通过Grpc进行调试
+- 框架大部分功能都可以重写覆盖掉，自定义非常容易。
 
-## 架构图
+### 架构图
+- 从架构图可以看出从 A获取B的地址是从通过注册中心**Nacos**获取的,当然您也可以自定义其他注册中心。
 - ![struct.png](struct.png)
 
 ## 功能
 ### 传输结构
 - [x] 支持Json
 - [x] 支持Proto
+- 当然你只要实现了此接口，就可以替换框架的实现了
 
-### 连接协议
+```go
+// Decoder 对数据的解码器
+type Decoder interface {
+	// DecoderBytes 收到客户端的数据
+	DecoderBytes(bytes []byte) message.Message
+	// EncodeBytes 封装编码
+	EncodeBytes(result interface{}) []byte
+}
+```
+
+### 连接相关
 - [x] 支持Kcp
 - [ ] 支持Tcp
-- [ ] 支持Websocket
+- [x] 支持Websocket
+- 如果你想自定义socket实现此接口即可。
+- 上层并不关心内部如何处理的只需要把[]byte回写上去。
+
+```go
+type Socket interface {
+    // ListenBack 监听连接收到的消息，回写到上层方法，当返回 byte 不为空时则写入到客户端
+    ListenBack(func([]byte) []byte)
+    ListenAddr(addr string)
+}
+```
 
 ### 负载均衡
 - [x] Ncaos已提供
 
-## 注册中心  
-### Nacos
-- 单机启动： startup.cmd -m standalone
-- [Nacos](https://nacos.io/zh-cn/docs/v2/quickstart/quick-start.html)
-
-## 工具类
-- [Lancet](https://github.com/duke-git/lancet/blob/main/README_zh-CN.md)
-
-## 如何调试
-- 运行 nacos 单机
-- 运行 gateway 网关
-- 运行 service 服务
-- 运行 example 客户端
-
-## 计划
-- [x] 心跳功能预览完成
-- [] 数据互相通信
 
 ## 示例
 ### 单机示例
