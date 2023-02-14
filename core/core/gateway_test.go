@@ -58,6 +58,7 @@ func TestWsClient(t *testing.T) {
 			return
 		case t := <-ticker.C:
 			jsonMessage := message.JsonMessage{Body: []byte(t.String())}
+			jsonMessage.Merge = 10
 			err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
 			if err != nil {
 				log.Println("写:", err)

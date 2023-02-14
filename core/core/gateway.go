@@ -4,7 +4,6 @@ import (
 	"core/connect"
 	"core/decoder"
 	"core/router"
-	"log"
 )
 
 // Gateway 请使用 NewGateway 创建
@@ -44,7 +43,7 @@ func NewGateway() *Gateway {
 	g := &Gateway{}
 	g.SetSingle(true)
 	g.router = &router.DefaultRouter{}
-	return &Gateway{}
+	return g
 }
 
 func (g *Gateway) Start(addr string, socket connect.Socket) {
@@ -59,9 +58,11 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 func (g *Gateway) ListenBack(bytes []byte) []byte {
 	if g.single {
 		message := g.decoder.DecoderBytes(bytes)
-		log.Println("收到消息:", string(message.GetBody()))
 		message.SetBody(g.router.InvokeFunc(message))
-		return g.router.InvokeFunc(message)
+		if len(message.GetBody()) == 0 { // 没数据直接不返回
+			return make([]byte, 0)
+		}
+		return message.GetBytesResult()
 	}
 	panic("描述: 目前暂时未实现rpc调用")
 	return bytes

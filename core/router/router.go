@@ -22,6 +22,9 @@ type DefaultRouter struct {
 
 // AddFunc 添加函数
 func (r *DefaultRouter) AddFunc(merge int64, method func(msg message.Message) []byte) {
+	if r.routerMap == nil {
+		r.routerMap = map[int64]func(msg message.Message) []byte{}
+	}
 	if r.routerMap[merge] == nil {
 		r.routerMap[merge] = method
 		return
