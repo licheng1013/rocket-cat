@@ -4,4 +4,4 @@
 
 ## 描述
 - 当前支持的注册中心
-- [x] Nacos
+- [x] Nacos(运行单机: startup.cmd -m standalone)
