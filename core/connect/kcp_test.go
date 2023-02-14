@@ -8,17 +8,16 @@ import (
 	"time"
 )
 
-func TestServer(t *testing.T) {
+func TestKcpServer(t *testing.T) {
 	ListenerKcp(Addr)
 }
 
-func TestClient(t *testing.T) {
+func TestKcpClient(t *testing.T) {
 	log.Println("客户端监听:" + Addr)
 	if client, err := kcp.DialWithOptions(Addr, nil, 10, 3); err == nil {
 		for {
-			msg := "HelloWorld"
-			buf := make([]byte, len(msg))
-			if _, err := client.Write([]byte(msg)); err == nil {
+			buf := make([]byte, len(HelloMsg))
+			if _, err := client.Write([]byte(HelloMsg)); err == nil {
 				if _, err := io.ReadFull(client, buf); err == nil {
 					log.Println("返回:", string(buf))
 				} else {

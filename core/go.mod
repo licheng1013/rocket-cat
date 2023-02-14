@@ -49,6 +49,7 @@ require (
 
 require (
 	gitee.com/licheng1013/go-util v0.1.8 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.14 // indirect
 	github.com/klauspost/reedsolomon v1.10.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

@@ -1,3 +1,4 @@
+// Package connect https://github.com/xtaci/kcp-go
 package connect
 
 import (
