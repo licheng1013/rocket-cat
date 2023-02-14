@@ -1,15 +1,10 @@
 package core
 
 import (
-	"core/common"
 	"core/decoder"
-	"core/message"
 	"core/pkc"
-	"core/plugins"
 	"core/register"
-	"fmt"
 	"github.com/xtaci/kcp-go/v5"
-	"io"
 	"log"
 	"net"
 	"os"
@@ -41,19 +36,10 @@ type App struct {
 	ip string
 	// 客户端连接
 	Conns []net.Conn
-	// 建立连接时候触发的插件！
-	Connecteds []Plugin
-	// 处理业务逻辑之前的插件！
-	ServiceBefores []Plugin
 	// 开启心跳功能
 	EnableHearbeat bool
 	// 心跳超时Map管理
 	TimeOutMap sync.Map
-}
-
-// AddConnectPlugin 添加插件,连接时插件,建立连接时会触发此插件！
-func (g *App) AddConnectPlugin(pluginFunc Plugin) {
-	g.Connecteds = append(g.Connecteds, pluginFunc)
 }
 
 // SetDecoder 设置编码器
@@ -86,20 +72,6 @@ func (g *App) SetProt(port uint64) {
 
 // Run 启动框架
 func (g *App) Run() {
-	g.beforeFunc()
-	go func() {
-		log.Println(fmt.Sprintf("监听端口: %v:%v", g.ip, g.port))
-		addr := ":" + fmt.Sprint(g.port)
-		lis, err := kcp.ListenWithOptions(addr, nil, 10, 3)
-		common.AssertErr(err)
-		g.listener = lis
-		// TODO 未来加入TCP,WEBSOCKET
-		for { //监听链接！
-			conn, err := g.listener.AcceptKCP()
-			common.AssertErr(err)
-			go listenerKcp(conn, g)
-		}
-	}()
 	// 心跳检查器
 	go func() {
 		if !g.EnableHearbeat {
@@ -138,84 +110,4 @@ func (g *App) Run() {
 	log.Println("正在关机...")
 	g.stopFunc()
 	_ = g.listener.Close()
-}
-
-// Kcp监听方法！
-func listenerKcp(conn net.Conn, g *App) {
-	g.Conns = append(g.Conns, conn)
-	// 对链接的信息封装
-	session := conn.(*kcp.UDPSession)
-	meta := plugins.Meta{}
-	meta.SessionId = session.GetConv()
-	meta.Conn = session
-	meta.App = g.Conns
-	meta.TimeOutMap = &g.TimeOutMap
-	g.TimeOutMap.Store(meta.SessionId, time.Now().UnixMilli())
-
-	for i := range g.Connecteds { //执行插件逻辑
-		g.Connecteds[i].Invok(meta)
-	}
-	var buffer = make([]byte, 1024, 1024)
-	for {
-		// 读取长度 n
-		n, e := conn.Read(buffer)
-		if e != nil {
-			if e == io.EOF {
-				continue
-			}
-			g.TimeOutMap.Delete(session.GetConv()) // 出现错误移除链接
-			log.Println("读取异常: ", e.Error())
-			break
-		}
-		result, err := g.handle(buffer[:n], meta)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		if len(result.GetBytesResult()) == 0 {
-			continue
-		}
-		//获取结果返回！
-		_, err = conn.Write(result.GetBytesResult())
-		common.AssertErr(err)
-	}
-}
-
-func (g *App) handle(bytes []byte, meta plugins.Meta) (result message.Message, err error) {
-	// 编码解码
-	msg := g.decoder.DecoderBytes(bytes)
-	meta.Message = msg
-	if msg.GetHeartbeat() && g.EnableHearbeat { //心跳请求，更新心跳
-		// TODO 心跳处理
-		heartbeat := plugins.Heartbeat{}
-		heartbeat.Invok(meta)
-	}
-
-	if g.EnableMessageLog {
-		log.Println("请求路由: ", msg.GetMerge(), "请求数据: ", string(msg.GetBody()))
-	}
-	for i := range g.ServiceBefores { //执行调用远程时候执行的插件逻辑！
-		g.ServiceBefores[i].Invok(meta)
-	}
-	rpcResult := pkc.RpcResult{}
-	// 处理对于函数 TODO 这里进行远程调用！
-	err = g.rpc.Call(g.register.RequestUrl(), msg, &rpcResult)
-	byteData := g.decoder.EncodeBytes(rpcResult.Result)
-	msg.SetBody(byteData)
-	return msg, err
-}
-
-// SetStopFunc Stop 框架停止钩子！ 启动之前停止他
-func (g *App) SetStopFunc(v func()) {
-	g.stopFunc = v
-}
-
-// SetBeforeFunc 注册前置钩子，在框架启动的时候处理某些东西！
-func (g *App) SetBeforeFunc(v func()) {
-	g.beforeFunc = v
-}
-
-// SetIp 设置ip
-func (g *App) SetIp(ip string) {
-	g.ip = ip
 }
