@@ -16,6 +16,12 @@ import (
 func TestGateway(t *testing.T) {
 	gateway := NewGateway()
 	gateway.SetDecoder(decoder.JsonDecoder{})
+
+	gateway.Router().AddFunc(10, func(msg message.Message) []byte {
+		log.Println(string(msg.GetBody()))
+		return msg.GetBody()
+	})
+
 	gateway.Start(connect.Addr, &connect.WebSocket{})
 }
 

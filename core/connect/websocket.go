@@ -43,7 +43,7 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		if len(bytes) == 0 {
 			continue
 		}
-		err = c.WriteMessage(mt, message)
+		err = c.WriteMessage(mt, bytes)
 		if err != nil {
 			log.Println("写入错误:", err)
 			break

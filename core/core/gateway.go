@@ -19,16 +19,19 @@ type Gateway struct {
 	decoder decoder.Decoder
 }
 
-func (g *Gateway) SetDecoder(decoder decoder.Decoder) {
-	g.decoder = decoder
-}
-
+// Router 获取路由器
 func (g *Gateway) Router() router.Router {
 	return g.router
 }
 
-func (g *Gateway) Decoder() decoder.Decoder {
-	return g.decoder
+// SetRouter 设置自定义路由器->默认 router.DefaultRouter
+func (g *Gateway) SetRouter(router router.Router) {
+	g.router = router
+}
+
+// SetDecoder 设置编码器
+func (g *Gateway) SetDecoder(decoder decoder.Decoder) {
+	g.decoder = decoder
 }
 
 // SetSingle 设置单机模式 true
@@ -36,10 +39,11 @@ func (g *Gateway) SetSingle(single bool) {
 	g.single = single
 }
 
+// NewGateway 默认以单机模式启动
 func NewGateway() *Gateway {
 	g := &Gateway{}
 	g.SetSingle(true)
-	g.router = router.Router{}
+	g.router = &router.DefaultRouter{}
 	return &Gateway{}
 }
 
@@ -53,12 +57,12 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 }
 
 func (g *Gateway) ListenBack(bytes []byte) []byte {
-	message := g.decoder.DecoderBytes(bytes)
-	invoke := g.router.RouterMap[message.GetMerge()]
-	if invoke == nil {
-		log.Println("未注册路由方法:", message.GetMerge())
-		return make([]byte, 0)
+	if g.single {
+		message := g.decoder.DecoderBytes(bytes)
+		log.Println("收到消息:", string(message.GetBody()))
+		message.SetBody(g.router.InvokeFunc(message))
+		return g.router.InvokeFunc(message)
 	}
-	log.Println("收到消息:", string(message.GetBody()))
+	panic("描述: 目前暂时未实现rpc调用")
 	return bytes
 }
