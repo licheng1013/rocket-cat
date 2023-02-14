@@ -1,3 +1,4 @@
+// Package connect https://github.com/gorilla/websocket
 package connect
 
 import (
