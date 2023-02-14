@@ -9,7 +9,12 @@ import (
 )
 
 func TestKcpServer(t *testing.T) {
-	ListenerKcp(Addr)
+	socket := KcpSocket{}
+	socket.ListenBack(func(bytes []byte) []byte {
+		log.Println("收到消息:" + string(bytes))
+		return bytes
+	})
+	socket.ListenAddr(Addr)
 }
 
 func TestKcpClient(t *testing.T) {

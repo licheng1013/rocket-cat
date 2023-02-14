@@ -3,7 +3,6 @@ package connect
 import (
 	"github.com/gorilla/websocket"
 	"log"
-	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
@@ -12,10 +11,12 @@ import (
 )
 
 func TestWsServer(t *testing.T) {
-	http.HandleFunc("/ws", ws)
-	if err := http.ListenAndServe(Addr, nil); err != nil {
-		panic(err)
-	}
+	socket := WebSocket{}
+	socket.ListenBack(func(bytes []byte) []byte {
+		log.Println("收到消息:" + string(bytes))
+		return bytes
+	})
+	socket.ListenAddr(Addr)
 }
 
 func TestWsClient(t *testing.T) {

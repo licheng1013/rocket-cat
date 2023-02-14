@@ -6,8 +6,23 @@ import (
 	"log"
 )
 
-// ListenerKcp Kcp监听方法！
-func ListenerKcp(addr string) {
+type KcpSocket struct {
+	funcMsg func([]byte) []byte
+}
+
+func (k *KcpSocket) ListenBack(f func([]byte) []byte) {
+	k.funcMsg = f
+}
+
+func (k *KcpSocket) ListenAddr(addr string) {
+	if k.funcMsg == nil {
+		panic("未注册回调函数: ListenBack")
+	}
+	k.listenerKcp(addr)
+}
+
+// listenerKcp Kcp监听方法！
+func (k *KcpSocket) listenerKcp(addr string) {
 	log.Println("服务器监听:" + addr)
 	lis, err := kcp.ListenWithOptions(addr, nil, 10, 3)
 	if err != nil {
@@ -27,8 +42,12 @@ func ListenerKcp(addr string) {
 					log.Println(err)
 					return
 				}
-				log.Println(string(buf[:n]))
-				n, err = conn.Write(buf[:n])
+				// log.Printf("收到消息: %s", buf[:n])
+				bytes := k.funcMsg(buf[:n])
+				if len(bytes) == 0 {
+					continue
+				}
+				n, err = conn.Write(bytes)
 				if err != nil {
 					log.Println(err)
 					return
