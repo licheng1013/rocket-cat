@@ -6,6 +6,8 @@ type Socket interface {
 	ListenAddr(addr string)
 }
 
+type FishType int
+
 // Addr ----------------- 这里时测试数据
 const Addr = "127.0.0.1:12345"
 const HelloMsg = "HelloWorld"
