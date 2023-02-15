@@ -27,8 +27,6 @@ type App struct {
 	decoder decoder.Decoder
 	// 关机钩子
 	stopFunc func()
-	// rpc请求
-	rpc remote.Rpc
 	// 注册中心
 	register registers.Register
 	// ip地址
@@ -46,10 +44,6 @@ func (g *App) SetDecoder(d decoder.Decoder) {
 	g.decoder = d
 }
 
-// SetRpc 设置Rpc调用处理
-func (g *App) SetRpc(p remote.Rpc) {
-	g.rpc = p
-}
 
 // NewGameServer 获取一个框架实例
 func NewGameServer(register registers.Register) *App {
@@ -58,7 +52,6 @@ func NewGameServer(register registers.Register) *App {
 	g.beforeFunc = func() {}
 	g.stopFunc = func() {}
 	g.decoder = decoder.JsonDecoder{}
-	g.rpc = &remote.DefaultRpc{}
 	g.register = register
 	g.TimeOutMap = sync.Map{}
 	return g
