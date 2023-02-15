@@ -13,7 +13,7 @@ type user1 struct {
 func TestJsonDecoder(t *testing.T) {
 	u := user1{"小明", 12}
 	// 问题
-	jsonMessage := message.JsonMessage{}
+	jsonMessage := message.JsonMessage{Merge: 10, Code: -1, Message: "测试信息", Headers: "扩展参数", Heartbeat: true}
 	jsonMessage.SetBody(message.MsgKit.StructToBytes(u))
 	// 优化
 	decoder := JsonDecoder{}

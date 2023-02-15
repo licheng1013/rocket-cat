@@ -1,9 +1,7 @@
 package message
 
 import (
-	"errors"
-	"github.com/licheng1013/go-util/common"
-	"reflect"
+	"github.com/io-game-go/common"
 )
 
 // JsonMessage 必须实现 Message 接口
@@ -18,9 +16,7 @@ type JsonMessage struct {
 }
 
 func (j *JsonMessage) Bind(v interface{}) (err error) {
-	pv1 := reflect.ValueOf(v)
-	if pv1.Kind() != reflect.Ptr {
-		err = errors.New("不是指针类型,无法绑定到结构体上")
+	if err = common.AssertPtr(v, "不是指针类型,无法绑定到结构体上"); err != nil {
 		return
 	}
 	err = MsgKit.BytesToStruct(j.GetBody(), v)
@@ -32,7 +28,7 @@ func (j *JsonMessage) GetHeaders() string {
 }
 
 func (j *JsonMessage) GetBytesResult() []byte {
-	return []byte(common.JsonUtil.JsonToStr(j))
+	return MsgKit.StructToBytes(j)
 }
 
 func (j *JsonMessage) SetBody(bytes []byte) {

@@ -16,6 +16,9 @@ func (d JsonDecoder) EncodeBytes(result interface{}) []byte {
 func (d JsonDecoder) DecoderBytes(bytes []byte) message.Message {
 	json := message.JsonMessage{}
 	// 这里转换成了map
-	message.MsgKit.BytesToStruct(bytes, &json)
+	err := message.MsgKit.BytesToStruct(bytes, &json)
+	if err != nil {
+		panic(err)
+	}
 	return &json
 }
