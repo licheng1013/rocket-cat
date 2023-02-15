@@ -3,13 +3,13 @@ package pkc
 import (
 	"fmt"
 	"github.com/io-game-go/message"
-	"github.com/io-game-go/register"
+	"github.com/io-game-go/registers"
 )
 
 // Rpc 远程调用接口,你可以随意实现自己的远程调用！
 type Rpc interface {
 	// Call 注册中心参数，路由，客户端的参数
-	Call(requestUrl registers.RequestInfo, info message.Message, rpcResult *RpcResult) error
+	Call(requestUrl registers.RegisterInfo, info message.Message, rpcResult *RpcResult) error
 	RpcListen(ip string, port uint64)
 }
 

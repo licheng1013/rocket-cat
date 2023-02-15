@@ -1,10 +1,12 @@
 package core
 
 import (
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/io-game-go/connect"
 	"github.com/io-game-go/decoder"
 	"github.com/io-game-go/message"
+	"github.com/io-game-go/router"
 	"log"
 	"net/url"
 	"os"
@@ -17,15 +19,31 @@ func TestGateway(t *testing.T) {
 	gateway := NewGateway()
 	gateway.SetDecoder(decoder.JsonDecoder{})
 
-	gateway.Router().AddFunc(10, func(msg message.Message) []byte {
-		log.Println(string(msg.GetBody()))
-		return msg.GetBody()
+	start := time.Now().UnixMilli()
+	var count int64
+	gateway.Router().AddFunc(10, func(ctx router.Context) []byte {
+		end := time.Now().UnixMilli()
+		count++
+		if end-start > 1000 {
+			fmt.Println("1s请求数量:", count)
+			count = 0
+			start = end
+		}
+		//log.Println(string(ctx.Message.GetBody()))
+		return ctx.Message.GetBody()
 	})
-
+	fmt.Println(start)
 	gateway.Start(connect.Addr, &connect.WebSocket{})
 }
 
-func TestWsClient(t *testing.T) {
+func TestWsClient2(t *testing.T) {
+	for i := 0; i < 2; i++ {
+		go WsTest()
+	}
+	WsTest()
+}
+
+func WsTest() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 	u := url.URL{Scheme: "ws", Host: connect.Addr, Path: "/ws"}
@@ -50,33 +68,14 @@ func TestWsClient(t *testing.T) {
 			log.Println("收到消息:", string(dto.GetBody()))
 		}
 	}()
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 	for {
-		select {
-		case <-done:
-			return
-		case t := <-ticker.C:
-			jsonMessage := message.JsonMessage{Body: []byte(t.String())}
-			jsonMessage.Merge = 10
-			err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
-			if err != nil {
-				log.Println("写:", err)
-				return
-			}
-		case <-interrupt:
-			log.Println("中断")
-			// 通过发送关闭消息干净地关闭连接，然后等待（超时）服务器关闭连接。
-			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			if err != nil {
-				log.Println("写关闭:", err)
-				return
-			}
-			select {
-			case <-done:
-			case <-time.After(time.Second):
-			}
+		jsonMessage := message.JsonMessage{Body: []byte("HelloWorld")}
+		jsonMessage.Merge = 10
+		err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
+		if err != nil {
+			log.Println("写:", err)
 			return
 		}
+
 	}
 }
