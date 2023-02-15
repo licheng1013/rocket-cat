@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"net/http"
 	"testing"
 )
 
@@ -26,28 +27,37 @@ func TestGrpcServer(t *testing.T) {
 }
 
 func TestGrpcClient(t *testing.T) {
-	for i := 0; i < 50; i++ {
-		go GrpcClient()
-	}
 	GrpcClient()
 }
 
-func GrpcClient() {
-	// 设置与服务器的连接
-	conn, err := grpc.Dial("localhost"+port, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		log.Fatalf("监听错误: %v", err)
-	}
-	defer conn.Close()
-	c := protof.NewRpcServiceClient(conn)
-	//ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	for true {
-		//ctx, cancel = context.WithTimeout(context.Background(), time.Second)
-		r, err := c.InvokeRemoteFunc(context.Background(), &protof.RpcInfo{Body: []byte("HelloWorld")})
+var conn *grpc.ClientConn
+var client protof.RpcServiceClient
+
+// 定义一个请求处理器
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+	if conn == nil {
+		// 设置与服务器的连接
+		c, err := grpc.Dial("localhost"+port, grpc.WithInsecure(), grpc.WithBlock())
 		if err != nil {
-			log.Fatalf("错误: %v", err)
+			log.Fatalf("监听错误: %v", err)
 		}
-		log.Println(r.String())
+		conn = c
+		client = protof.NewRpcServiceClient(conn)
 	}
-	//defer cancel()
+	v, err := client.InvokeRemoteFunc(context.Background(), &protof.RpcInfo{Body: []byte("HelloWorld")})
+	if err != nil {
+		log.Fatalf("错误: %v", err)
+	}
+	log.Println(v.String())
+	_, _ = w.Write([]byte("Hello, world!"))
+}
+
+func GrpcClient() {
+	// 将请求处理器注册到根路径上
+	http.HandleFunc("/", helloHandler)
+	// 启动一个 HTTP 服务器，监听 8080 端口
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err)
+	}
 }
