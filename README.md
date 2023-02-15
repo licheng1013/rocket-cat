@@ -15,6 +15,26 @@
 - ![struct.png](struct.png)
 
 ## 功能
+### 路由代理
+- 在调用目标方法之前 or 之后处理一些自定义逻辑,需要实现 Proxy 接口
+- 符合标准的实现 SetProxy 传入了目标代理对象 InvokeFunc 是执行目标方法。
+
+```go
+// ProxyFunc 代理模型
+type ProxyFunc struct {
+	proxy Proxy
+}
+
+func (p *ProxyFunc) InvokeFunc(ctx Context) []byte {
+	return p.proxy.InvokeFunc(ctx)
+}
+
+func (p *ProxyFunc) SetProxy(proxy Proxy) {
+	p.proxy = proxy
+}
+```
+
+
 ### 传输结构
 - [x] 支持Json
 - [x] 支持Proto
