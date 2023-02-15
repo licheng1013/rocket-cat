@@ -10,14 +10,15 @@ import (
 type Router interface {
 	// AddFunc 添加路由
 	AddFunc(merge int64, method func(msg message.Message) []byte)
-	// InvokeFunc 执行目标方法之前
-	InvokeFunc(msg message.Message) []byte
+	// ExecuteFunc 执行函数
+	ExecuteFunc(msg message.Message) []byte
 }
 
 // DefaultRouter 路由功能
 type DefaultRouter struct {
 	// 路由Id : 目标方法
-	routerMap map[int64]func(msg message.Message) []byte
+	routerMap   map[int64]func(msg message.Message) []byte
+	middlewares []Proxy
 }
 
 // AddFunc 添加函数
@@ -32,7 +33,7 @@ func (r *DefaultRouter) AddFunc(merge int64, method func(msg message.Message) []
 	panic(fmt.Sprintf("路由重复: %v-%v ", CmdKit.GetCmd(merge), CmdKit.GetSubCmd(merge)))
 }
 
-// InvokeFunc 执行函数
+// InvokeFunc 代理函数执行
 func (r *DefaultRouter) InvokeFunc(msg message.Message) []byte {
 	merge := msg.GetMerge()
 	if r.routerMap[merge] == nil {
@@ -40,4 +41,14 @@ func (r *DefaultRouter) InvokeFunc(msg message.Message) []byte {
 		return nil
 	}
 	return r.routerMap[merge](msg)
+}
+
+func (r *DefaultRouter) ExecuteFunc(msg message.Message) []byte {
+	var v Proxy
+	v = &ProxyFunc{r}
+	for i := range r.middlewares {
+		proxy := r.middlewares[i]
+		v = proxy
+	}
+	return v.InvokeFunc(msg)
 }

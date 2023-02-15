@@ -58,7 +58,7 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 func (g *Gateway) ListenBack(bytes []byte) []byte {
 	if g.single {
 		message := g.decoder.DecoderBytes(bytes)
-		message.SetBody(g.router.InvokeFunc(message))
+		message.SetBody(g.router.ExecuteFunc(message))
 		if len(message.GetBody()) == 0 { // 没数据直接不返回
 			return make([]byte, 0)
 		}
