@@ -9,6 +9,6 @@
 - protoc --go_out=. --go_opt=paths=source_relative message.proto
 
 
-## Grpc
+## RpcInfo
 - 编译
-- protoc --go_out=. --go_opt=paths=source_relative  --go-grpc_out=. --go-grpc_opt=paths=source_relative grpc.proto
+- protoc --go_out=. --go_opt=paths=source_relative rpc_info.proto

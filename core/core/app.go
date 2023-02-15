@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/io-game-go/decoder"
-	"github.com/io-game-go/pkc"
 	"github.com/io-game-go/registers"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
@@ -29,7 +28,7 @@ type App struct {
 	// 关机钩子
 	stopFunc func()
 	// rpc请求
-	rpc pkc.Rpc
+	rpc remote.Rpc
 	// 注册中心
 	register registers.Register
 	// ip地址
@@ -48,7 +47,7 @@ func (g *App) SetDecoder(d decoder.Decoder) {
 }
 
 // SetRpc 设置Rpc调用处理
-func (g *App) SetRpc(p pkc.Rpc) {
+func (g *App) SetRpc(p remote.Rpc) {
 	g.rpc = p
 }
 
@@ -59,7 +58,7 @@ func NewGameServer(register registers.Register) *App {
 	g.beforeFunc = func() {}
 	g.stopFunc = func() {}
 	g.decoder = decoder.JsonDecoder{}
-	g.rpc = &pkc.DefaultRpc{}
+	g.rpc = &remote.DefaultRpc{}
 	g.register = register
 	g.TimeOutMap = sync.Map{}
 	return g

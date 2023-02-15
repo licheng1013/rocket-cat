@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+// 导出路径
+option go_package = "core/protof";
+
+message RpcInfo{
+  bytes body = 1;
+}

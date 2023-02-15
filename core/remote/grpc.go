@@ -1,4 +1,4 @@
-package pkc
+package remote
 
 import (
 	"fmt"
