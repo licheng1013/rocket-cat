@@ -7,11 +7,14 @@ import (
 )
 
 func TestRouter(t *testing.T) {
+	msg := "HelloWorld"
 	router := DefaultRouter{}
 	router.AddProxy(&B{})
-	router.AddFunc(10, func(ctx Context) []byte {
+	merge := CmdKit.GetMerge(1, 2)
+	router.AddFunc(merge, func(ctx Context) []byte {
 		fmt.Println("具体业务")
+		fmt.Println("收到消息:" + string(ctx.Message.GetBody()))
 		return ctx.Message.GetBody()
 	})
-	_ = router.ExecuteFunc(Context{Message: &message.JsonMessage{Merge: 10}})
+	_ = router.ExecuteFunc(Context{Message: &message.JsonMessage{Merge: merge, Body: []byte(msg)}})
 }
