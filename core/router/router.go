@@ -43,12 +43,22 @@ func (r *DefaultRouter) InvokeFunc(msg message.Message) []byte {
 	return r.routerMap[merge](msg)
 }
 
+func (r *DefaultRouter) SetProxy(proxy Proxy) {
+	panic("被代理的类不允许设置代理对象!")
+}
+
 func (r *DefaultRouter) ExecuteFunc(msg message.Message) []byte {
 	var v Proxy
 	v = &ProxyFunc{r}
 	for i := range r.middlewares {
 		proxy := r.middlewares[i]
+		proxy.SetProxy(v)
 		v = proxy
 	}
 	return v.InvokeFunc(msg)
+}
+
+// AddProxy 添加代理器，最先添加的最最后执行。 异常中间件应该在最后天机，用于捕获所有异常  ProxyFunc
+func (r *DefaultRouter) AddProxy(proxy Proxy) {
+	r.middlewares = append(r.middlewares, proxy)
 }
