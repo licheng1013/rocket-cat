@@ -1,6 +1,10 @@
 package message
 
-import "github.com/licheng1013/go-util/common"
+import (
+	"errors"
+	"github.com/licheng1013/go-util/common"
+	"reflect"
+)
 
 // JsonMessage 必须实现 Message 接口
 // Json处理则必须先转换为json才能继续处理其他东西
@@ -11,6 +15,16 @@ type JsonMessage struct {
 	Code      int64  `json:"code,omitempty"`
 	Message   string `json:"message,omitempty"`
 	Headers   string `json:"headers,omitempty"`
+}
+
+func (j *JsonMessage) Bind(v interface{}) (err error) {
+	pv1 := reflect.ValueOf(v)
+	if pv1.Kind() != reflect.Ptr {
+		err = errors.New("不是指针类型,无法绑定到结构体上")
+		return
+	}
+	err = MsgKit.BytesToStruct(j.GetBody(), v)
+	return
 }
 
 func (j *JsonMessage) GetHeaders() string {

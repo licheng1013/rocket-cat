@@ -19,9 +19,7 @@ func (k kit) StructToBytes(a any) (bytes []byte) {
 }
 
 // BytesToStruct 字节转换为结构体
-func (k kit) BytesToStruct(bytes []byte, v interface{}) {
-	if err := json.Unmarshal(bytes, &v); err != nil {
-		panic(err)
-	}
+func (k kit) BytesToStruct(bytes []byte, v interface{}) (err error) {
+	err = json.Unmarshal(bytes, &v)
 	return
 }

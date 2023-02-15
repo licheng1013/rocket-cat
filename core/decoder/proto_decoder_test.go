@@ -20,6 +20,9 @@ func TestProtoDecoder(t *testing.T) {
 	msg := decoder.DecoderBytes(protoMessage.GetBytesResult())
 	t.Log(msg)
 	var v user2
-	message.MsgKit.BytesToStruct(msg.GetBody(), &v)
+	err := protoMessage.Bind(&v)
+	if err != nil {
+		panic(err)
+	}
 	t.Log(v)
 }

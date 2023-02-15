@@ -20,6 +20,9 @@ func TestJsonDecoder(t *testing.T) {
 	msg := decoder.DecoderBytes(jsonMessage.GetBytesResult())
 	t.Log(msg)
 	var v user1
-	message.MsgKit.BytesToStruct(msg.GetBody(), &v)
+	err := jsonMessage.Bind(&v)
+	if err != nil {
+		panic(err)
+	}
 	t.Log(v)
 }

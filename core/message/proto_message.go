@@ -1,12 +1,22 @@
 package message
 
 import (
+	"errors"
 	"github.com/io-game-go/protof"
 	"google.golang.org/protobuf/proto"
 )
 
 type ProtoMessage struct {
 	protof.Message
+}
+
+func (p *ProtoMessage) Bind(v interface{}) (err error) {
+	err = errors.New("不是 proto.Message 类型")
+	switch v.(type) {
+	case proto.Message:
+		err = proto.Unmarshal(p.GetBody(), v.(proto.Message))
+	}
+	return
 }
 
 func (p *ProtoMessage) GetMerge() int64 {
