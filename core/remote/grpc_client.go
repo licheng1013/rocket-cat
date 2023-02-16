@@ -16,6 +16,9 @@ func (s *GrpcClient) InvokeRemoteRpc(addr string, bytes []byte) []byte {
 		log.Println("地址为空: " + addr)
 		return []byte{}
 	}
+	if s.clientMap == nil {
+		s.clientMap = make(map[string]protof.RpcServiceClient)
+	}
 	if s.clientMap[addr] == nil {
 		// 设置与服务器的连接
 		socket, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithBlock())

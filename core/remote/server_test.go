@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"context"
 	"github.com/io-game-go/protof"
 	"google.golang.org/grpc"
 	"log"
@@ -30,26 +29,12 @@ func TestGrpcClient(t *testing.T) {
 	GrpcClientTest()
 }
 
-var conn *grpc.ClientConn
-var client protof.RpcServiceClient
+var grpcClient = GrpcClient{}
 
 // 定义一个请求处理器
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	if conn == nil {
-		// 设置与服务器的连接
-		c, err := grpc.Dial("localhost"+port, grpc.WithInsecure(), grpc.WithBlock())
-		if err != nil {
-			log.Fatalf("监听错误: %v", err)
-		}
-		conn = c
-		client = protof.NewRpcServiceClient(conn)
-	}
-	v, err := client.InvokeRemoteFunc(context.Background(), &protof.RpcInfo{Body: []byte("HelloWorld")})
-	if err != nil {
-		log.Fatalf("错误: %v", err)
-	}
-	log.Println(v.String())
-	_, _ = w.Write([]byte("Hello, world!"))
+	rpc := grpcClient.InvokeRemoteRpc("localhost"+port, []byte("HelloWorld"))
+	_, _ = w.Write(rpc)
 }
 
 func GrpcClientTest() {
