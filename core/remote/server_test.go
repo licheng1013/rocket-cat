@@ -27,7 +27,7 @@ func TestGrpcServer(t *testing.T) {
 }
 
 func TestGrpcClient(t *testing.T) {
-	GrpcClient()
+	GrpcClientTest()
 }
 
 var conn *grpc.ClientConn
@@ -52,7 +52,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("Hello, world!"))
 }
 
-func GrpcClient() {
+func GrpcClientTest() {
 	// 将请求处理器注册到根路径上
 	http.HandleFunc("/", helloHandler)
 	// 启动一个 HTTP 服务器，监听 8080 端口
