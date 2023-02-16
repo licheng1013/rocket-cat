@@ -9,8 +9,8 @@ import (
 type Router interface {
 	// AddFunc 添加路由
 	AddFunc(merge int64, method func(ctx Context) []byte)
-	// ExecuteFunc 执行函数
-	ExecuteFunc(msg Context) []byte
+	// ExecuteMethod 执行函数
+	ExecuteMethod(msg Context) []byte
 }
 
 // DefaultRouter 路由功能
@@ -46,7 +46,7 @@ func (r *DefaultRouter) SetProxy(proxy Proxy) {
 	panic("被代理的类不允许设置代理对象!")
 }
 
-func (r *DefaultRouter) ExecuteFunc(msg Context) []byte {
+func (r *DefaultRouter) ExecuteMethod(msg Context) []byte {
 	var v Proxy
 	v = &ProxyFunc{r}
 	for i := range r.middlewares {

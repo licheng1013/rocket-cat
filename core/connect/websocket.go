@@ -8,15 +8,15 @@ import (
 )
 
 type WebSocket struct {
-	funcMsg func([]byte) []byte
+	proxyMethod func([]byte) []byte
 }
 
 func (v *WebSocket) ListenBack(f func([]byte) []byte) {
-	v.funcMsg = f
+	v.proxyMethod = f
 }
 
 func (v *WebSocket) ListenAddr(addr string) {
-	if v.funcMsg == nil {
+	if v.proxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
 	http.HandleFunc("/ws", v.ws)
@@ -39,7 +39,7 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		// log.Printf("收到消息: %s", message)
-		bytes := v.funcMsg(message)
+		bytes := v.proxyMethod(message)
 		if len(bytes) == 0 {
 			continue
 		}

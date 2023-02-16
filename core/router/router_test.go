@@ -16,5 +16,5 @@ func TestRouter(t *testing.T) {
 		fmt.Println("收到消息:" + string(ctx.Message.GetBody()))
 		return ctx.Message.GetBody()
 	})
-	_ = router.ExecuteFunc(Context{Message: &message.JsonMessage{Merge: merge, Body: []byte(msg)}})
+	_ = router.ExecuteMethod(Context{Message: &message.JsonMessage{Merge: merge, Body: []byte(msg)}})
 }

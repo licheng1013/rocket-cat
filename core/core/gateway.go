@@ -59,11 +59,11 @@ func (g *Gateway) ListenBack(bytes []byte) []byte {
 	if g.single {
 		message := g.decoder.DecoderBytes(bytes)
 		context := router.Context{Message: message}
-		message.SetBody(g.router.ExecuteFunc(context))
-		if len(message.GetBody()) == 0 { // 没数据直接不返回
+		result := g.router.ExecuteMethod(context)
+		if len(result) == 0 { // 没数据直接不返回
 			return make([]byte, 0)
 		}
-		return message.GetBytesResult()
+		return result
 	}
 	panic("描述: 目前暂时未实现rpc调用")
 	return bytes

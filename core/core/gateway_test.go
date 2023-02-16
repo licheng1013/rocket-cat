@@ -22,6 +22,7 @@ func TestGateway(t *testing.T) {
 	start := time.Now().UnixMilli()
 	var count int64
 	gateway.Router().AddFunc(10, func(ctx router.Context) []byte {
+		ctx.Message.SetBody([]byte("Hi Ok"))
 		end := time.Now().UnixMilli()
 		count++
 		if end-start > 1000 {
@@ -30,7 +31,7 @@ func TestGateway(t *testing.T) {
 			start = end
 		}
 		//log.Println(string(ctx.Message.GetBody()))
-		return ctx.Message.GetBody()
+		return ctx.Message.GetBytesResult()
 	})
 	fmt.Println(start)
 	gateway.Start(connect.Addr, &connect.WebSocket{})
