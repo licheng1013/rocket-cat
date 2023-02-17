@@ -8,6 +8,8 @@ type Register interface {
 	GetIp() RegisterInfo
 	// ListIp 获取所有ip
 	ListIp() []RegisterInfo
+	// Close 用于关机等操作
+	Close()
 }
 
 type RegisterInfo struct {

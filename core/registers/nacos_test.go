@@ -15,5 +15,5 @@ func TestNacos(t *testing.T) {
 	time.Sleep(3 * time.Second)
 	fmt.Println(nacos.ListIp())
 	time.Sleep(10 * time.Second)
-	nacos.Logout()
+	nacos.Close()
 }

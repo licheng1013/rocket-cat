@@ -2,7 +2,9 @@ package remote
 
 import (
 	"context"
+	"fmt"
 	"github.com/io-game-go/protof"
+	"github.com/io-game-go/registers"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -11,15 +13,25 @@ import (
 type GrpcServer struct {
 	protof.RpcServiceServer
 	callbackFunc func([]byte) []byte
+	register     registers.Register
+}
+
+// SetRegister 在测试阶段可以不用设置
+func (s *GrpcServer) SetRegister(register registers.Register) {
+	s.register = register
+}
+
+func (s *GrpcServer) Close() {
+	s.register.Close()
 }
 
 func (s *GrpcServer) CallbackResult(f func([]byte) []byte) {
 	s.callbackFunc = f
 }
 
-func (s *GrpcServer) ListenAddr(addr string) {
+func (s *GrpcServer) ListenAddr(addr registers.RegisterInfo) {
 	// 监听连接
-	lis, err := net.Listen("tcp", addr)
+	lis, err := net.Listen("tcp", addr.Ip+":"+fmt.Sprint(addr.Port))
 	if err != nil {
 		log.Fatalf("监听: %v", err)
 	}

@@ -1,12 +1,15 @@
 package remote
 
 import (
+	"fmt"
+	"github.com/io-game-go/registers"
 	"log"
 	"net/http"
 	"testing"
 )
 
-const addr = "192.168.101.10:10000"
+const host = "192.168.101.10"
+const port = 10000
 
 func TestGrpcServer(t *testing.T) {
 	server := GrpcServer{}
@@ -14,18 +17,19 @@ func TestGrpcServer(t *testing.T) {
 		log.Println("收到数据: ", string(bytes))
 		return []byte("Hi")
 	})
-	server.ListenAddr(addr)
+	server.ListenAddr(registers.RegisterInfo{Ip: host, Port: port})
+	log.Println("HelloWorld")
 }
 
 func TestGrpcClient(t *testing.T) {
-	GrpcClientTest()
+	GrpcClientTest() //启动两个后访问 http://localhost:8080/
 }
 
 var grpcClient = GrpcClient{}
 
 // 定义一个请求处理器
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	rpc := grpcClient.InvokeRemoteRpc(addr, []byte("HelloWorld"))
+	rpc := grpcClient.InvokeRemoteRpc(host+":"+fmt.Sprint(port), []byte("HelloWorld"))
 	_, _ = w.Write(rpc)
 }
 

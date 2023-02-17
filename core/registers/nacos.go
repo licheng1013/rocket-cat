@@ -19,6 +19,16 @@ type Nacos struct {
 	registerInfo  RegisterInfo
 }
 
+func (n *Nacos) Close() {
+	success, err := n.namingClient.DeregisterInstance(n.logoutParam)
+	if err != nil {
+		print(err)
+	}
+	if success {
+		log.Println("注销成功！")
+	}
+}
+
 func (n *Nacos) Register(info RegisterInfo) {
 	n.registerInfo = info
 	n.initConfig()
@@ -84,16 +94,6 @@ func (n *Nacos) init() {
 	success, err := n.namingClient.RegisterInstance(n.registerParam)
 	if err != nil || !success {
 		print("注册失败:", err)
-	}
-}
-
-func (n *Nacos) Logout() {
-	success, err := n.namingClient.DeregisterInstance(n.logoutParam)
-	if err != nil {
-		print(err)
-	}
-	if success {
-		log.Println("注销成功！")
 	}
 }
 

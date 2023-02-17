@@ -26,3 +26,8 @@ const (
 	GatewayName  = "gateway-game"
 	ServicerName = "service-game"
 )
+
+// Closeing 关闭接口
+type Closeing interface {
+	Close()
+}
