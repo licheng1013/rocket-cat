@@ -14,7 +14,7 @@ func TestWsServer(t *testing.T) {
 	socket := WebSocket{}
 	socket.ListenBack(func(bytes []byte) []byte {
 		log.Println("收到消息:" + string(bytes))
-		return bytes
+		return []byte("{\n    \"test\": \"echo \\\"Error: no test specified\\\" && exit 1\",\n    \"dev\": \"node main.js\"\n  }")
 	})
 	socket.ListenAddr(Addr)
 }
