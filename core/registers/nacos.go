@@ -46,12 +46,15 @@ func (n *Nacos) Register(info RegisterInfo) {
 
 // GetIp 获取单个ip
 func (n *Nacos) GetIp() RegisterInfo {
-	instance := n.SelOne(n.registerClientInfo.RemoteName)
-	log.Println(instance)
-	if instance == nil {
-		panic("获取实例为空")
+	// SelList 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
+	instances, err := n.namingClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
+		ServiceName: n.registerClientInfo.RemoteName,
+		GroupName:   n.registerParam.GroupName,
+	})
+	if err != nil {
+		print(err)
 	}
-	return RegisterInfo{Ip: instance.Ip, Port: uint16(instance.Port), ServiceName: instance.ServiceName}
+	return RegisterInfo{Ip: instances.Ip, Port: uint16(instances.Port), ServiceName: instances.ServiceName}
 }
 
 // ListIp 获取ip
@@ -103,19 +106,6 @@ func (n *Nacos) SelList(serverName string) []model.Instance {
 		ServiceName: serverName,
 		GroupName:   n.registerParam.GroupName,
 		HealthyOnly: true, //true 健康的实例
-	})
-	if err != nil {
-		print(err)
-	}
-	return instances
-}
-
-// SelOne 只获取存活的实例
-func (n *Nacos) SelOne(serverName string) *model.Instance {
-	// SelList 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
-	instances, err := n.namingClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
-		ServiceName: serverName,
-		GroupName:   n.registerParam.GroupName,
 	})
 	if err != nil {
 		print(err)
