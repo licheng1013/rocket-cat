@@ -1,6 +1,7 @@
 package registers
 
 import (
+	"fmt"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
@@ -12,7 +13,6 @@ import (
 
 // Nacos 请使用构造方法获取实例  NewNacos
 type Nacos struct {
-	serverConfigs      []constant.ServerConfig
 	namingClient       naming_client.INamingClient
 	registerClientInfo RegisterInfo
 	registerParam      vo.RegisterInstanceParam
@@ -36,11 +36,20 @@ func (n *Nacos) Close() {
 
 func (n *Nacos) Register(info RegisterInfo) {
 	// 创建serverConfig的另一种方式 -> 此处链接nacos的配置
-	n.serverConfigs = []constant.ServerConfig{
+	serverConfigs := []constant.ServerConfig{
 		*constant.NewServerConfig(info.Ip, uint64(info.Port), constant.WithScheme("http"),
 			constant.WithContextPath("/nacos")),
 	}
-	n.init()
+	var err error
+	// 创建服务发现客户端的另一种方式 (推荐)
+	n.namingClient, err = clients.NewNamingClient(vo.NacosClientParam{ServerConfigs: serverConfigs})
+	if err != nil {
+		panic(err)
+	}
+	if success, err := n.namingClient.RegisterInstance(n.registerParam); err != nil || !success {
+		panic(err)
+	}
+	log.Println("注册中心:", info.Ip+":"+fmt.Sprint(info.Port))
 	go n.heartbeat() // 心跳功能
 }
 
@@ -72,18 +81,6 @@ func (n *Nacos) ListIp() []RegisterInfo {
 
 func NewNacos() *Nacos {
 	return &Nacos{}
-}
-
-func (n *Nacos) init() {
-	var err error
-	// 创建服务发现客户端的另一种方式 (推荐)
-	n.namingClient, err = clients.NewNamingClient(vo.NacosClientParam{ServerConfigs: n.serverConfigs})
-	if err != nil {
-		panic(err)
-	}
-	if success, err := n.namingClient.RegisterInstance(n.registerParam); err != nil || !success {
-		panic(err)
-	}
 }
 
 // TODO 这里作为保留教程

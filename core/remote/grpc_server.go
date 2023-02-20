@@ -20,10 +20,7 @@ type GrpcServer struct {
 // SetRegister 在测试阶段可以不用设置 -> CallbackResult 在之前使用
 func (s *GrpcServer) SetRegister(register registers.Register) {
 	s.register = register
-}
-
-func (s *GrpcServer) Close() {
-	s.register.Close()
+	go s.ListenAddr(register.RegisterInfo())
 }
 
 func (s *GrpcServer) CallbackResult(f func([]byte) []byte) {
@@ -40,7 +37,7 @@ func (s *GrpcServer) ListenAddr(addr registers.RegisterInfo) {
 	}
 	v := grpc.NewServer()
 	protof.RegisterRpcServiceServer(v, s)
-	log.Printf("地址 %v", lis.Addr())
+	log.Printf("监听Rpc地址: %v", lis.Addr())
 	if err := v.Serve(lis); err != nil {
 		log.Fatalf("监听失败: %v", err)
 	}
