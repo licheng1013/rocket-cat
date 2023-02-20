@@ -4,12 +4,16 @@ package registers
 type Register interface {
 	// Register 注册
 	Register(RegisterInfo)
+	// RegisterClient 注册客户端信息
+	RegisterClient(RegisterInfo)
 	// GetIp 获取1个ip
 	GetIp() RegisterInfo
 	// ListIp 获取所有ip
 	ListIp() []RegisterInfo
 	// Close 用于关机等操作
 	Close()
+	// RegisterInfo 注册信息
+	RegisterInfo() RegisterInfo
 }
 
 type RegisterInfo struct {

@@ -12,11 +12,16 @@ import (
 
 // Nacos 请使用构造方法获取实例  NewNacos
 type Nacos struct {
-	registerParam vo.RegisterInstanceParam
-	logoutParam   vo.DeregisterInstanceParam
-	serverConfigs []constant.ServerConfig
-	namingClient  naming_client.INamingClient
-	registerInfo  RegisterInfo
+	serverConfigs      []constant.ServerConfig
+	namingClient       naming_client.INamingClient
+	registerClientInfo RegisterInfo
+	registerParam      vo.RegisterInstanceParam
+	logoutParam        vo.DeregisterInstanceParam
+	updateParam        vo.UpdateInstanceParam
+}
+
+func (n *Nacos) RegisterInfo() RegisterInfo {
+	return n.registerClientInfo
 }
 
 func (n *Nacos) Close() {
@@ -30,27 +35,31 @@ func (n *Nacos) Close() {
 }
 
 func (n *Nacos) Register(info RegisterInfo) {
-	n.registerInfo = info
-	n.initConfig()
+	// 创建serverConfig的另一种方式 -> 此处链接nacos的配置
+	n.serverConfigs = []constant.ServerConfig{
+		*constant.NewServerConfig(info.Ip, uint64(info.Port), constant.WithScheme("http"),
+			constant.WithContextPath("/nacos")),
+	}
 	n.init()
 	go n.heartbeat() // 心跳功能
 }
 
 // GetIp 获取单个ip
 func (n *Nacos) GetIp() RegisterInfo {
-	instance := n.SelOne(n.registerInfo.RemoteName)
+	instance := n.SelOne(n.registerClientInfo.RemoteName)
+	log.Println(instance)
 	if instance == nil {
-		return RegisterInfo{}
+		panic("获取实例为空")
 	}
 	return RegisterInfo{Ip: instance.Ip, Port: uint16(instance.Port), ServiceName: instance.ServiceName}
 }
 
 // ListIp 获取ip
 func (n *Nacos) ListIp() []RegisterInfo {
-	instances := n.SelList(n.registerInfo.RemoteName)
+	instances := n.SelList(n.registerClientInfo.RemoteName)
 	infos := make([]RegisterInfo, 0)
 	if len(instances) == 0 {
-		return infos
+		panic("获取实例为空")
 	}
 	for _, item := range instances {
 		infos = append(infos, RegisterInfo{Ip: item.Ip, Port: uint16(item.Port), ServiceName: item.ServiceName})
@@ -62,38 +71,15 @@ func NewNacos() *Nacos {
 	return &Nacos{}
 }
 
-func (n *Nacos) initConfig() {
-	// 创建serverConfig的另一种方式 -> 此处链接nacos的配置
-	n.serverConfigs = []constant.ServerConfig{
-		*constant.NewServerConfig(n.registerInfo.Ip, uint64(n.registerInfo.Port), constant.WithScheme("http"),
-			constant.WithContextPath("/nacos")),
-	}
-	n.registerParam = vo.RegisterInstanceParam{
-		Ip:          n.registerInfo.Ip,
-		Port:        uint64(n.registerInfo.Port),
-		ServiceName: n.registerInfo.ServiceName,
-		GroupName:   "DEFAULT_GROUP",
-		Weight:      10,
-		Enable:      true,
-		Healthy:     true,
-	}
-	n.logoutParam = vo.DeregisterInstanceParam{
-		Ip:          n.registerParam.Ip,
-		Port:        n.registerParam.Port,
-		ServiceName: n.registerParam.ServiceName,
-	}
-}
-
 func (n *Nacos) init() {
+	var err error
 	// 创建服务发现客户端的另一种方式 (推荐)
-	namingClient, err := clients.NewNamingClient(vo.NacosClientParam{ServerConfigs: n.serverConfigs})
+	n.namingClient, err = clients.NewNamingClient(vo.NacosClientParam{ServerConfigs: n.serverConfigs})
 	if err != nil {
-		print(err)
+		panic(err)
 	}
-	n.namingClient = namingClient
-	success, err := n.namingClient.RegisterInstance(n.registerParam)
-	if err != nil || !success {
-		print("注册失败:", err)
+	if success, err := n.namingClient.RegisterInstance(n.registerParam); err != nil || !success {
+		panic(err)
 	}
 }
 
@@ -140,18 +126,37 @@ func (n *Nacos) SelOne(serverName string) *model.Instance {
 // Heartbeat 心跳功能
 func (n *Nacos) heartbeat() {
 	for true {
-		instance, err := n.namingClient.UpdateInstance(
-			vo.UpdateInstanceParam{
-				Ip:          n.registerParam.Ip,
-				Port:        n.registerParam.Port,
-				Weight:      n.registerParam.Weight,
-				Enable:      n.registerParam.Enable,
-				Healthy:     n.registerParam.Healthy,
-				ServiceName: n.registerParam.ServiceName,
-			})
+		instance, err := n.namingClient.UpdateInstance(n.updateParam)
 		if err != nil || !instance {
 			log.Panicln("更新实例失败,请检查Nacos!", err)
 		}
 		time.Sleep(1 * time.Second)
+	}
+}
+
+func (n *Nacos) RegisterClient(info RegisterInfo) {
+	n.registerClientInfo = info
+	// 这里是设置注册客户端的参数
+	n.registerParam = vo.RegisterInstanceParam{
+		Ip:          info.Ip,
+		Port:        uint64(info.Port),
+		ServiceName: info.ServiceName,
+		GroupName:   "DEFAULT_GROUP",
+		Weight:      10,
+		Enable:      true,
+		Healthy:     true,
+	}
+	n.logoutParam = vo.DeregisterInstanceParam{
+		Ip:          n.registerParam.Ip,
+		Port:        n.registerParam.Port,
+		ServiceName: n.registerParam.ServiceName,
+	}
+	n.updateParam = vo.UpdateInstanceParam{
+		Ip:          n.registerParam.Ip,
+		Port:        n.registerParam.Port,
+		Weight:      n.registerParam.Weight,
+		Enable:      n.registerParam.Enable,
+		Healthy:     n.registerParam.Healthy,
+		ServiceName: n.registerParam.ServiceName,
 	}
 }

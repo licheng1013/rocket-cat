@@ -3,6 +3,7 @@ package remote
 import (
 	"context"
 	"fmt"
+	"github.com/io-game-go/common"
 	"github.com/io-game-go/protof"
 	"github.com/io-game-go/registers"
 	"google.golang.org/grpc"
@@ -16,7 +17,7 @@ type GrpcServer struct {
 	register     registers.Register
 }
 
-// SetRegister 在测试阶段可以不用设置
+// SetRegister 在测试阶段可以不用设置 -> CallbackResult 在之前使用
 func (s *GrpcServer) SetRegister(register registers.Register) {
 	s.register = register
 }
@@ -30,6 +31,8 @@ func (s *GrpcServer) CallbackResult(f func([]byte) []byte) {
 }
 
 func (s *GrpcServer) ListenAddr(addr registers.RegisterInfo) {
+	common.AssertNil(s.callbackFunc, "回调方法为空")
+	common.AssertNil(s.register, "注册中心为空")
 	// 监听连接
 	lis, err := net.Listen("tcp", addr.Ip+":"+fmt.Sprint(addr.Port))
 	if err != nil {
@@ -45,9 +48,7 @@ func (s *GrpcServer) ListenAddr(addr registers.RegisterInfo) {
 
 // InvokeRemoteFunc 此处由Grpc客户端调用
 func (s *GrpcServer) InvokeRemoteFunc(ctx context.Context, in *protof.RpcInfo) (*protof.RpcInfo, error) {
-	if s.callbackFunc == nil {
-		panic("没有注册回调方法")
-	}
+	common.AssertNil(s.callbackFunc, "没有注册回调方法")
 	in.Body = s.callbackFunc(in.Body)
 	return in, nil
 }

@@ -1,8 +1,12 @@
 package core
 
 import (
+	"fmt"
+	"github.com/io-game-go/common"
 	"github.com/io-game-go/connect"
 	"github.com/io-game-go/decoder"
+	"github.com/io-game-go/registers"
+	"github.com/io-game-go/remote"
 	"github.com/io-game-go/router"
 )
 
@@ -16,6 +20,10 @@ type Gateway struct {
 	single bool
 	// 编码器
 	decoder decoder.Decoder
+	// Remote Invoke Client
+	client remote.RpcClient
+	// Register Client
+	registerClient registers.Register
 }
 
 // Router 获取路由器
@@ -47,12 +55,15 @@ func NewGateway() *Gateway {
 }
 
 func (g *Gateway) Start(addr string, socket connect.Socket) {
-	if g.decoder == nil {
-		panic("没有设置编码器: decoder")
-	}
+	common.AssertNil(g.decoder, "没有设置编码器: decoder")
+	common.AssertNil(socket, "没有设置链接协议")
 	g.socket = socket
 	g.socket.ListenBack(g.ListenBack)
-	g.socket.ListenAddr(addr)
+	go g.socket.ListenAddr(addr)
+	common.StopApplication()
+	if !g.single {
+		g.registerClient.Close()
+	}
 }
 
 func (g *Gateway) ListenBack(bytes []byte) []byte {
@@ -65,6 +76,9 @@ func (g *Gateway) ListenBack(bytes []byte) []byte {
 		}
 		return result
 	}
-	panic("描述: 目前暂时未实现rpc调用")
-	return bytes
+	common.AssertNil(g.client, "Do you not setting remote client?")
+	common.AssertNil(g.registerClient, "Do you not setting register client?")
+	// Here invoke remote method.
+	ip := g.registerClient.GetIp()
+	return g.client.InvokeRemoteRpc(ip.Ip+fmt.Sprint(ip.Port), bytes)
 }

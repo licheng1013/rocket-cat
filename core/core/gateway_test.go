@@ -18,7 +18,6 @@ import (
 func TestGateway(t *testing.T) {
 	gateway := NewGateway()
 	gateway.SetDecoder(decoder.JsonDecoder{})
-
 	start := time.Now().UnixMilli()
 	var count int64
 	gateway.Router().AddFunc(10, func(ctx router.Context) []byte {
@@ -35,6 +34,7 @@ func TestGateway(t *testing.T) {
 	})
 	fmt.Println(start)
 	gateway.Start(connect.Addr, &connect.WebSocket{})
+
 }
 
 func TestWsClient2(t *testing.T) {

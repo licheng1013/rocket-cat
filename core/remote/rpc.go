@@ -6,8 +6,8 @@ import "github.com/io-game-go/registers"
 type RpcClient interface {
 	// InvokeAllRemoteRpc  只发送，不确认返回.
 	InvokeAllRemoteRpc([]string, []byte)
-	// InvokeRemoteRpc  发送，
-	InvokeRemoteRpc(string, []byte) []byte
+	// InvokeRemoteRpc  Invoke remote method
+	InvokeRemoteRpc(addr string, bytes []byte) []byte
 }
 
 type RpcServer interface {
