@@ -23,13 +23,13 @@ func (s *GrpcClient) InvokeRemoteRpc(addr string, bytes []byte) []byte {
 		// 设置与服务器的连接
 		socket, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithBlock())
 		if err != nil {
-			log.Fatalf("监听错误: %v", err)
+			panic("监听错误:"+err.Error())
 		}
 		s.clientMap[addr] = protof.NewRpcServiceClient(socket)
 	}
 	result, err := s.clientMap[addr].InvokeRemoteFunc(context.Background(), &protof.RpcInfo{Body: bytes})
 	if err != nil {
-		log.Fatalf("错误: %v", err)
+		panic("请检查远程服务,远程错误:"+err.Error())
 	}
 	return result.Body
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/io-game-go/registers"
 	"github.com/io-game-go/remote"
 	"github.com/io-game-go/router"
+	"log"
 )
 
 // Gateway 请使用 NewGateway 创建
@@ -24,6 +25,14 @@ type Gateway struct {
 	client remote.RpcClient
 	// Register Client
 	registerClient registers.Register
+}
+
+func (g *Gateway) SetClient(client remote.RpcClient) {
+	g.client = client
+}
+
+func (g *Gateway) SetRegisterClient(registerClient registers.Register) {
+	g.registerClient = registerClient
 }
 
 // Router 获取路由器
@@ -59,6 +68,7 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 	common.AssertNil(socket, "没有设置链接协议")
 	g.socket = socket
 	g.socket.ListenBack(g.ListenBack)
+	log.Println("监听Socket: " + addr)
 	go g.socket.ListenAddr(addr)
 	common.StopApplication()
 	if !g.single {
@@ -80,5 +90,6 @@ func (g *Gateway) ListenBack(bytes []byte) []byte {
 	common.AssertNil(g.registerClient, "Do you not setting register client?")
 	// Here invoke remote method.
 	ip := g.registerClient.GetIp()
-	return g.client.InvokeRemoteRpc(ip.Ip+fmt.Sprint(ip.Port), bytes)
+
+	return g.client.InvokeRemoteRpc(ip.Ip+":"+fmt.Sprint(ip.Port), bytes)
 }

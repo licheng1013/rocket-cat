@@ -3,9 +3,12 @@ package core
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/io-game-go/common"
 	"github.com/io-game-go/connect"
 	"github.com/io-game-go/decoder"
 	"github.com/io-game-go/message"
+	"github.com/io-game-go/registers"
+	"github.com/io-game-go/remote"
 	"github.com/io-game-go/router"
 	"log"
 	"net/url"
@@ -15,7 +18,7 @@ import (
 	"time"
 )
 
-func TestGateway(t *testing.T) {
+func TestSingleGateway(t *testing.T) {
 	gateway := NewGateway()
 	gateway.SetDecoder(decoder.JsonDecoder{})
 	start := time.Now().UnixMilli()
@@ -35,6 +38,22 @@ func TestGateway(t *testing.T) {
 	fmt.Println(start)
 	gateway.Start(connect.Addr, &connect.WebSocket{})
 
+}
+
+func TestGateway(t *testing.T) {
+	gateway := NewGateway()
+	gateway.SetDecoder(decoder.JsonDecoder{})
+	gateway.SetSingle(false)
+
+	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: 12345,
+		ServiceName: common.GatewayName, RemoteName: common.ServicerName} // 测试时 RemoteName 传递一样的
+	nacos := registers.NewNacos()
+	nacos.RegisterClient(clientInfo)
+	nacos.Register(registers.RegisterInfo{Ip: "localhost", Port: 8848})
+
+	gateway.SetClient(&remote.GrpcClient{})
+	gateway.SetRegisterClient(nacos)
+	gateway.Start(connect.Addr, &connect.WebSocket{})
 }
 
 func TestWsClient2(t *testing.T) {

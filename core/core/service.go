@@ -19,6 +19,10 @@ type Service struct {
 	decoder decoder.Decoder
 }
 
+func (n *Service) Router() router.Router {
+	return n.router
+}
+
 func (n *Service) SetDecoder(decoder decoder.Decoder) {
 	n.decoder = decoder
 }

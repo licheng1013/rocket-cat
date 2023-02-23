@@ -7,5 +7,5 @@ type Socket interface {
 }
 
 // Addr ----------------- 这里时测试数据
-const Addr = "127.0.0.1:12345"
+const Addr = "192.168.101.10:12345"
 const HelloMsg = "HelloWorld"
