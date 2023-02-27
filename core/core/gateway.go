@@ -64,16 +64,23 @@ func NewGateway() *Gateway {
 }
 
 func (g *Gateway) Start(addr string, socket connect.Socket) {
-	common.AssertNil(g.decoder, "没有设置编码器: decoder")
+
 	common.AssertNil(socket, "没有设置链接协议")
+	if g.single {
+		common.AssertNil(g.decoder, "没有设置编码器: decoder")
+	} else {
+		common.AssertNil(g.client, "没有设置远程客户端!")
+		common.AssertNil(g.registerClient, "没有设置注册客户端!")
+	}
 	g.socket = socket
 	g.socket.ListenBack(g.ListenBack)
 	log.Println("监听Socket: " + addr)
-	go g.socket.ListenAddr(addr)
+	go g.socket.ListenAddr(addr) // 启动线程监听端口
 	common.StopApplication()
 	if !g.single {
 		g.registerClient.Close()
 	}
+
 }
 
 func (g *Gateway) ListenBack(bytes []byte) []byte {
@@ -86,9 +93,7 @@ func (g *Gateway) ListenBack(bytes []byte) []byte {
 		}
 		return result
 	}
-	common.AssertNil(g.client, "Do you not setting remote client?")
-	common.AssertNil(g.registerClient, "Do you not setting register client?")
-	// Here invoke remote method.
+	// 此处调用远程方法
 	ip := g.registerClient.GetIp()
 
 	return g.client.InvokeRemoteRpc(ip.Ip+":"+fmt.Sprint(ip.Port), bytes)

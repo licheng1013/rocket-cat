@@ -42,7 +42,6 @@ func TestSingleGateway(t *testing.T) {
 
 func TestGateway(t *testing.T) {
 	gateway := NewGateway()
-	gateway.SetDecoder(decoder.JsonDecoder{})
 	gateway.SetSingle(false)
 
 	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: 12345,

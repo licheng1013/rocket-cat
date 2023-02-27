@@ -27,7 +27,7 @@ func (n *Nacos) RegisterInfo() RegisterInfo {
 func (n *Nacos) Close() {
 	success, err := n.namingClient.DeregisterInstance(n.logoutParam)
 	if err != nil {
-		print(err)
+		log.Println("注销错误:"+err.Error())
 	}
 	if success {
 		log.Println("注销成功！")
