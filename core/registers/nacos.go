@@ -27,7 +27,7 @@ func (n *Nacos) RegisterInfo() RegisterInfo {
 func (n *Nacos) Close() {
 	success, err := n.namingClient.DeregisterInstance(n.logoutParam)
 	if err != nil {
-		log.Println("注销错误:"+err.Error())
+		log.Println("注销错误:" + err.Error())
 	}
 	if success {
 		log.Println("注销成功！")
@@ -61,7 +61,7 @@ func (n *Nacos) GetIp() RegisterInfo {
 		GroupName:   n.registerParam.GroupName,
 	})
 	if err != nil {
-		print(err)
+		log.Println("找不到可用的注册服务:" + err.Error())
 	}
 	return RegisterInfo{Ip: instances.Ip, Port: uint16(instances.Port), ServiceName: instances.ServiceName}
 }

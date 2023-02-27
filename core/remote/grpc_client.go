@@ -5,10 +5,11 @@ import (
 	"github.com/io-game-go/protof"
 	"google.golang.org/grpc"
 	"log"
+	"sync"
 )
 
 type GrpcClient struct {
-	clientMap map[string]protof.RpcServiceClient
+	clientMap sync.Map //[string]protof.RpcServiceClient
 }
 
 func (s *GrpcClient) InvokeRemoteRpc(addr string, bytes []byte) []byte {
@@ -16,20 +17,21 @@ func (s *GrpcClient) InvokeRemoteRpc(addr string, bytes []byte) []byte {
 		log.Println("地址为空: " + addr)
 		return []byte{}
 	}
-	if s.clientMap == nil {
-		s.clientMap = make(map[string]protof.RpcServiceClient)
-	}
-	if s.clientMap[addr] == nil {
+	value, ok := s.clientMap.Load(addr)
+
+	if !ok {
 		// 设置与服务器的连接
 		socket, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithBlock())
 		if err != nil {
 			log.Println("监听错误:" + err.Error())
 		}
-		s.clientMap[addr] = protof.NewRpcServiceClient(socket)
+		value = protof.NewRpcServiceClient(socket)
+		s.clientMap.Store(addr, value)
 	}
-	result, err := s.clientMap[addr].InvokeRemoteFunc(context.Background(), &protof.RpcInfo{Body: bytes})
+	result, err := value.(protof.RpcServiceClient).InvokeRemoteFunc(context.Background(), &protof.RpcInfo{Body: bytes})
 	if err != nil {
 		log.Println("请检查远程服务,远程错误:" + err.Error())
+		s.clientMap.Delete(addr)
 		return []byte{} //返回空则不返回给客户端
 	}
 	return result.Body
@@ -41,8 +43,9 @@ func (s *GrpcClient) InvokeAllRemoteRpc(addrs []string, bytes []byte) {
 		return
 	}
 	for _, item := range addrs {
-		if s.clientMap[item] == nil {
-			s.InvokeRemoteRpc(item, bytes)
+		value, ok := s.clientMap.Load(item)
+		if ok {
+			_, _ = value.(protof.RpcServiceClient).InvokeRemoteFunc(context.Background(), &protof.RpcInfo{Body: bytes})
 		}
 	}
 }
