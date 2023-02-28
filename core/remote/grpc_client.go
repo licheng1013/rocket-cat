@@ -2,6 +2,7 @@ package remote
 
 import (
 	"context"
+	"github.com/io-game-go/common"
 	"github.com/io-game-go/protof"
 	"google.golang.org/grpc"
 	"log"
@@ -30,7 +31,7 @@ func (s *GrpcClient) InvokeRemoteRpc(addr string, bytes []byte) []byte {
 	}
 	result, err := value.(protof.RpcServiceClient).InvokeRemoteFunc(context.Background(), &protof.RpcInfo{Body: bytes})
 	if err != nil {
-		log.Println("请检查远程服务,远程错误:" + err.Error())
+		common.FileLogger().Println("请检查远程服务,远程错误:" + err.Error())
 		s.clientMap.Delete(addr)
 		return []byte{} //返回空则不返回给客户端
 	}

@@ -8,13 +8,21 @@ import (
 	"github.com/io-game-go/remote"
 	"github.com/io-game-go/router"
 	"log"
+	"sync"
 	"testing"
 	"time"
 )
 
 func TestService(t *testing.T) {
+	ports := []uint16{12000, 12001}
+	go ManyService(ports[0])
+	ManyService(ports[1])
+}
+
+func ManyService(port uint16) {
+	var lock sync.Mutex
 	log.Println("HelloWorld")
-	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: 12000,
+	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: port,
 		ServiceName: common.ServicerName, RemoteName: common.ServicerName} // 测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
 	nacos.RegisterClient(clientInfo)
@@ -34,12 +42,14 @@ func TestService(t *testing.T) {
 	service.Router().AddFunc(10, func(ctx router.Context) []byte {
 		ctx.Message.SetBody([]byte("Hi Ok"))
 		end := time.Now().UnixMilli()
+		lock.Lock()
 		count++
 		if end-start > 1000 {
-			fmt.Println("1s请求数量:", count)
+			fmt.Println(port, "1s请求数量:", count)
 			count = 0
 			start = end
 		}
+		lock.Unlock()
 		//log.Println(string(ctx.Message.GetBody()))
 		return ctx.Message.GetBytesResult()
 	})
