@@ -64,7 +64,7 @@ func NewGateway() *Gateway {
 }
 
 func (g *Gateway) Start(addr string, socket connect.Socket) {
-
+	log.SetFlags(log.LstdFlags + log.Lshortfile)
 	common.AssertNil(socket, "没有设置链接协议")
 	if g.single {
 		common.AssertNil(g.decoder, "没有设置编码器: decoder")

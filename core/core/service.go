@@ -5,6 +5,7 @@ import (
 	"github.com/io-game-go/decoder"
 	"github.com/io-game-go/remote"
 	"github.com/io-game-go/router"
+	"log"
 )
 
 // Service 新手请不需要之间使用而是 NewService 进行获取对象
@@ -43,9 +44,10 @@ func NewService() *Service {
 }
 
 func (n *Service) Start() {
-	common.AssertNil(n.rpcServer, "The rpc server is not setup.")
-	common.AssertNil(n.router, "The router is not setup.")
-	common.AssertNil(n.decoder, "The decoder is not setup.")
+	log.SetFlags(log.LstdFlags + log.Lshortfile)
+	common.AssertNil(n.rpcServer, "Rpc服务没有设置.")
+	common.AssertNil(n.router, "路由没有设置.")
+	common.AssertNil(n.decoder, "编码器没有设置.")
 	n.rpcServer.CallbackResult(func(bytes []byte) []byte { //这里回调数据，并进行内部处理
 		message := n.decoder.DecoderBytes(bytes)
 		context := router.Context{Message: message}

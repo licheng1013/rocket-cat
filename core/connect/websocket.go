@@ -3,6 +3,7 @@ package connect
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/io-game-go/common"
 	"log"
 	"net/http"
 )
@@ -31,7 +32,6 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		log.Println("升级为WebSocket错误:", err)
 		return
 	}
-	defer c.Close()
 	for {
 		mt, message, err := c.ReadMessage()
 		if err != nil {
@@ -45,7 +45,9 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		}
 		err = c.WriteMessage(mt, bytes)
 		if err != nil {
-			log.Println("写入错误:", err)
+			// log.Println("写入错误:", err)
+			common.FileLogger().Println("写入错误: " + err.Error())
+			_ = c.Close()
 			break
 		}
 	}

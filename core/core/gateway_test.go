@@ -41,6 +41,7 @@ func TestSingleGateway(t *testing.T) {
 }
 
 func TestGateway(t *testing.T) {
+
 	gateway := NewGateway()
 	gateway.SetSingle(false)
 
