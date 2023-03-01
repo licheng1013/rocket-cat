@@ -57,9 +57,9 @@ func TestGateway(t *testing.T) {
 }
 
 func TestWsClient2(t *testing.T) {
-	for i := 0; i < 2; i++ {
-		go WsTest()
-	}
+	//for i := 0; i < 2; i++ {
+	//	go WsTest()
+	//}
 	WsTest()
 }
 
@@ -90,7 +90,7 @@ func WsTest() {
 	}()
 	for {
 		jsonMessage := message.JsonMessage{Body: []byte("HelloWorld")}
-		jsonMessage.Merge = 10
+		jsonMessage.Merge = common.CmdKit.GetMerge(1, 1)
 		err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
 		if err != nil {
 			log.Println("写:", err)

@@ -39,12 +39,21 @@ func ManyService(port uint16) {
 	// 测试
 	var count int64
 	start := time.Now().UnixMilli()
-	service.Router().AddFunc(10, func(ctx router.Context) []byte {
+
+	service.Router().AddFunc(common.CmdKit.GetMerge(1, 2), func(ctx router.Context) []byte {
+		return ctx.Message.SetBody([]byte("Hello")).GetBytesResult()
+	})
+
+	service.Router().AddFunc(common.CmdKit.GetMerge(1, 1), func(ctx router.Context) []byte {
 		ctx.Message.SetBody([]byte("Hi Ok"))
 		end := time.Now().UnixMilli()
 		lock.Lock()
 		count++
 		if end-start > 1000 {
+
+			server := ctx.RpcServer.(*remote.GrpcServer)
+			server.CountRoom()
+
 			fmt.Println(port, "1s请求数量:", count)
 			count = 0
 			start = end

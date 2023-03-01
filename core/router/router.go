@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"github.com/io-game-go/common"
 	"log"
 )
 
@@ -29,14 +30,14 @@ func (r *DefaultRouter) AddFunc(merge int64, method func(msg Context) []byte) {
 		r.routerMap[merge] = method
 		return
 	}
-	panic(fmt.Sprintf("路由重复: %v-%v ", CmdKit.GetCmd(merge), CmdKit.GetSubCmd(merge)))
+	panic(fmt.Sprintf("路由重复: %v-%v ", common.CmdKit.GetCmd(merge), common.CmdKit.GetSubCmd(merge)))
 }
 
 // InvokeFunc 代理函数执行
 func (r *DefaultRouter) InvokeFunc(ctx Context) []byte {
 	merge := ctx.Message.GetMerge()
 	if r.routerMap[merge] == nil {
-		log.Printf("路由: %v-%v 未注册", CmdKit.GetCmd(merge), CmdKit.GetSubCmd(merge))
+		log.Printf("路由: %v-%v 未注册", common.CmdKit.GetCmd(merge), common.CmdKit.GetSubCmd(merge))
 		return nil
 	}
 	return r.routerMap[merge](ctx)

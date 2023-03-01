@@ -51,8 +51,9 @@ func (p *ProtoMessage) GetBytesResult() []byte {
 	return marshal
 }
 
-func (p *ProtoMessage) SetBody(bytes []byte) {
+func (p *ProtoMessage) SetBody(bytes []byte) Message {
 	p.Body = bytes
+	return p
 }
 
 func (p *ProtoMessage) GetHeaders() string {

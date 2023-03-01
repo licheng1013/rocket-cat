@@ -31,8 +31,9 @@ func (j *JsonMessage) GetBytesResult() []byte {
 	return MsgKit.StructToBytes(j)
 }
 
-func (j *JsonMessage) SetBody(bytes []byte) {
+func (j *JsonMessage) SetBody(bytes []byte) Message {
 	j.Body = bytes
+	return j
 }
 
 func (j *JsonMessage) GetMerge() int64 {

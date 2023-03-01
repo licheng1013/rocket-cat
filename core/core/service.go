@@ -51,6 +51,7 @@ func (n *Service) Start() {
 	n.rpcServer.CallbackResult(func(bytes []byte) []byte { //这里回调数据，并进行内部处理
 		message := n.decoder.DecoderBytes(bytes)
 		context := router.Context{Message: message}
+		context.RpcServer = n.rpcServer
 		return n.router.ExecuteMethod(context)
 	})
 	common.StopApplication()

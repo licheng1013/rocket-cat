@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/io-game-go/common"
+	"github.com/io-game-go/decoder"
+	"github.com/io-game-go/message"
 	"github.com/io-game-go/protof"
 	"github.com/io-game-go/registers"
 	"google.golang.org/grpc"
@@ -48,4 +50,18 @@ func (s *GrpcServer) InvokeRemoteFunc(ctx context.Context, in *protof.RpcInfo) (
 	common.AssertNil(s.callbackFunc, "没有注册回调方法")
 	in.Body = s.callbackFunc(in.Body)
 	return in, nil
+}
+
+func (s *GrpcServer) CountRoom() {
+	jsonDecoder := decoder.JsonDecoder{}
+	msg := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
+	var list []string
+	client := GrpcClient{}
+	ip := s.register.ListIp()
+	for _, info := range ip {
+		bytes := client.InvokeRemoteRpc(info.Ip+":"+fmt.Sprint(info.Port), msg.GetBytesResult())
+		result := jsonDecoder.DecoderBytes(bytes)
+		list = append(list, string(result.GetBody()))
+	}
+	log.Println(list)
 }

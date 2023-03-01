@@ -1,4 +1,4 @@
-package router
+package common
 
 var CmdKit = &cmdKit{}
 
