@@ -33,6 +33,7 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for {
+		// 1 字符串，2 字节
 		mt, message, err := c.ReadMessage()
 		if err != nil {
 			log.Println("读取错误:", err)

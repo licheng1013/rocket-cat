@@ -15,3 +15,8 @@ func TestKit(t *testing.T) {
 		t.Error("SubCmd Error")
 	}
 }
+
+func TestUui(t *testing.T) {
+	t.Log(UuidKit.UUID())
+	t.Log(UuidKit.UUID())
+}
