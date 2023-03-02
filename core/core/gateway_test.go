@@ -23,8 +23,8 @@ func TestSingleGateway(t *testing.T) {
 	gateway.SetDecoder(decoder.JsonDecoder{})
 	start := time.Now().UnixMilli()
 	var count int64
-	gateway.Router().AddFunc(10, func(ctx router.Context) []byte {
-		ctx.Message.SetBody([]byte("Hi Ok"))
+	gateway.Router().AddFunc(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
+		ctx.Message.SetBody([]byte("Hi Ok 2"))
 		end := time.Now().UnixMilli()
 		count++
 		if end-start > 1000 {
@@ -33,7 +33,7 @@ func TestSingleGateway(t *testing.T) {
 			start = end
 		}
 		//log.Println(string(ctx.Message.GetBody()))
-		return ctx.Message.GetBytesResult()
+		ctx.Message = nil
 	})
 	fmt.Println(start)
 	gateway.Start(connect.Addr, &connect.WebSocket{})

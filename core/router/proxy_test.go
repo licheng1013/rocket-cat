@@ -11,15 +11,15 @@ func TestProxy(t *testing.T) {
 	a := A{}
 	c := ProxyFunc{proxy: &a}
 	d := B{proxy: &c}
-	d.InvokeFunc(Context{Message: &message.JsonMessage{}})
+	d.InvokeFunc(&Context{Message: &message.JsonMessage{}})
 }
 
 type A struct {
 }
 
-func (p *A) InvokeFunc(ctx Context) []byte {
+func (p *A) InvokeFunc(ctx *Context) {
 	log.Println("业务执行")
-	return make([]byte, 0)
+	ctx.Message.SetBody([]byte("ok"))
 }
 func (p *A) SetProxy(proxy Proxy) {
 
@@ -29,11 +29,10 @@ type B struct {
 	proxy Proxy
 }
 
-func (p *B) InvokeFunc(ctx Context) []byte {
+func (p *B) InvokeFunc(ctx *Context) {
 	log.Println("B执行")
-	invokeFunc := p.proxy.InvokeFunc(ctx)
+	p.proxy.InvokeFunc(ctx)
 	log.Println("B之后")
-	return invokeFunc
 }
 func (p *B) SetProxy(proxy Proxy) {
 	p.proxy = proxy

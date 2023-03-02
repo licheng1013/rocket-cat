@@ -7,7 +7,7 @@ import (
 	"github.com/io-game-go/decoder"
 	"github.com/io-game-go/registers"
 	"github.com/io-game-go/remote"
-	"github.com/io-game-go/router"
+	router "github.com/io-game-go/router"
 	"log"
 )
 
@@ -74,7 +74,7 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 	}
 	g.socket = socket
 	g.socket.ListenBack(g.ListenBack)
-	log.Println("监听Socket: " + addr)
+	log.Println("监听Socket:" + addr)
 	go g.socket.ListenAddr(addr) // 启动线程监听端口
 	common.StopApplication()
 	if !g.single {
@@ -86,15 +86,14 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 func (g *Gateway) ListenBack(bytes []byte) []byte {
 	if g.single {
 		message := g.decoder.DecoderBytes(bytes)
-		context := router.Context{Message: message}
-		result := g.router.ExecuteMethod(context)
-		if len(result) == 0 { // 没数据直接不返回
+		context := &router.Context{Message: message}
+		g.router.ExecuteMethod(context)
+		if context.Message == nil { // 没数据直接不返回
 			return make([]byte, 0)
 		}
-		return result
+		return context.Message.GetBytesResult()
 	}
 	// 此处调用远程方法
 	ip := g.registerClient.GetIp()
-
 	return g.client.InvokeRemoteRpc(ip.Ip+":"+fmt.Sprint(ip.Port), bytes)
 }

@@ -50,9 +50,13 @@ func (n *Service) Start() {
 	common.AssertNil(n.decoder, "编码器没有设置.")
 	n.rpcServer.CallbackResult(func(bytes []byte) []byte { //这里回调数据，并进行内部处理
 		message := n.decoder.DecoderBytes(bytes)
-		context := router.Context{Message: message}
+		context := &router.Context{Message: message}
 		context.RpcServer = n.rpcServer
-		return n.router.ExecuteMethod(context)
+		n.router.ExecuteMethod(context)
+		if context.Message == nil {
+			return []byte{}
+		}
+		return context.Message.GetBytesResult()
 	})
 	common.StopApplication()
 	for _, item := range n.close {

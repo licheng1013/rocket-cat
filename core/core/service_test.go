@@ -40,11 +40,11 @@ func ManyService(port uint16) {
 	var count int64
 	start := time.Now().UnixMilli()
 
-	service.Router().AddFunc(common.CmdKit.GetMerge(1, 2), func(ctx router.Context) []byte {
-		return ctx.Message.SetBody([]byte("Hello")).GetBytesResult()
+	service.Router().AddFunc(common.CmdKit.GetMerge(1, 2), func(ctx *router.Context) {
+		ctx.Message.SetBody([]byte("Hello")).GetBytesResult()
 	})
 
-	service.Router().AddFunc(common.CmdKit.GetMerge(1, 1), func(ctx router.Context) []byte {
+	service.Router().AddFunc(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
 		ctx.Message.SetBody([]byte("Hi Ok"))
 		end := time.Now().UnixMilli()
 		lock.Lock()
@@ -60,7 +60,6 @@ func ManyService(port uint16) {
 		}
 		lock.Unlock()
 		//log.Println(string(ctx.Message.GetBody()))
-		return ctx.Message.GetBytesResult()
 	})
 
 	// 关机钩子
