@@ -5,6 +5,7 @@ import (
 	"github.com/io-game-go/common"
 	"github.com/io-game-go/protof"
 	"google.golang.org/protobuf/proto"
+	"log"
 )
 
 type ProtoMessage struct {
@@ -51,8 +52,19 @@ func (p *ProtoMessage) GetBytesResult() []byte {
 	return marshal
 }
 
-func (p *ProtoMessage) SetBody(bytes []byte) Message {
-	p.Body = bytes
+func (p *ProtoMessage) SetBody(data interface{}) Message {
+	switch data.(type) {
+	case []byte:
+		p.Body = data.([]byte)
+		break
+	case proto.Message:
+		marshal, err := proto.Marshal(data.(proto.Message))
+		if err != nil {
+			log.Println("Proto转换器错误,具体错误: ", err.Error())
+		}
+		p.Body = marshal
+		break
+	}
 	return p
 }
 

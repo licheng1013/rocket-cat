@@ -1,7 +1,9 @@
 package message
 
 import (
+	"encoding/json"
 	"github.com/io-game-go/common"
+	"log"
 )
 
 // JsonMessage 必须实现 Message 接口
@@ -31,8 +33,18 @@ func (j *JsonMessage) GetBytesResult() []byte {
 	return MsgKit.StructToBytes(j)
 }
 
-func (j *JsonMessage) SetBody(bytes []byte) Message {
-	j.Body = bytes
+func (j *JsonMessage) SetBody(data interface{}) Message {
+	switch data.(type) {
+	case []byte:
+		j.Body = data.([]byte)
+		break
+	default:
+		bytes, err := json.Marshal(data)
+		if err != nil {
+			log.Println("Json转换器错误,具体错误: " + err.Error())
+		}
+		j.Body = bytes
+	}
 	return j
 }
 
