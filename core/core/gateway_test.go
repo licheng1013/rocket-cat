@@ -33,7 +33,7 @@ func TestSingleGateway(t *testing.T) {
 			start = end
 		}
 		//log.Println(string(ctx.Message.GetBody()))
-		ctx.Message = nil
+		//ctx.Message = nil
 	})
 	fmt.Println(start)
 	gateway.Start(connect.Addr, &connect.WebSocket{})

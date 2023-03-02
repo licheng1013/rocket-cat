@@ -36,7 +36,7 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		// 1 字符串，2 字节
 		mt, message, err := c.ReadMessage()
 		if err != nil {
-			log.Println("读取错误:", err)
+			common.FileLogger().Println("websocket读取错误: " + err.Error())
 			break
 		}
 		// log.Printf("收到消息: %s", message)
@@ -47,7 +47,7 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		err = c.WriteMessage(mt, bytes)
 		if err != nil {
 			// log.Println("写入错误:", err)
-			common.FileLogger().Println("写入错误: " + err.Error())
+			common.FileLogger().Println("websocket写入错误: " + err.Error())
 			_ = c.Close()
 			break
 		}
