@@ -11,7 +11,7 @@ import (
 )
 
 type TcpSocket struct {
-	proxyMethod func([]byte) []byte
+	MySocket
 }
 
 func (t *TcpSocket) ListenBack(f func([]byte) []byte) {

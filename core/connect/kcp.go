@@ -7,15 +7,15 @@ import (
 )
 
 type KcpSocket struct {
-	funcMsg func([]byte) []byte
+	MySocket
 }
 
 func (k *KcpSocket) ListenBack(f func([]byte) []byte) {
-	k.funcMsg = f
+	k.proxyMethod = f
 }
 
 func (k *KcpSocket) ListenAddr(addr string) {
-	if k.funcMsg == nil {
+	if k.proxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
 	k.listenerKcp(addr)
@@ -44,7 +44,7 @@ func (k *KcpSocket) listenerKcp(addr string) {
 					break
 				}
 				// log.Printf("收到消息: %s", buf[:n])
-				bytes := k.funcMsg(buf[:n])
+				bytes := k.proxyMethod(buf[:n])
 				if len(bytes) == 0 {
 					continue
 				}

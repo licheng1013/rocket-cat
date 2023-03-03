@@ -5,12 +5,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/io-game-go/common"
 	"net/http"
-	"sync"
 )
 
 type WebSocket struct {
-	proxyMethod func([]byte) []byte
-	uuidOnCoon  sync.Map
+	MySocket
 }
 
 func (v *WebSocket) ListenBack(f func([]byte) []byte) {
