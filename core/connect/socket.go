@@ -11,6 +11,10 @@ type Socket interface {
 	ListenAddr(addr string)
 }
 
+type Broadcast interface {
+	SendMessage([]byte)
+}
+
 // Addr ----------------- 这里时测试数据
 const Addr = "192.168.101.10:12345"
 const HelloMsg = "HelloWorld"
@@ -18,7 +22,7 @@ const HelloMsg = "HelloWorld"
 // MySocket Socket接口的通用字段
 type MySocket struct {
 	proxyMethod func([]byte) []byte //代理方法
-	uuidOnCoon  sync.Map            // 连接
+	UuidOnCoon  sync.Map            // 连接
 	queue       chan []byte         //结果
 	Pool        *common.Pool        //线程池
 }
@@ -29,6 +33,8 @@ func (s *MySocket) InvokeMethod(message []byte) {
 		s.queue <- s.proxyMethod(message)
 	})
 }
+
+// AsyncResult 这里是同步的，因为流不允许并发写入
 func (s *MySocket) AsyncResult(f func(bytes []byte)) {
 	go func() {
 		s.queue = make(chan []byte)
@@ -46,3 +52,7 @@ func (s *MySocket) init() {
 	}
 	s.Pool.Start()
 }
+
+//func (s *MySocket) SendMessage(bytes []byte) {
+//	panic("字类没有重新实现广播!")
+//}

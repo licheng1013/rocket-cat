@@ -7,18 +7,21 @@ import (
 	"os"
 	"os/signal"
 	"testing"
+	"time"
 )
 
 func TestWsServer(t *testing.T) {
 	channel := make(chan int)
+	socket := WebSocket{}
 	go func() {
-		socket := WebSocket{}
 		socket.ListenBack(func(bytes []byte) []byte {
 			return bytes
 		})
 		socket.ListenAddr(Addr)
 	}()
 	go WsClient(channel)
+	time.Sleep(time.Second) //等待客户端完全启动
+	socket.SendMessage([]byte("广播消息-HelloWorld"))
 	select {
 	case ok := <-channel:
 		log.Println(ok)
@@ -34,15 +37,15 @@ func WsClient(channel chan int) {
 		log.Fatal("dial:", err)
 	}
 	defer c.Close()
-	go func() {
-		for {
-			// 2 标识字节消息
-			err := c.WriteMessage(2, []byte(message))
-			if err != nil {
-				break
-			}
-		}
-	}()
+	//go func() {
+	//	for {
+	//		// 2 标识字节消息
+	//		err := c.WriteMessage(websocket.BinaryMessage, []byte(message))
+	//		if err != nil {
+	//			break
+	//		}
+	//	}
+	//}()
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {

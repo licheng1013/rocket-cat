@@ -32,22 +32,22 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 	uuid := common.UuidKit.UUID()
-	socket.uuidOnCoon.Store(uuid, c)
+	socket.UuidOnCoon.Store(uuid, c)
 	// 统计数
 	//size := 0
-	//socket.uuidOnCoon.Range(func(key, value interface{}) bool {
+	//socket.UuidOnCoon.Range(func(key, value interface{}) bool {
 	//	size++
 	//	return true
 	//})
 	//common.FileLogger().Println("在线连接数:", size)
 
 	socket.AsyncResult(func(bytes []byte) {
-		err = c.WriteMessage(2, bytes)
+		err = c.WriteMessage(websocket.BinaryMessage, bytes)
 		if err != nil {
 			// log.Println("写入错误:", err)
 			common.FileLogger().Println("websocket写入错误: " + err.Error())
 			_ = c.Close()
-			socket.uuidOnCoon.Delete(uuid)
+			socket.UuidOnCoon.Delete(uuid)
 		}
 	})
 
@@ -58,7 +58,7 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			common.FileLogger().Println("websocket读取错误: " + err.Error())
-			socket.uuidOnCoon.Delete(uuid)
+			socket.UuidOnCoon.Delete(uuid)
 			break
 		}
 		socket.InvokeMethod(message)
@@ -72,9 +72,17 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		//	// log.Println("写入错误:", err)
 		//	common.FileLogger().Println("websocket写入错误: " + err.Error())
 		//	_ = c.Close()
-		//	socket.uuidOnCoon.Delete(uuid)
+		//	socket.UuidOnCoon.Delete(uuid)
 		//	break
 		//}
 	}
 
+}
+
+// SendMessage 广播功能，TODO 出现多线程并发写问题！
+func (socket *WebSocket) SendMessage(bytes []byte) {
+	socket.UuidOnCoon.Range(func(key, value any) bool {
+		_ = value.(*websocket.Conn).WriteMessage(websocket.BinaryMessage, bytes)
+		return true
+	})
 }
