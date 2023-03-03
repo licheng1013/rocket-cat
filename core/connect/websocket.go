@@ -4,7 +4,6 @@ package connect
 import (
 	"github.com/gorilla/websocket"
 	"github.com/io-game-go/common"
-	"log"
 	"net/http"
 	"sync"
 )
@@ -31,9 +30,9 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{}
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("升级为WebSocket错误:", err)
-		return
+		panic(err)
 	}
+	defer c.Close()
 	uuid := common.UuidKit.UUID()
 	v.uuidOnCoon.Store(uuid, c)
 	// 统计数

@@ -65,7 +65,7 @@ type Decoder interface {
 ### 连接相关
 
 - [X]  支持Kcp
-- [ ]  支持Tcp
+- [x]  支持Tcp
 - [X]  支持Websocket
 
 - 如果你想自定义socket实现此接口即可。

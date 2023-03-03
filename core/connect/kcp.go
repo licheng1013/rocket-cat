@@ -2,8 +2,8 @@
 package connect
 
 import (
+	"github.com/io-game-go/common"
 	"github.com/xtaci/kcp-go/v5"
-	"log"
 )
 
 type KcpSocket struct {
@@ -23,15 +23,16 @@ func (k *KcpSocket) ListenAddr(addr string) {
 
 // listenerKcp Kcp监听方法！
 func (k *KcpSocket) listenerKcp(addr string) {
-	log.Println("服务器监听:" + addr)
+	//log.Println("服务器监听:" + addr)
 	lis, err := kcp.ListenWithOptions(addr, nil, 10, 3)
 	if err != nil {
-		log.Println("监听异常:", err)
+		panic(err)
 	}
+	defer lis.Close()
 	for {
 		conn, err := lis.AcceptKCP()
 		if err != nil {
-			log.Println("监听异常:", err)
+			common.FileLogger().Println("监听异常:", err.Error())
 		}
 		go func(conn *kcp.UDPSession) {
 			var buf = make([]byte, 4096)
@@ -39,8 +40,8 @@ func (k *KcpSocket) listenerKcp(addr string) {
 				// 读取长度 n
 				n, err := conn.Read(buf)
 				if err != nil {
-					log.Println(err)
-					return
+					common.FileLogger().Println("kcp读取错误:", err.Error())
+					break
 				}
 				// log.Printf("收到消息: %s", buf[:n])
 				bytes := k.funcMsg(buf[:n])
@@ -49,8 +50,8 @@ func (k *KcpSocket) listenerKcp(addr string) {
 				}
 				n, err = conn.Write(bytes)
 				if err != nil {
-					log.Println(err)
-					return
+					common.FileLogger().Println("kcp写入错误:", err.Error())
+					break
 				}
 			}
 		}(conn)

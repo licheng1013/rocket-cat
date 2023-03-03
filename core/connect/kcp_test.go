@@ -9,22 +9,30 @@ import (
 )
 
 func TestKcpServer(t *testing.T) {
+	channel := make(chan int)
 	socket := KcpSocket{}
-	socket.ListenBack(func(bytes []byte) []byte {
-		log.Println("收到消息:" + string(bytes))
-		return bytes
-	})
-	socket.ListenAddr(Addr)
+	go func() {
+		socket.ListenBack(func(bytes []byte) []byte {
+			return bytes
+		})
+		socket.ListenAddr(Addr)
+	}()
+	go KcpClient(channel)
+	select {
+	case ok := <-channel:
+		log.Println(ok)
+	}
 }
 
-func TestKcpClient(t *testing.T) {
-	log.Println("客户端监听:" + Addr)
+func KcpClient(channel chan int) {
+	//log.Println("客户端监听:" + Addr)
 	if client, err := kcp.DialWithOptions(Addr, nil, 10, 3); err == nil {
 		for {
 			buf := make([]byte, len(HelloMsg))
 			if _, err := client.Write([]byte(HelloMsg)); err == nil {
 				if _, err := io.ReadFull(client, buf); err == nil {
-					log.Println("返回:", string(buf))
+					log.Println("获取数据:" + string(buf))
+					channel <- 0
 				} else {
 					log.Fatal(err)
 				}
