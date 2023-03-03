@@ -15,8 +15,6 @@ func TestMyProtocol(t *testing.T) {
 	fmt.Println(string(result.Data))
 }
 
-const message = "HelloWorld"
-
 func TestTcpServer(t *testing.T) {
 	channel := make(chan int)
 	socket := TcpSocket{}
@@ -43,7 +41,7 @@ func Client(channel chan int) {
 	go func() {
 		for {
 			m := &MyProtocol{}
-			_, err := conn.Write(Encode(m.SetData([]byte(message)))) // 发送数据
+			_, err := conn.Write(Encode(m.SetData([]byte(HelloMsg)))) // 发送数据
 			if err != nil {
 				fmt.Println("写入错误:", err)
 				break

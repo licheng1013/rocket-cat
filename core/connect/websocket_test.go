@@ -41,7 +41,7 @@ func WsClient(channel chan int) {
 	defer c.Close()
 	go func() {
 		for {
-			_ = c.WriteMessage(websocket.BinaryMessage, []byte(message)) //和广播一起测试
+			_ = c.WriteMessage(websocket.BinaryMessage, []byte(HelloMsg)) //和广播一起测试
 			break
 			//err := c.WriteMessage(websocket.BinaryMessage, []byte(message)) //此处用于多次数据发送
 			//if err != nil {
