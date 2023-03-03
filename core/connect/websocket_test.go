@@ -14,7 +14,6 @@ func TestWsServer(t *testing.T) {
 	go func() {
 		socket := WebSocket{}
 		socket.ListenBack(func(bytes []byte) []byte {
-			//time.Sleep(time.Second)
 			return bytes
 		})
 		socket.ListenAddr(Addr)
@@ -35,18 +34,22 @@ func WsClient(channel chan int) {
 		log.Fatal("dial:", err)
 	}
 	defer c.Close()
-	for {
-		// 2 标识字节消息
-		err := c.WriteMessage(2, []byte(message))
-		if err != nil {
-			break
+	go func() {
+		for {
+			// 2 标识字节消息
+			err := c.WriteMessage(2, []byte(message))
+			if err != nil {
+				break
+			}
 		}
+	}()
+	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
 			log.Println("读取消息错误:", err)
 			break
 		}
-		log.Println("获取数据:" + string(msg))
-		channel <- 0
+		log.Println("获取数据:" + string(msg)) // 此处可能会打印多次,因为 channel <- 0 传输到通道也需要时间
+		//channel <- 0
 	}
 }

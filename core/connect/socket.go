@@ -1,6 +1,9 @@
 package connect
 
-import "sync"
+import (
+	"github.com/io-game-go/common"
+	"sync"
+)
 
 type Socket interface {
 	// ListenBack 监听连接收到的消息，回写到上层方法，当返回 byte 不为空时则写入到客户端
@@ -17,4 +20,20 @@ type MySocket struct {
 	proxyMethod func([]byte) []byte
 	uuidOnCoon  sync.Map
 	queue       chan []byte
+	pool        *common.Pool
+}
+
+// InvokeMethod 此处添加至线程池进行远程调用
+func (s *MySocket) InvokeMethod(message []byte) {
+	_ = s.pool.AddTaskNonBlocking(func() {
+		s.queue <- s.proxyMethod(message)
+	})
+}
+func (s *MySocket) AsyncResult(f func(bytes []byte)) {
+	go func() {
+		s.queue = make(chan []byte)
+		for bytes := range s.queue {
+			f(bytes)
+		}
+	}()
 }

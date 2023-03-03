@@ -6,56 +6,35 @@ import (
 	"time"
 )
 
-// Task 定义一个任务类型，包含要执行的函数和参数
-type Task struct {
-	f func() // 函数
-}
-
-// NewTask 创建一个新的任务
-func NewTask(f func()) *Task {
-	return &Task{
-		f: f,
-	}
-}
-
-// Execute 执行任务
-func (t *Task) Execute() {
-	t.f()
-}
-
 // Pool 定义一个线程池类型，包含任务队列和工作协程数
 type Pool struct {
-	queue      chan *Task // 任务队列，用于存放待执行的任务
-	numWorkers int        // 工作协程数，用于控制并发数
+	queue      chan func() // 任务队列，用于存放待执行的任务
+	numWorkers int         // 工作协程数，用于控制并发数
 }
 
 // NewPool 创建一个新的线程池
 func NewPool(numWorkers int, queueSize int) *Pool {
 	return &Pool{
-		queue:      make(chan *Task, queueSize), // 初始化任务队列，指定队列大小
-		numWorkers: numWorkers,                  // 设置工作协程数
+		queue:      make(chan func(), queueSize), // 初始化任务队列，指定队列大小
+		numWorkers: numWorkers,                   // 设置工作协程数
 	}
 }
 
 // Start 启动线程池，让工作协程开始从任务队列中取出并执行任务
 func (p *Pool) Start() {
 	for i := 0; i < p.numWorkers; i++ { // 循环创建工作协程，数量由numWorkers决定
-		go p.worker(i) // 启动每个工作协程，传入编号i
+		go p.worker() // 启动每个工作协程，传入编号i
 	}
 }
 
-func (p *Pool) worker(i int) {
-	//fmt.Println("程启动信息", i)     // 打印工作协程启动信息
+func (p *Pool) worker() {
 	for task := range p.queue { // 循环从任务队列中取出任务，直到队列关闭或为空
-		//fmt.Println("执行前", i) // 打印工作协程处理任务信息
-		task.Execute() // 执行任务
-		//fmt.Println("执行后", i) // 打印工作协程完成任务信息
+		task() // 执行任务
 	}
-	//fmt.Println("协程停止信息", i) // 打印工作协程停止信息
 }
 
 // AddTask 向线程池中添加一个新的任务，如果队列已满，则阻塞等待直到有空位或超时返回错误。
-func (p *Pool) AddTask(task *Task, timeout time.Duration) error {
+func (p *Pool) AddTask(task func(), timeout time.Duration) error {
 	select {
 	case p.queue <- task: // 尝试向队列中发送任务，如果成功则返回nil错误。
 		return nil
@@ -65,7 +44,7 @@ func (p *Pool) AddTask(task *Task, timeout time.Duration) error {
 }
 
 // AddTaskNonBlocking 向线程池中添加一个新的任务，如果队列已满，则立即返回错误。
-func (p *Pool) AddTaskNonBlocking(task *Task) error {
+func (p *Pool) AddTaskNonBlocking(task func()) error {
 	select {
 	case p.queue <- task: // 尝试向队列中发送任务，如果成功则返回nil错误。
 		return nil
