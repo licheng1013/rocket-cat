@@ -39,7 +39,7 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		size++
 		return true
 	})
-	common.FileLogger().Println("在线连接数:", size)
+	//common.FileLogger().Println("在线连接数:", size)
 
 	v.AsyncResult(func(bytes []byte) {
 		err = c.WriteMessage(2, bytes)
