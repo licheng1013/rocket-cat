@@ -50,15 +50,15 @@ func (socket *TcpSocket) ListenAddr(addr string) {
 
 func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 	socket.AsyncResult(func(bytes []byte) {
-		_, err := conn.Write(bytes)
+		if len(bytes) == 0 {
+			return
+		}
+		data := &MyProtocol{}
+		data.SetData(bytes)
+		_, err := conn.Write(Encode(data))
 		if err != nil {
-			data := &MyProtocol{}
-			data.SetData(bytes)
-			_, err = conn.Write(Encode(data))
-			if err != nil {
-				common.FileLogger().Println("tcp写入错误:", err.Error())
-				_ = conn.Close()
-			}
+			common.FileLogger().Println("tcp写入错误:", err.Error())
+			_ = conn.Close()
 		}
 	})
 	// 创建一个线程池，指定工作协程数为3，任务队列大小为10
