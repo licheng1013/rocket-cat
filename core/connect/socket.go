@@ -16,4 +16,5 @@ const HelloMsg = "HelloWorld"
 type MySocket struct {
 	proxyMethod func([]byte) []byte
 	uuidOnCoon  sync.Map
+	queue       chan []byte
 }

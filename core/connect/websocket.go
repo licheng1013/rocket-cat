@@ -40,6 +40,7 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		return true
 	})
 	common.FileLogger().Println("在线连接数:", size)
+
 	for {
 		// 1 字符串，2 字节
 		mt, message, err := c.ReadMessage()
@@ -48,8 +49,7 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 			v.uuidOnCoon.Delete(uuid)
 			break
 		}
-		// log.Printf("收到消息: %s", message)
-		bytes := v.proxyMethod(message)
+		bytes := v.proxyMethod(message) // TODO 改成上面变为多线程进行发送数据
 		if len(bytes) == 0 {
 			continue
 		}
@@ -62,4 +62,5 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
+
 }

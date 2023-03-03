@@ -14,6 +14,7 @@ func TestWsServer(t *testing.T) {
 	go func() {
 		socket := WebSocket{}
 		socket.ListenBack(func(bytes []byte) []byte {
+			//time.Sleep(time.Second)
 			return bytes
 		})
 		socket.ListenAddr(Addr)
