@@ -2,6 +2,7 @@
 package connect
 
 import (
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/io-game-go/common"
 	"net/http"
@@ -32,7 +33,15 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 	uuid := common.UuidKit.UUID()
-	socket.UuidOnCoon.Store(uuid, c)
+	messageChannel := make(chan []byte)
+	socket.UuidOnCoon.Store(uuid, messageChannel)
+
+	go func() {
+		for bytes := range messageChannel {
+			socket.queue <- []byte(string(bytes) + fmt.Sprint(uuid))
+		}
+	}()
+
 	// 统计数
 	//size := 0
 	//socket.UuidOnCoon.Range(func(key, value interface{}) bool {
@@ -79,10 +88,10 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// SendMessage 广播功能，TODO 出现多线程并发写问题！
+// SendMessage 广播功能
 func (socket *WebSocket) SendMessage(bytes []byte) {
 	socket.UuidOnCoon.Range(func(key, value any) bool {
-		_ = value.(*websocket.Conn).WriteMessage(websocket.BinaryMessage, bytes)
+		value.(chan []byte) <- bytes
 		return true
 	})
 }

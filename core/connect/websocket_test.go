@@ -20,11 +20,13 @@ func TestWsServer(t *testing.T) {
 		socket.ListenAddr(Addr)
 	}()
 	go WsClient(channel)
-	time.Sleep(time.Second) //等待客户端完全启动
+	time.Sleep(1 * time.Second) // 需要等待1秒让客户端启动完成
 	socket.SendMessage([]byte("广播消息-HelloWorld"))
-	select {
-	case ok := <-channel:
-		log.Println(ok)
+	for i := 0; i < 2; i++ {
+		select {
+		case ok := <-channel:
+			log.Println(ok)
+		}
 	}
 }
 
@@ -37,15 +39,16 @@ func WsClient(channel chan int) {
 		log.Fatal("dial:", err)
 	}
 	defer c.Close()
-	//go func() {
-	//	for {
-	//		// 2 标识字节消息
-	//		err := c.WriteMessage(websocket.BinaryMessage, []byte(message))
-	//		if err != nil {
-	//			break
-	//		}
-	//	}
-	//}()
+	go func() {
+		for {
+			_ = c.WriteMessage(websocket.BinaryMessage, []byte(message)) //和广播一起测试
+			break
+			//err := c.WriteMessage(websocket.BinaryMessage, []byte(message)) //此处用于多次数据发送
+			//if err != nil {
+			//	break
+			//}
+		}
+	}()
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
