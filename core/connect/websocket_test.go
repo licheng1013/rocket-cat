@@ -50,6 +50,6 @@ func WsClient(channel chan int) {
 			break
 		}
 		log.Println("获取数据:" + string(msg)) // 此处可能会打印多次,因为 channel <- 0 传输到通道也需要时间
-		//channel <- 0
+		channel <- 0
 	}
 }

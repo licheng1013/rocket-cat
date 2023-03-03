@@ -40,15 +40,19 @@ func Client(channel chan int) {
 		panic(err)
 	}
 	defer conn.Close()
-	for {
-		m := &MyProtocol{}
-		n, err := conn.Write(Encode(m.SetData([]byte(message)))) // 发送数据
-		if err != nil {
-			fmt.Println("写入错误:", err)
-			break
+	go func() {
+		for {
+			m := &MyProtocol{}
+			_, err := conn.Write(Encode(m.SetData([]byte(message)))) // 发送数据
+			if err != nil {
+				fmt.Println("写入错误:", err)
+				break
+			}
 		}
+	}()
+	for {
 		buf := make([]byte, 4096)
-		n, err = conn.Read(buf[:]) // 接收数据
+		n, err := conn.Read(buf[:]) // 接收数据
 		if err != nil {
 			fmt.Println("读取错误:", err)
 			break

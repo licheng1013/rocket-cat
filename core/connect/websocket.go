@@ -34,11 +34,11 @@ func (v *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	uuid := common.UuidKit.UUID()
 	v.uuidOnCoon.Store(uuid, c)
 	// 统计数
-	size := 0
-	v.uuidOnCoon.Range(func(key, value interface{}) bool {
-		size++
-		return true
-	})
+	//size := 0
+	//v.uuidOnCoon.Range(func(key, value interface{}) bool {
+	//	size++
+	//	return true
+	//})
 	//common.FileLogger().Println("在线连接数:", size)
 
 	v.AsyncResult(func(bytes []byte) {

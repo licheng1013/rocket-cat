@@ -18,9 +18,9 @@ const HelloMsg = "HelloWorld"
 // MySocket Socket接口的通用字段
 type MySocket struct {
 	proxyMethod func([]byte) []byte //代理方法
-	uuidOnCoon  sync.Map // 连接
-	queue       chan []byte //结果
-	pool        *common.Pool //线程池
+	uuidOnCoon  sync.Map            // 连接
+	queue       chan []byte         //结果
+	pool        *common.Pool        //线程池
 }
 
 // InvokeMethod 此处添加至线程池进行远程调用

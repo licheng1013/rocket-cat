@@ -14,11 +14,11 @@ type TcpSocket struct {
 	MySocket
 }
 
-func (t *TcpSocket) ListenBack(f func([]byte) []byte) {
-	t.proxyMethod = f
+func (socket *TcpSocket) ListenBack(f func([]byte) []byte) {
+	socket.proxyMethod = f
 }
 
-func (t *TcpSocket) ListenAddr(addr string) {
+func (socket *TcpSocket) ListenAddr(addr string) {
 	host, port, _ := net.SplitHostPort(addr)
 	ip := net.ParseIP(host)
 	parseInt, err := strconv.ParseInt(port, 10, 32)
@@ -44,11 +44,27 @@ func (t *TcpSocket) ListenAddr(addr string) {
 		// 打印客户端的地址
 		fmt.Println("client connected from:", conn.RemoteAddr())
 		// 创建一个goroutine，调用处理连接的函数，传入连接对象作为参数
-		go t.handleConn(conn)
+		go socket.handleConn(conn)
 	}
 }
 
-func (t *TcpSocket) handleConn(conn *net.TCPConn) {
+func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
+	socket.AsyncResult(func(bytes []byte) {
+		_, err := conn.Write(bytes)
+		if err != nil {
+			data := &MyProtocol{}
+			data.SetData(bytes)
+			_, err = conn.Write(Encode(data))
+			if err != nil {
+				common.FileLogger().Println("tcp写入错误:", err.Error())
+				_ = conn.Close()
+			}
+		}
+	})
+	// 创建一个线程池，指定工作协程数为3，任务队列大小为10
+	socket.pool = common.NewPool(20, 30)
+	socket.pool.Start()
+
 	// 延迟关闭连接
 	defer conn.Close()
 	// 创建一个缓冲区，用于存储接收到的数据
@@ -63,17 +79,19 @@ func (t *TcpSocket) handleConn(conn *net.TCPConn) {
 		}
 		// 调用解码函数，将字节切片转换为自定义协议的结构体
 		mp := Decode(buf[:n])
-		result := t.proxyMethod(mp.Data)
-		if len(result) == 0 {
-			continue
-		}
-		data := &MyProtocol{}
-		data.SetData(result)
-		_, err = conn.Write(Encode(data))
-		if err != nil {
-			common.FileLogger().Println("tcp写入错误:", err.Error())
-			break
-		}
+		socket.InvokeMethod(mp.Data)
+
+		//result := socket.proxyMethod(mp.Data)
+		//if len(result) == 0 {
+		//	continue
+		//}
+		//data := &MyProtocol{}
+		//data.SetData(result)
+		//_, err = conn.Write(Encode(data))
+		//if err != nil {
+		//	common.FileLogger().Println("tcp写入错误:", err.Error())
+		//	break
+		//}
 	}
 }
 
