@@ -61,9 +61,8 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 			_ = conn.Close()
 		}
 	})
-	// 创建一个线程池，指定工作协程数为3，任务队列大小为10
-	socket.pool = common.NewPool(20, 30)
-	socket.pool.Start()
+
+	socket.init()
 
 	// 延迟关闭连接
 	defer conn.Close()

@@ -44,9 +44,7 @@ func (socket *KcpSocket) listenerKcp(addr string) {
 					_ = conn.Close()
 				}
 			})
-			// 创建一个线程池，指定工作协程数为3，任务队列大小为10
-			socket.pool = common.NewPool(20, 30)
-			socket.pool.Start()
+			socket.init()
 
 			var buf = make([]byte, 4096)
 			for {
