@@ -1,6 +1,6 @@
 package remote
 
-import "github.com/io-game-go/registers"
+import "github.com/licheng1013/io-game-go/registers"
 
 // RpcClient 远程调用接口,你可以随意实现自己的远程调用！
 type RpcClient interface {

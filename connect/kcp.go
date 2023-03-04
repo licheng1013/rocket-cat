@@ -2,7 +2,7 @@
 package connect
 
 import (
-	"github.com/io-game-go/common"
+	"github.com/licheng1013/io-game-go/common"
 	"github.com/xtaci/kcp-go/v5"
 )
 

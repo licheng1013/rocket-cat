@@ -2,7 +2,7 @@ package message
 
 import (
 	"encoding/json"
-	"github.com/io-game-go/common"
+	"github.com/licheng1013/io-game-go/common"
 	"log"
 )
 

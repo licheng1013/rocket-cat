@@ -2,7 +2,7 @@ package remote
 
 import (
 	"fmt"
-	"github.com/io-game-go/registers"
+	"github.com/licheng1013/io-game-go/registers"
 	"log"
 	"net/http"
 	"testing"

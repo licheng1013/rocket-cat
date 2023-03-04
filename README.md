@@ -203,11 +203,11 @@ package core
 
 import (
 	"fmt"
-	"github.com/io-game-go/common"
-	"github.com/io-game-go/decoder"
-	"github.com/io-game-go/registers"
-	"github.com/io-game-go/remote"
-	"github.com/io-game-go/router"
+	"github.com/licheng1013/io-game-go/common"
+	"github.com/licheng1013/io-game-go/decoder"
+	"github.com/licheng1013/io-game-go/registers"
+	"github.com/licheng1013/io-game-go/remote"
+	"github.com/licheng1013/io-game-go/router"
 	"log"
 	"sync"
 	"testing"

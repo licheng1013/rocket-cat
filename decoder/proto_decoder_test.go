@@ -1,8 +1,8 @@
 package decoder
 
 import (
-	"github.com/io-game-go/message"
-	"github.com/io-game-go/protof"
+	"github.com/licheng1013/io-game-go/message"
+	"github.com/licheng1013/io-game-go/protof"
 	"google.golang.org/protobuf/proto"
 	"testing"
 )

@@ -2,8 +2,8 @@ package remote
 
 import (
 	"context"
-	"github.com/io-game-go/common"
-	"github.com/io-game-go/protof"
+	"github.com/licheng1013/io-game-go/common"
+	"github.com/licheng1013/io-game-go/protof"
 	"google.golang.org/grpc"
 	"log"
 	"sync"

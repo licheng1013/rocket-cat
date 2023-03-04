@@ -1,6 +1,6 @@
 syntax = "proto3";
 // 使用rpc的时需要设置包目录
-option go_package = "github.com/io-game-go/protof";
+option go_package = "github.com/licheng1013/io-game-go/protof";
 message RpcInfo{
   bytes body = 1;
 }

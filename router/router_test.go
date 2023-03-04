@@ -2,8 +2,8 @@ package router
 
 import (
 	"fmt"
-	"github.com/io-game-go/common"
-	"github.com/io-game-go/message"
+	"github.com/licheng1013/io-game-go/common"
+	"github.com/licheng1013/io-game-go/message"
 	"testing"
 )
 

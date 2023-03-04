@@ -2,8 +2,8 @@ package message
 
 import (
 	"errors"
-	"github.com/io-game-go/common"
-	"github.com/io-game-go/protof"
+	"github.com/licheng1013/io-game-go/common"
+	"github.com/licheng1013/io-game-go/protof"
 	"google.golang.org/protobuf/proto"
 	"log"
 )

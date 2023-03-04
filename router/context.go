@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/io-game-go/message"
-	"github.com/io-game-go/remote"
+	"github.com/licheng1013/io-game-go/message"
+	"github.com/licheng1013/io-game-go/remote"
 )
 
 type Context struct {

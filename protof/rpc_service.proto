@@ -1,7 +1,7 @@
 syntax = "proto3";
 import "rpc_info.proto";
 // 使用rpc的时需要设置包目录
-option go_package = "github.com/io-game-go/protof";
+option go_package = "github.com/licheng1013/io-game-go/protof";
 // 远程rpc
 service RpcService {
   // 调用远程函数
