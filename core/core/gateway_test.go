@@ -19,24 +19,35 @@ import (
 )
 
 func TestSingleGateway(t *testing.T) {
+	socket := &connect.WebSocket{}
+	channel := make(chan int)
+
 	gateway := NewGateway()
 	gateway.SetDecoder(decoder.JsonDecoder{})
 	start := time.Now().UnixMilli()
 	var count int64
 	gateway.Router().AddFunc(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
-		ctx.Message.SetBody([]byte("Hi Ok 2"))
 		end := time.Now().UnixMilli()
 		count++
-		if end-start > 1000 {
+		socket.SendMessage(ctx.Message.SetBody([]byte("Hi")).GetBytesResult())
+		ctx.Message.SetBody([]byte("Hi Ok 2"))
+		if end-start > 100 { //此处设置监听请求时间 -> 配置和Idea: RequestTool 插件能够调试广播，或者在开个客户端
 			fmt.Println("1s请求数量:", count)
 			count = 0
 			start = end
+			channel <- 0
 		}
 		//log.Println(string(ctx.Message.GetBody()))
 		//ctx.Message = nil
 	})
 	fmt.Println(start)
-	gateway.Start(connect.Addr, &connect.WebSocket{})
+
+	go gateway.Start(connect.Addr, socket)
+	go WsTest()
+	select {
+	case ok := <-channel:
+		log.Println(ok)
+	}
 
 }
 

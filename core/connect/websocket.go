@@ -2,7 +2,6 @@
 package connect
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/io-game-go/common"
 	"net/http"
@@ -38,7 +37,7 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		for bytes := range messageChannel {
-			socket.queue <- []byte(string(bytes) + fmt.Sprint(uuid))
+			socket.queue <- bytes
 		}
 	}()
 
