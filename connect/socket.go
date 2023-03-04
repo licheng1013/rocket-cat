@@ -13,15 +13,15 @@ type Socket interface {
 	ListenAddr(addr string)
 }
 
-type Broadcast interface {
-	// SendMessage 发送所有消息
-	SendMessage(bytes []byte)
-}
-
-type SelectBroadcast interface {
-	// SendSelectMessage 发送指定目标消息
-	SendSelectMessage(bytes []byte, uuid ...uint32)
-}
+//type Broadcast interface {
+//	// SendMessage 发送所有消息
+//	SendMessage(bytes []byte)
+//}
+//
+//type SelectBroadcast interface {
+//	// SendSelectMessage 发送指定目标消息
+//	SendSelectMessage(bytes []byte, uuid ...uint32)
+//}
 
 // Addr ----------------- 这里时测试数据
 const Addr = "192.168.101.10:12345"
@@ -33,6 +33,7 @@ type MySocket struct {
 	UuidOnCoon  sync.Map                                 // 连接
 	queue       chan []byte                              //结果
 	Pool        *common.Pool                             //线程池
+	onClose     func(uuid uint32)                        //关闭钩子，当链接关闭时触发
 }
 
 // InvokeMethod 此处添加至线程池进行远程调用
@@ -55,6 +56,7 @@ func (socket *MySocket) AsyncResult(f func(bytes []byte)) {
 	}()
 }
 
+// SendSelectMessage 选择id发送
 func (socket *MySocket) SendSelectMessage(bytes []byte, uuid ...uint32) {
 	for _, item := range uuid {
 		value, ok := socket.UuidOnCoon.Load(item)
@@ -70,6 +72,17 @@ func (socket *MySocket) SendMessage(bytes []byte) {
 		value.(chan []byte) <- bytes
 		return true
 	})
+}
+
+func (socket *MySocket) OnClose(close func(uuid uint32)) {
+	socket.onClose = close
+}
+
+func (socket *MySocket) close(uuid uint32) {
+	socket.UuidOnCoon.Delete(uuid)
+	if socket.onClose != nil {
+		socket.onClose(uuid)
+	}
 }
 
 // 初始化线程池

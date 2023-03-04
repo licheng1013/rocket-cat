@@ -56,7 +56,7 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 			// log.Println("写入错误:", err)
 			common.FileLogger().Println("websocket写入错误: " + err.Error())
 			_ = c.Close()
-			socket.UuidOnCoon.Delete(uuid)
+			socket.close(uuid)
 		}
 	})
 
@@ -65,7 +65,7 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			common.FileLogger().Println("websocket读取错误: " + err.Error())
-			socket.UuidOnCoon.Delete(uuid)
+			socket.close(uuid)
 			break
 		}
 		socket.InvokeMethod(uuid, message)

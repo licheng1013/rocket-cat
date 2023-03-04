@@ -13,6 +13,9 @@ import (
 func TestWsServer(t *testing.T) {
 	channel := make(chan int)
 	socket := WebSocket{}
+	socket.OnClose(func(uuid uint32) {
+		log.Println(uuid, "关闭了")
+	})
 	go func() {
 		socket.ListenBack(func(uuid uint32, message []byte) []byte {
 			log.Println(uuid)

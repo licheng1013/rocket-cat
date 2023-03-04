@@ -57,6 +57,7 @@ func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
 			// log.Println("写入错误:", err)
 			common.FileLogger().Println("kcp写入错误: " + err.Error())
 			_ = conn.Close()
+			socket.close(uuid)
 		}
 	})
 
@@ -66,6 +67,7 @@ func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
 		n, err := conn.Read(buf)
 		if err != nil {
 			common.FileLogger().Println("kcp读取错误:", err.Error())
+			socket.close(uuid)
 			break
 		}
 		socket.InvokeMethod(uuid, buf[:n])

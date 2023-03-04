@@ -70,6 +70,7 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 		if err != nil {
 			common.FileLogger().Println("tcp写入错误:", err.Error())
 			_ = conn.Close()
+			socket.close(uuid)
 		}
 	})
 
@@ -83,6 +84,7 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 		n, err := conn.Read(buf)
 		if err != nil {
 			common.FileLogger().Println("tcp读取错误: " + err.Error())
+			socket.close(uuid)
 			break
 		}
 		// 调用解码函数，将字节切片转换为自定义协议的结构体
