@@ -15,6 +15,7 @@ func (socket *KcpSocket) ListenBack(f func([]byte) []byte) {
 }
 
 func (socket *KcpSocket) ListenAddr(addr string) {
+	socket.init()
 	if socket.proxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
@@ -44,7 +45,7 @@ func (socket *KcpSocket) listenerKcp(addr string) {
 					_ = conn.Close()
 				}
 			})
-			socket.init()
+
 
 			var buf = make([]byte, 4096)
 			for {

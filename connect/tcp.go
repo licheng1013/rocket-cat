@@ -19,6 +19,7 @@ func (socket *TcpSocket) ListenBack(f func([]byte) []byte) {
 }
 
 func (socket *TcpSocket) ListenAddr(addr string) {
+	socket.init()
 	host, port, _ := net.SplitHostPort(addr)
 	ip := net.ParseIP(host)
 	parseInt, err := strconv.ParseInt(port, 10, 32)
@@ -62,7 +63,7 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 		}
 	})
 
-	socket.init()
+
 
 	// 延迟关闭连接
 	defer conn.Close()

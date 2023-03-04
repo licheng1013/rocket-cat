@@ -16,6 +16,7 @@ func (socket *WebSocket) ListenBack(f func([]byte) []byte) {
 }
 
 func (socket *WebSocket) ListenAddr(addr string) {
+	socket.init()
 	if socket.proxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
@@ -58,8 +59,6 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 			socket.UuidOnCoon.Delete(uuid)
 		}
 	})
-
-	socket.init()
 
 	for {
 		// 1 字符串，2 字节
