@@ -5,7 +5,70 @@
 - 2022/10/14
 - 目前还是一个实验性项目
 - 还需要很多要完成的东西
-- **注意:此文档某些代码的Api已经变化了** 
+- **注意:此文档某些代码的Api已经变化了**
+
+### 起步
+- 安装: go get github.com/licheng1013/io-game-go
+
+```go
+func main() {
+    channel := make(chan int)
+    gateway := core.NewGateway()
+    gateway.SetDecoder(decoder.JsonDecoder{})
+    var count int64
+    gateway.Router().AddFunc(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
+        ctx.Message.SetBody([]byte("HelloWorld"))
+        count++
+        if count >= 10 {
+            log.Println(count)
+            channel <- 0 //这段去掉会一直请求
+        }
+    })
+    go gateway.Start(connect.Addr, &connect.WebSocket{})
+    time.Sleep(time.Second)
+    go WsTest()
+    select {
+        case ok := <-channel:
+        log.Println(ok)
+    }
+}
+
+func WsTest() {
+    interrupt := make(chan os.Signal, 1)
+    signal.Notify(interrupt, os.Interrupt)
+    u := url.URL{Scheme: "ws", Host: connect.Addr, Path: "/ws"}
+    log.Printf("connecting to %s", u.String())
+    
+    c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+    if err != nil {
+        log.Fatal("dial:", err)
+    }
+    defer c.Close()
+    done := make(chan struct{})
+    go func() {
+        defer close(done)
+        for {
+            _, m, err := c.ReadMessage()
+            jsonDecoder := decoder.JsonDecoder{}
+            dto := jsonDecoder.DecoderBytes(m)
+            if err != nil {
+                log.Println("读取消息错误:", err)
+                return
+            }
+            log.Println("收到消息:", string(dto.GetBody()))
+        }
+    }()
+    for {
+        jsonMessage := message.JsonMessage{Body: []byte("HelloWorld")}
+        jsonMessage.Merge = common.CmdKit.GetMerge(1, 1)
+        err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
+        if err != nil {
+            log.Println("写:", err)
+            return
+        }
+    }
+}
+```
 
 ### 描述
 
@@ -31,7 +94,6 @@
 - [x] 负载均衡-由注册中心提供.
 - [x] 调用逻辑功能.
 
-
 ### 广播功能
 
 - 下列是已完成的协议，后面会继续测试
@@ -48,15 +110,15 @@
 ```go
 // ProxyFunc 代理模型
 type ProxyFunc struct {
-	proxy Proxy
+proxy Proxy
 }
 
 func (p *ProxyFunc) InvokeFunc(ctx Context) []byte {
-	return p.proxy.InvokeFunc(ctx)
+return p.proxy.InvokeFunc(ctx)
 }
 
 func (p *ProxyFunc) SetProxy(proxy Proxy) {
-	p.proxy = proxy
+p.proxy = proxy
 }
 ```
 
@@ -70,10 +132,10 @@ func (p *ProxyFunc) SetProxy(proxy Proxy) {
 ```go
 // Decoder 对数据的解码器
 type Decoder interface {
-	// DecoderBytes 收到客户端的数据
-	DecoderBytes(bytes []byte) message.Message
-	// EncodeBytes 封装编码
-	EncodeBytes(result interface{}) []byte
+// DecoderBytes 收到客户端的数据
+DecoderBytes(bytes []byte) message.Message
+// EncodeBytes 封装编码
+EncodeBytes(result interface{}) []byte
 }
 ```
 
@@ -88,9 +150,9 @@ type Decoder interface {
 
 ```go
 type Socket interface {
-    // ListenBack 监听连接收到的消息，回写到上层方法，当返回 byte 不为空时则写入到客户端
-    ListenBack(func([]byte) []byte)
-    ListenAddr(addr string)
+// ListenBack 监听连接收到的消息，回写到上层方法，当返回 byte 不为空时则写入到客户端
+ListenBack(func ([]byte) []byte)
+ListenAddr(addr string)
 }
 ```
 
@@ -279,16 +341,16 @@ func ManyService(port uint16) {
 
 ```go
 func (s *GrpcServer) CountRoom() {
-	jsonDecoder := decoder.JsonDecoder{}
-	msg := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
-	var list []string
-	client := GrpcClient{}
-	ip := s.register.ListIp()
-	for _, info := range ip {
-		bytes := client.InvokeRemoteRpc(info.Ip+":"+fmt.Sprint(info.Port), msg.GetBytesResult())
-		result := jsonDecoder.DecoderBytes(bytes)
-		list = append(list, string(result.GetBody()))
-	}
-	log.Println(list)
+jsonDecoder := decoder.JsonDecoder{}
+msg := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
+var list []string
+client := GrpcClient{}
+ip := s.register.ListIp()
+for _, info := range ip {
+bytes := client.InvokeRemoteRpc(info.Ip+":"+fmt.Sprint(info.Port), msg.GetBytesResult())
+result := jsonDecoder.DecoderBytes(bytes)
+list = append(list, string(result.GetBody()))
+}
+log.Println(list)
 }
 ```

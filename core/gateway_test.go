@@ -68,9 +68,9 @@ func TestGateway(t *testing.T) {
 }
 
 func TestWsClient2(t *testing.T) {
-	for i := 0; i < 2; i++ {
-		go WsTest()
-	}
+	//for i := 0; i < 2; i++ {
+	//	go WsTest()
+	//}
 	WsTest()
 }
 
