@@ -85,11 +85,3 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
-
-// SendMessage 广播功能
-func (socket *WebSocket) SendMessage(bytes []byte) {
-	socket.UuidOnCoon.Range(func(key, value any) bool {
-		value.(chan []byte) <- bytes
-		return true
-	})
-}
