@@ -35,39 +35,50 @@ func (socket *KcpSocket) listenerKcp(addr string) {
 		if err != nil {
 			common.FileLogger().Println("监听异常:", err.Error())
 		}
-		go func(conn *kcp.UDPSession) {
-
-			socket.AsyncResult(func(bytes []byte) {
-				_, err = conn.Write(bytes)
-				if err != nil {
-					// log.Println("写入错误:", err)
-					common.FileLogger().Println("kcp写入错误: " + err.Error())
-					_ = conn.Close()
-				}
-			})
-
-			var buf = make([]byte, 4096)
-			for {
-				// 读取长度 n
-				n, err := conn.Read(buf)
-				if err != nil {
-					common.FileLogger().Println("kcp读取错误:", err.Error())
-					break
-				}
-				socket.InvokeMethod(0, buf[:n])
-
-				// log.Printf("收到消息: %s", buf[:n])
-				//bytes := socket.proxyMethod(buf[:n])
-				//if len(bytes) == 0 {
-				//	continue
-				//}
-				//n, err = conn.Write(bytes)
-				//if err != nil {
-				//	common.FileLogger().Println("kcp写入错误:", err.Error())
-				//	break
-				//}
-			}
-		}(conn)
+		go socket.handleConn(conn)
 	}
 
+}
+
+func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
+
+	uuid := common.UuidKit.UUID()
+	messageChannel := make(chan []byte)
+	socket.UuidOnCoon.Store(uuid, messageChannel)
+	go func() {
+		for data := range messageChannel {
+			socket.queue <- data
+		}
+	}()
+
+	socket.AsyncResult(func(bytes []byte) {
+		_, err := conn.Write(bytes)
+		if err != nil {
+			// log.Println("写入错误:", err)
+			common.FileLogger().Println("kcp写入错误: " + err.Error())
+			_ = conn.Close()
+		}
+	})
+
+	var buf = make([]byte, 4096)
+	for {
+		// 读取长度 n
+		n, err := conn.Read(buf)
+		if err != nil {
+			common.FileLogger().Println("kcp读取错误:", err.Error())
+			break
+		}
+		socket.InvokeMethod(uuid, buf[:n])
+
+		// log.Printf("收到消息: %s", buf[:n])
+		//bytes := socket.proxyMethod(buf[:n])
+		//if len(bytes) == 0 {
+		//	continue
+		//}
+		//n, err = conn.Write(bytes)
+		//if err != nil {
+		//	common.FileLogger().Println("kcp写入错误:", err.Error())
+		//	break
+		//}
+	}
 }

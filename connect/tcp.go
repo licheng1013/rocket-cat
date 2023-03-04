@@ -50,6 +50,16 @@ func (socket *TcpSocket) ListenAddr(addr string) {
 }
 
 func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
+
+	uuid := common.UuidKit.UUID()
+	messageChannel := make(chan []byte)
+	socket.UuidOnCoon.Store(uuid, messageChannel)
+	go func() {
+		for data := range messageChannel {
+			socket.queue <- data
+		}
+	}()
+
 	socket.AsyncResult(func(bytes []byte) {
 		if len(bytes) == 0 {
 			return
@@ -77,7 +87,7 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 		}
 		// 调用解码函数，将字节切片转换为自定义协议的结构体
 		mp := Decode(buf[:n])
-		socket.InvokeMethod(0, mp.Data)
+		socket.InvokeMethod(uuid, mp.Data)
 
 		//result := socket.proxyMethod(mp.Data)
 		//if len(result) == 0 {
