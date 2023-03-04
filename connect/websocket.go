@@ -11,7 +11,7 @@ type WebSocket struct {
 	MySocket
 }
 
-func (socket *WebSocket) ListenBack(f func([]byte) []byte) {
+func (socket *WebSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
 	socket.proxyMethod = f
 }
 
@@ -68,7 +68,7 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 			socket.UuidOnCoon.Delete(uuid)
 			break
 		}
-		socket.InvokeMethod(message)
+		socket.InvokeMethod(uuid, message)
 
 		//bytes := socket.proxyMethod(message) // TODO 改成上面变为多线程进行发送数据
 		//if len(bytes) == 0 {

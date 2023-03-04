@@ -14,8 +14,10 @@ func TestWsServer(t *testing.T) {
 	channel := make(chan int)
 	socket := WebSocket{}
 	go func() {
-		socket.ListenBack(func(bytes []byte) []byte {
-			return bytes
+		socket.ListenBack(func(uuid uint32, message []byte) []byte {
+			log.Println(uuid)
+			socket.SendMessage([]byte{}) // 测试空消息是否会返回
+			return message
 		})
 		socket.ListenAddr(Addr)
 	}()

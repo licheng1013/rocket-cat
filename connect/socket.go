@@ -6,8 +6,10 @@ import (
 )
 
 type Socket interface {
-	// ListenBack 监听连接收到的消息，回写到上层方法，当返回 byte 不为空时则写入到客户端
-	ListenBack(func([]byte) []byte)
+
+	// ListenBack 监听连接收到的消息，回写到上层方法，当返回 byte 不为空时则写入到客户端,
+	// uuid 为连接建立时的唯一id,message为具体消息内容
+	ListenBack(func(uuid uint32, message []byte) []byte)
 	ListenAddr(addr string)
 }
 
@@ -21,16 +23,16 @@ const HelloMsg = "HelloWorld"
 
 // MySocket Socket接口的通用字段
 type MySocket struct {
-	proxyMethod func([]byte) []byte //代理方法
-	UuidOnCoon  sync.Map            // 连接
-	queue       chan []byte         //结果
-	Pool        *common.Pool        //线程池
+	proxyMethod func(uuid uint32, message []byte) []byte //代理方法
+	UuidOnCoon  sync.Map                                 // 连接
+	queue       chan []byte                              //结果
+	Pool        *common.Pool                             //线程池
 }
 
 // InvokeMethod 此处添加至线程池进行远程调用
-func (s *MySocket) InvokeMethod(message []byte) {
+func (s *MySocket) InvokeMethod(uuid uint32, message []byte) {
 	_ = s.Pool.AddTaskNonBlocking(func() {
-		s.queue <- s.proxyMethod(message)
+		s.queue <- s.proxyMethod(uuid, message)
 	})
 }
 
@@ -39,6 +41,9 @@ func (s *MySocket) AsyncResult(f func(bytes []byte)) {
 	go func() {
 		s.queue = make(chan []byte)
 		for bytes := range s.queue {
+			if bytes == nil || len(bytes) == 0 {
+				continue // 返回的数据为空则不写入客户端
+			}
 			f(bytes)
 		}
 	}()

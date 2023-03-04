@@ -19,7 +19,7 @@ func TestTcpServer(t *testing.T) {
 	channel := make(chan int)
 	socket := TcpSocket{}
 	go func() {
-		socket.ListenBack(func(bytes []byte) []byte {
+		socket.ListenBack(func(uuid uint32, bytes []byte) []byte {
 			return bytes
 		})
 		socket.ListenAddr(Addr)

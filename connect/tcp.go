@@ -14,7 +14,7 @@ type TcpSocket struct {
 	MySocket
 }
 
-func (socket *TcpSocket) ListenBack(f func([]byte) []byte) {
+func (socket *TcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
 	socket.proxyMethod = f
 }
 
@@ -63,8 +63,6 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 		}
 	})
 
-
-
 	// 延迟关闭连接
 	defer conn.Close()
 	// 创建一个缓冲区，用于存储接收到的数据
@@ -79,7 +77,7 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 		}
 		// 调用解码函数，将字节切片转换为自定义协议的结构体
 		mp := Decode(buf[:n])
-		socket.InvokeMethod(mp.Data)
+		socket.InvokeMethod(0, mp.Data)
 
 		//result := socket.proxyMethod(mp.Data)
 		//if len(result) == 0 {

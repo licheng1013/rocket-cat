@@ -11,7 +11,7 @@ func TestKcpServer(t *testing.T) {
 	channel := make(chan int)
 	socket := KcpSocket{}
 	go func() {
-		socket.ListenBack(func(bytes []byte) []byte {
+		socket.ListenBack(func(uuid uint32, bytes []byte) []byte {
 			return bytes
 		})
 		socket.ListenAddr(Addr)

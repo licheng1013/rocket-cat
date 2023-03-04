@@ -80,16 +80,15 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 	if !g.single {
 		g.registerClient.Close()
 	}
-
 }
 
-func (g *Gateway) ListenBack(bytes []byte) []byte {
+func (g *Gateway) ListenBack(uuid uint32,bytes []byte) []byte {
 	if g.single {
 		message := g.decoder.DecoderBytes(bytes)
 		context := &router.Context{Message: message}
 		g.router.ExecuteMethod(context)
-		if context.Message == nil { // 没数据直接不返回
-			return make([]byte, 0)
+		if context.Message == nil { // 没数据,底层socket对于空数据不返回
+			return []byte{}
 		}
 		return context.Message.GetBytesResult()
 	}

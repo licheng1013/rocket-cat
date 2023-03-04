@@ -10,7 +10,7 @@ type KcpSocket struct {
 	MySocket
 }
 
-func (socket *KcpSocket) ListenBack(f func([]byte) []byte) {
+func (socket *KcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
 	socket.proxyMethod = f
 }
 
@@ -46,7 +46,6 @@ func (socket *KcpSocket) listenerKcp(addr string) {
 				}
 			})
 
-
 			var buf = make([]byte, 4096)
 			for {
 				// 读取长度 n
@@ -55,7 +54,7 @@ func (socket *KcpSocket) listenerKcp(addr string) {
 					common.FileLogger().Println("kcp读取错误:", err.Error())
 					break
 				}
-				socket.InvokeMethod(buf[:n])
+				socket.InvokeMethod(0, buf[:n])
 
 				// log.Printf("收到消息: %s", buf[:n])
 				//bytes := socket.proxyMethod(buf[:n])
