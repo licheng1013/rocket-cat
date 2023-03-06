@@ -2,12 +2,8 @@ package remote
 
 import (
 	"context"
-	"fmt"
 	"github.com/licheng1013/io-game-go/common"
-	"github.com/licheng1013/io-game-go/decoder"
-	"github.com/licheng1013/io-game-go/message"
 	"github.com/licheng1013/io-game-go/protof"
-	"github.com/licheng1013/io-game-go/registers"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -16,24 +12,16 @@ import (
 type GrpcServer struct {
 	protof.RpcServiceServer
 	callbackFunc func([]byte) []byte
-	register     registers.Register
-}
-
-// SetRegister 在测试阶段可以不用设置 -> CallbackResult 在之前使用
-func (s *GrpcServer) SetRegister(register registers.Register) {
-	s.register = register
-	go s.ListenAddr(register.RegisterInfo())
 }
 
 func (s *GrpcServer) CallbackResult(f func([]byte) []byte) {
 	s.callbackFunc = f
 }
 
-func (s *GrpcServer) ListenAddr(addr registers.RegisterInfo) {
+func (s *GrpcServer) ListenAddr(addr string) {
 	common.AssertNil(s.callbackFunc, "回调方法为空")
-	common.AssertNil(s.register, "注册中心为空")
 	// 监听连接
-	lis, err := net.Listen("tcp", addr.Ip+":"+fmt.Sprint(addr.Port))
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("监听: %v", err)
 	}
@@ -52,16 +40,16 @@ func (s *GrpcServer) InvokeRemoteFunc(ctx context.Context, in *protof.RpcInfo) (
 	return in, nil
 }
 
-func (s *GrpcServer) CountRoom() {
-	jsonDecoder := decoder.JsonDecoder{}
-	msg := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
-	var list []string
-	client := GrpcClient{}
-	ip := s.register.ListIp()
-	for _, info := range ip {
-		bytes := client.InvokeRemoteRpc(info.Ip+":"+fmt.Sprint(info.Port), msg.GetBytesResult())
-		result := jsonDecoder.DecoderBytes(bytes)
-		list = append(list, string(result.GetBody()))
-	}
-	log.Println(list)
-}
+//func (s *GrpcServer) CountRoom() {
+//	jsonDecoder := decoder.JsonDecoder{}
+//	msg := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
+//	var list []string
+//	client := GrpcClient{}
+//	ip := s.register.ListIp()
+//	for _, info := range ip {
+//		bytes := client.InvokeRemoteRpc(info.Ip+":"+fmt.Sprint(info.Port), msg.GetBytesResult())
+//		result := jsonDecoder.DecoderBytes(bytes)
+//		list = append(list, string(result.GetBody()))
+//	}
+//	log.Println(list)
+//}
