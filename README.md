@@ -1,5 +1,7 @@
 # IoGameGo
 
+![Alt](https://repobeats.axiom.co/api/embed/6e9456520132509e9335fb6ee214abacae172845.svg "Repobeats analytics image")
+
 ## 介绍
 
 - 2022/10/14

@@ -56,7 +56,7 @@ func (n *Nacos) Register(info RegisterInfo) {
 
 // GetIp 获取单个ip
 func (n *Nacos) GetIp() (RegisterInfo, error) {
-	// SelList 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
+	// SelectList 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
 	instances, err := n.namingClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
 		ServiceName: n.registerClientInfo.RemoteName,
 		GroupName:   n.registerParam.GroupName,
@@ -69,7 +69,7 @@ func (n *Nacos) GetIp() (RegisterInfo, error) {
 
 // ListIp 获取ip
 func (n *Nacos) ListIp() ([]RegisterInfo, error) {
-	instances := n.SelList(n.registerClientInfo.RemoteName)
+	instances := n.SelectList(n.registerClientInfo.RemoteName)
 	infos := make([]RegisterInfo, 0)
 	if len(instances) == 0 {
 		return infos, errors.New("获取实例为空")
@@ -97,17 +97,14 @@ func NewNacos() *Nacos {
 //	log.Println("所有实例: ", instances)
 //}
 
-// SelList 只获取存活的实例
-func (n *Nacos) SelList(serverName string) []model.Instance {
-	// SelList 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
-	instances, err := n.namingClient.SelectInstances(vo.SelectInstancesParam{
+// SelectList 只获取存活的实例
+func (n *Nacos) SelectList(serverName string) []model.Instance {
+	// SelectList 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
+	instances, _ := n.namingClient.SelectInstances(vo.SelectInstancesParam{
 		ServiceName: serverName,
 		GroupName:   n.registerParam.GroupName,
 		HealthyOnly: true, //true 健康的实例
 	})
-	if err != nil {
-		print(err)
-	}
 	return instances
 }
 
