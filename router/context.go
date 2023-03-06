@@ -8,8 +8,10 @@ import (
 type Context struct {
 	// 具体消息 -> 当这个消息为空时则不返回数据回去
 	Message message.Message
-	// Rpc服务
+	// Rpc服务 -> 服务
 	RpcServer remote.RpcServer
 	// 具体消息 -> 此消息比 Message 更具有优先级返回
-	Data []byte
+	Data     []byte
+	// 链接Id -> 连接建立时的唯一id
+	SocketId uint32
 }

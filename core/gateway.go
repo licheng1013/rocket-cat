@@ -84,7 +84,7 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 	if g.single {
 		message := g.decoder.DecoderBytes(bytes)
-		context := &router.Context{Message: message}
+		context := &router.Context{Message: message,SocketId: uuid}
 		g.router.ExecuteMethod(context)
 		if context.Data != nil {
 			return context.Data
