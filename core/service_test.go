@@ -48,12 +48,12 @@ func ManyService(port uint16) {
 		}
 	})
 	// 关机钩子
-	service.AddClose(nacos.Close)
 	service.AddClose(func() {
 		log.Println("在关机中了")
 	})
 	go service.Start()
-	time.Sleep(10 * time.Second)
+	time.Sleep(3 * time.Second)
 	jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1)}
 	rpcClient.InvokeRemoteRpc(clientInfo.Addr(), jsonMessage.GetBytesResult())
+	nacos.Close()
 }

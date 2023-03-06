@@ -62,6 +62,7 @@ func (n *Service) Start() {
 		}
 		return context.Message.GetBytesResult()
 	})
+	n.close = append(n.close, n.register.Close)
 	addr := n.register.RegisterInfo().Addr()
 	go n.rpcServer.ListenAddr(addr)
 	common.StopApplication()
