@@ -10,4 +10,6 @@ type Context struct {
 	Message message.Message
 	// Rpc服务
 	RpcServer remote.RpcServer
+	// 具体消息 -> 此消息比 Message 更具有优先级返回
+	Data []byte
 }

@@ -86,6 +86,9 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 		message := g.decoder.DecoderBytes(bytes)
 		context := &router.Context{Message: message}
 		g.router.ExecuteMethod(context)
+		if context.Data != nil {
+			return context.Data
+		}
 		if context.Message == nil { // 没数据,底层socket对于空数据不返回
 			return []byte{}
 		}

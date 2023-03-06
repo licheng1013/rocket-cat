@@ -57,6 +57,9 @@ func (n *Service) Start() {
 		context := &router.Context{Message: message}
 		context.RpcServer = n.rpcServer
 		n.router.ExecuteMethod(context)
+		if context.Data != nil {
+			return context.Data
+		}
 		if context.Message == nil {
 			return []byte{}
 		}

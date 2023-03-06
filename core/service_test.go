@@ -35,14 +35,13 @@ func ManyService(port uint16) {
 	// 编码器
 	service.SetDecoder(decoder.JsonDecoder{})
 	service.Router().AddAction(common.CmdKit.GetMerge(1, 2), func(ctx *router.Context) {
-		ctx.Message.SetBody([]byte("1"))
+		ctx.Data = []byte("1")
 	})
 	service.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
 		jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
 		if ip, err := nacos.GetIp(); err == nil {
 			bytes := rpcClient.InvokeRemoteRpc(ip.Addr(), jsonMessage.GetBytesResult())
-			msg := decoder.JsonDecoderBytes(bytes)
-			log.Println("调用逻辑服其他方法结果:", string(msg.GetBody()))
+			log.Println("调用逻辑服其他方法结果:", string(bytes))
 		} else {
 			log.Println("错误信息:" + err.Error())
 		}

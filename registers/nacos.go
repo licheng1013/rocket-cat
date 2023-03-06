@@ -113,7 +113,7 @@ func (n *Nacos) heartbeat() {
 	for true {
 		instance, err := n.namingClient.UpdateInstance(n.updateParam)
 		if err != nil || !instance {
-			log.Panicln("更新实例失败,请检查Nacos!", err)
+			log.Println("更新实例失败,请检查Nacos!", err)
 		}
 		time.Sleep(1 * time.Second)
 	}
