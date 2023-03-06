@@ -35,7 +35,7 @@ func ManyService(port uint16) {
 	// 编码器
 	service.SetDecoder(decoder.JsonDecoder{})
 	service.Router().AddAction(common.CmdKit.GetMerge(1, 2), func(ctx *router.Context) {
-		ctx.Message.SetBody([]byte("HelloWorld"))
+		ctx.Message.SetBody([]byte("1"))
 	})
 	service.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
 		jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
@@ -52,7 +52,7 @@ func ManyService(port uint16) {
 		log.Println("在关机中了")
 	})
 	go service.Start()
-	time.Sleep(3 * time.Second)
+	time.Sleep(2 * time.Second)
 	jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1)}
 	rpcClient.InvokeRemoteRpc(clientInfo.Addr(), jsonMessage.GetBytesResult())
 	nacos.Close()
