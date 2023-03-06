@@ -3,5 +3,5 @@ syntax = "proto3";
 option go_package = "github.com/licheng1013/io-game-go/protof";
 message RpcBody{
   bytes body = 1;
-  string socketId = 2;
+  uint32 socketId = 2;
 }
