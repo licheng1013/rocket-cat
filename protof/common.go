@@ -21,3 +21,9 @@ func RpcBodyUnmarshal(body []byte, d *RpcBody) {
 		log.Println("Proto解码错误:", err.Error())
 	}
 }
+
+// RpcBodyBuild 构建一个
+func RpcBodyBuild(body []byte) []byte {
+	r := &RpcBody{Body: body}
+	return RpcBodyMarshal(r)
+}

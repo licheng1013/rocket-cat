@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/licheng1013/io-game-go/common"
 	"github.com/licheng1013/io-game-go/decoder"
+	"github.com/licheng1013/io-game-go/protof"
 	"github.com/licheng1013/io-game-go/registers"
 	"github.com/licheng1013/io-game-go/remote"
 	"github.com/licheng1013/io-game-go/router"
@@ -53,8 +54,11 @@ func (n *Service) Start() {
 	common.AssertNil(n.decoder, "编码器没有设置.")
 	common.AssertNil(n.register, "注册中心没有设置.")
 	n.rpcServer.CallbackResult(func(bytes []byte) []byte { //这里回调数据，并进行内部处理
-		message := n.decoder.DecoderBytes(bytes)
-		context := &router.Context{Message: message}
+		p := &protof.RpcBody{}
+		protof.RpcBodyUnmarshal(bytes, p)
+		log.Println(p.Body)
+		message := n.decoder.DecoderBytes(p.Body)
+		context := &router.Context{Message: message, SocketId: p.SocketId}
 		context.RpcServer = n.rpcServer
 		n.router.ExecuteMethod(context)
 		if context.Data != nil {

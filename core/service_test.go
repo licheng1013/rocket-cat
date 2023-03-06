@@ -4,6 +4,7 @@ import (
 	"github.com/licheng1013/io-game-go/common"
 	"github.com/licheng1013/io-game-go/decoder"
 	"github.com/licheng1013/io-game-go/message"
+	"github.com/licheng1013/io-game-go/protof"
 	"github.com/licheng1013/io-game-go/registers"
 	"github.com/licheng1013/io-game-go/remote"
 	"github.com/licheng1013/io-game-go/router"
@@ -53,6 +54,6 @@ func ManyService(port uint16) {
 	go service.Start()
 	time.Sleep(2 * time.Second)
 	jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1)}
-	rpcClient.InvokeRemoteRpc(clientInfo.Addr(), jsonMessage.GetBytesResult())
+	rpcClient.InvokeRemoteRpc(clientInfo.Addr(), protof.RpcBodyBuild(jsonMessage.GetBytesResult()))
 	nacos.Close()
 }

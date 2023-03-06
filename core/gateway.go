@@ -4,6 +4,7 @@ import (
 	"github.com/licheng1013/io-game-go/common"
 	"github.com/licheng1013/io-game-go/connect"
 	"github.com/licheng1013/io-game-go/decoder"
+	"github.com/licheng1013/io-game-go/protof"
 	"github.com/licheng1013/io-game-go/registers"
 	"github.com/licheng1013/io-game-go/remote"
 	router "github.com/licheng1013/io-game-go/router"
@@ -100,5 +101,6 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 		log.Println("注册中心错误:" + err.Error())
 		return []byte{}
 	}
-	return g.client.InvokeRemoteRpc(ip.Addr(), bytes)
+	p := &protof.RpcBody{Body: bytes, SocketId: uuid}
+	return g.client.InvokeRemoteRpc(ip.Addr(), protof.RpcBodyMarshal(p))
 }
