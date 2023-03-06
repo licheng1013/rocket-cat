@@ -1,27 +1,26 @@
 package core
 
 import (
-	"fmt"
 	"github.com/licheng1013/io-game-go/common"
 	"github.com/licheng1013/io-game-go/decoder"
+	"github.com/licheng1013/io-game-go/message"
 	"github.com/licheng1013/io-game-go/registers"
 	"github.com/licheng1013/io-game-go/remote"
 	"github.com/licheng1013/io-game-go/router"
 	"log"
-	"sync"
 	"testing"
 	"time"
 )
 
 func TestService(t *testing.T) {
 	ports := []uint16{12000, 12001}
-	go ManyService(ports[0])
+	//go ManyService(ports[0])
 	ManyService(ports[1])
 }
 
+// 此处测试需要配合注册中心一起测试
 func ManyService(port uint16) {
-	var lock sync.Mutex
-	log.Println("HelloWorld")
+	rpcClient := &remote.GrpcClient{}
 	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: port,
 		ServiceName: common.ServicerName, RemoteName: common.ServicerName} // 测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
@@ -29,43 +28,32 @@ func ManyService(port uint16) {
 	nacos.Register(registers.RegisterInfo{Ip: "localhost", Port: 8848})
 	// nacos
 	rpc := &remote.GrpcServer{}
-	rpc.SetRegister(nacos)
 	// rpc
 	service := NewService()
 	service.SetRpcServer(rpc)
+	service.SetRegister(nacos)
 	// 编码器
 	service.SetDecoder(decoder.JsonDecoder{})
-
-	// 测试
-	var count int64
-	start := time.Now().UnixMilli()
-
-	service.Router().AddFunc(common.CmdKit.GetMerge(1, 2), func(ctx *router.Context) {
-		ctx.Message.SetBody([]byte("Hello")).GetBytesResult()
+	service.Router().AddAction(common.CmdKit.GetMerge(1, 2), func(ctx *router.Context) {
+		ctx.Message.SetBody([]byte("HelloWorld"))
 	})
-
-	service.Router().AddFunc(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
-		ctx.Message.SetBody([]byte("Hi Ok"))
-		end := time.Now().UnixMilli()
-		lock.Lock()
-		count++
-		if end-start > 1000 {
-
-			server := ctx.RpcServer.(*remote.GrpcServer)
-			server.CountRoom()
-
-			fmt.Println(port, "1s请求数量:", count)
-			count = 0
-			start = end
+	service.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
+		jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
+		if ip, err := nacos.GetIp(); err == nil {
+			bytes := rpcClient.InvokeRemoteRpc(ip.Addr(), jsonMessage.GetBytesResult())
+			msg := decoder.JsonDecoderBytes(bytes)
+			log.Println("调用逻辑服其他方法结果:", string(msg.GetBody()))
+		} else {
+			log.Println("错误信息:" + err.Error())
 		}
-		lock.Unlock()
-		//log.Println(string(ctx.Message.GetBody()))
 	})
-
 	// 关机钩子
 	service.AddClose(nacos.Close)
 	service.AddClose(func() {
 		log.Println("在关机中了")
 	})
-	service.Start()
+	go service.Start()
+	time.Sleep(10 * time.Second)
+	jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1)}
+	rpcClient.InvokeRemoteRpc(clientInfo.Addr(), jsonMessage.GetBytesResult())
 }

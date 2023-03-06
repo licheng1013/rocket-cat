@@ -22,3 +22,9 @@ func (d JsonDecoder) DecoderBytes(bytes []byte) message.Message {
 	}
 	return &json
 }
+
+// JsonDecoderBytes 工具方法
+func JsonDecoderBytes(bytes []byte) message.Message {
+	j := &JsonDecoder{}
+	return j.DecoderBytes(bytes)
+}

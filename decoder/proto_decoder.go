@@ -22,3 +22,9 @@ func (p ProtoDecoder) DecoderBytes(bytes []byte) message.Message {
 	}
 	return &msg
 }
+
+// ProtoDecoderBytes 工具方法
+func ProtoDecoderBytes(bytes []byte) message.Message {
+	j := &ProtoDecoder{}
+	return j.DecoderBytes(bytes)
+}

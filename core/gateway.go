@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/licheng1013/io-game-go/common"
 	"github.com/licheng1013/io-game-go/connect"
 	"github.com/licheng1013/io-game-go/decoder"
@@ -93,6 +92,10 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 		return context.Message.GetBytesResult()
 	}
 	// 此处调用远程方法
-	ip := g.registerClient.GetIp()
-	return g.client.InvokeRemoteRpc(ip.Ip+":"+fmt.Sprint(ip.Port), bytes)
+	ip, err := g.registerClient.GetIp()
+	if err != nil {
+		log.Println("注册中心错误:" + err.Error())
+		return []byte{}
+	}
+	return g.client.InvokeRemoteRpc(ip.Addr(), bytes)
 }

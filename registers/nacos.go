@@ -1,6 +1,7 @@
 package registers
 
 import (
+	"errors"
 	"fmt"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
@@ -54,29 +55,29 @@ func (n *Nacos) Register(info RegisterInfo) {
 }
 
 // GetIp 获取单个ip
-func (n *Nacos) GetIp() RegisterInfo {
+func (n *Nacos) GetIp() (RegisterInfo, error) {
 	// SelList 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
 	instances, err := n.namingClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
 		ServiceName: n.registerClientInfo.RemoteName,
 		GroupName:   n.registerParam.GroupName,
 	})
 	if err != nil {
-		log.Println("找不到可用的注册服务:" + err.Error())
+		return RegisterInfo{}, errors.New("获取实例为空")
 	}
-	return RegisterInfo{Ip: instances.Ip, Port: uint16(instances.Port), ServiceName: instances.ServiceName}
+	return RegisterInfo{Ip: instances.Ip, Port: uint16(instances.Port), ServiceName: instances.ServiceName}, nil
 }
 
 // ListIp 获取ip
-func (n *Nacos) ListIp() []RegisterInfo {
+func (n *Nacos) ListIp() ([]RegisterInfo, error) {
 	instances := n.SelList(n.registerClientInfo.RemoteName)
 	infos := make([]RegisterInfo, 0)
 	if len(instances) == 0 {
-		panic("获取实例为空")
+		return infos, errors.New("获取实例为空")
 	}
 	for _, item := range instances {
 		infos = append(infos, RegisterInfo{Ip: item.Ip, Port: uint16(item.Port), ServiceName: item.ServiceName})
 	}
-	return infos
+	return infos, nil
 }
 
 func NewNacos() *Nacos {

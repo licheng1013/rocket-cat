@@ -26,7 +26,7 @@ func TestSingleGateway(t *testing.T) {
 	gateway.SetDecoder(decoder.JsonDecoder{})
 	start := time.Now().UnixMilli()
 	var count int64
-	gateway.Router().AddFunc(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
+	gateway.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
 		end := time.Now().UnixMilli()
 		count++
 		socket.SendMessage(ctx.Message.SetBody([]byte("Hi")).GetBytesResult())

@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/licheng1013/io-game-go/common"
 	"github.com/licheng1013/io-game-go/decoder"
+	"github.com/licheng1013/io-game-go/registers"
 	"github.com/licheng1013/io-game-go/remote"
 	"github.com/licheng1013/io-game-go/router"
 	"log"
@@ -18,6 +19,8 @@ type Service struct {
 	close []func()
 	// 编码器
 	decoder decoder.Decoder
+	// 注册中心
+	register registers.Register
 }
 
 func (n *Service) Router() router.Router {
@@ -48,6 +51,7 @@ func (n *Service) Start() {
 	common.AssertNil(n.rpcServer, "Rpc服务没有设置.")
 	common.AssertNil(n.router, "路由没有设置.")
 	common.AssertNil(n.decoder, "编码器没有设置.")
+	common.AssertNil(n.register, "注册中心没有设置.")
 	n.rpcServer.CallbackResult(func(bytes []byte) []byte { //这里回调数据，并进行内部处理
 		message := n.decoder.DecoderBytes(bytes)
 		context := &router.Context{Message: message}
@@ -58,8 +62,14 @@ func (n *Service) Start() {
 		}
 		return context.Message.GetBytesResult()
 	})
+	addr := n.register.RegisterInfo().Addr()
+	go n.rpcServer.ListenAddr(addr)
 	common.StopApplication()
 	for _, item := range n.close {
 		item() // Close Application
 	}
+}
+
+func (n *Service) SetRegister(register registers.Register) {
+	n.register = register
 }

@@ -12,7 +12,7 @@ func TestRouter(t *testing.T) {
 	router := DefaultRouter{}
 	router.AddProxy(&B{})
 	merge := common.CmdKit.GetMerge(1, 2)
-	router.AddFunc(merge, func(ctx *Context) {
+	router.AddAction(merge, func(ctx *Context) {
 		fmt.Println("具体业务")
 		fmt.Println("收到消息:" + string(ctx.Message.GetBody()))
 		ctx.Message = nil
