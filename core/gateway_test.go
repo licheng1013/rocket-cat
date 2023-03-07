@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/licheng1013/io-game-go/common"
 	"github.com/licheng1013/io-game-go/connect"
@@ -21,29 +20,15 @@ import (
 func TestSingleGateway(t *testing.T) {
 	socket := &connect.WebSocket{}
 	channel := make(chan int)
-
 	gateway := NewGateway()
 	gateway.SetDecoder(decoder.JsonDecoder{})
-	start := time.Now().UnixMilli()
-	var count int64
 	gateway.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
-		end := time.Now().UnixMilli()
-		count++
 		socket.SendMessage(ctx.Message.SetBody([]byte("Hi")).GetBytesResult())
 		ctx.Message.SetBody([]byte("Hi Ok 2"))
-		if end-start > 100 { //此处设置监听请求时间 -> 配置和Idea: RequestTool 插件能够调试广播，或者在开个客户端
-			fmt.Println("1s请求数量:", count)
-			count = 0
-			start = end
-			channel <- 0
-		}
-		//log.Println(string(ctx.Message.GetBody()))
-		//ctx.Message = nil
 	})
-	fmt.Println(start)
-
 	go gateway.Start(connect.Addr, socket)
-	go WsTest()
+	time.Sleep(time.Second / 2) //等待完全启动
+	go WsTest(channel)
 	select {
 	case ok := <-channel:
 		log.Println(ok)
@@ -52,7 +37,6 @@ func TestSingleGateway(t *testing.T) {
 }
 
 func TestGateway(t *testing.T) {
-
 	gateway := NewGateway()
 	gateway.SetSingle(false)
 
@@ -67,14 +51,7 @@ func TestGateway(t *testing.T) {
 	gateway.Start(connect.Addr, &connect.WebSocket{})
 }
 
-func TestWsClient2(t *testing.T) {
-	//for i := 0; i < 2; i++ {
-	//	go WsTest()
-	//}
-	WsTest()
-}
-
-func WsTest() {
+func WsTest(v chan int) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 	u := url.URL{Scheme: "ws", Host: connect.Addr, Path: "/ws"}
@@ -86,6 +63,7 @@ func WsTest() {
 	}
 	defer c.Close()
 	done := make(chan struct{})
+	var count int64
 	go func() {
 		defer close(done)
 		for {
@@ -97,6 +75,10 @@ func WsTest() {
 				return
 			}
 			log.Println("收到消息:", string(dto.GetBody()))
+			count++
+			if count >= 2 {
+				v <- 0
+			}
 		}
 	}()
 	for {
@@ -107,6 +89,5 @@ func WsTest() {
 			log.Println("写:", err)
 			return
 		}
-
 	}
 }

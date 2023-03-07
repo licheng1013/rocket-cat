@@ -63,8 +63,8 @@ func (socket *MySocket) AsyncResult(f func(bytes []byte)) {
 }
 
 // SendSelectMessage 选择id发送
-func (socket *MySocket) SendSelectMessage(bytes []byte, uuid ...uint32) {
-	for _, item := range uuid {
+func (socket *MySocket) SendSelectMessage(bytes []byte, socketIds ...uint32) {
+	for _, item := range socketIds {
 		value, ok := socket.UuidOnCoon.Load(item)
 		if ok {
 			value.(chan []byte) <- bytes
