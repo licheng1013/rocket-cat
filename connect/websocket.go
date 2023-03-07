@@ -21,8 +21,14 @@ func (socket *WebSocket) ListenAddr(addr string) {
 		panic("未注册回调函数: ListenBack")
 	}
 	http.HandleFunc("/ws", socket.ws)
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		panic(err)
+	if socket.Tls != nil {
+		if err := http.ListenAndServeTLS(addr, socket.Tls.CertFile, socket.Tls.KeyFile, nil); err != nil {
+			panic(err)
+		}
+	} else {
+		if err := http.ListenAndServe(addr, nil); err != nil {
+			panic(err)
+		}
 	}
 }
 func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {

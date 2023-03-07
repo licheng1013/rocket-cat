@@ -1,6 +1,7 @@
 package connect
 
 import (
+	"crypto/tls"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/url"
@@ -11,8 +12,17 @@ import (
 )
 
 func TestWsServer(t *testing.T) {
+	server(nil)
+}
+
+func TestWsTls(t *testing.T) {
+	server(&Tls{KeyFile: "example.key", CertFile: "example.crt"})
+}
+
+func server(tls *Tls) {
 	channel := make(chan int)
 	socket := WebSocket{}
+	socket.Tls = tls
 	socket.OnClose(func(uuid uint32) {
 		log.Println(uuid, "关闭了")
 	})
@@ -24,7 +34,7 @@ func TestWsServer(t *testing.T) {
 		})
 		socket.ListenAddr(Addr)
 	}()
-	go WsClient(channel)
+	go WsClient(channel, tls != nil)
 	time.Sleep(1 * time.Second) // 需要等待1秒让客户端启动完成
 	socket.SendMessage([]byte("广播消息-HelloWorld"))
 	for i := 0; i < 2; i++ {
@@ -35,10 +45,16 @@ func TestWsServer(t *testing.T) {
 	}
 }
 
-func WsClient(channel chan int) {
+func WsClient(channel chan int, enableTsl bool) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 	u := url.URL{Scheme: "ws", Host: Addr, Path: "/ws"}
+	if enableTsl {
+		u.Scheme = "wss"
+		websocket.DefaultDialer.TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		log.Fatal("dial:", err)

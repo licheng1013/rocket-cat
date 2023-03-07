@@ -34,6 +34,12 @@ type MySocket struct {
 	queue       chan []byte                              //结果
 	Pool        *common.Pool                             //线程池
 	onClose     func(uuid uint32)                        //关闭钩子，当链接关闭时触发
+	Tls         *Tls
+}
+
+type Tls struct {
+	CertFile string //证书文件
+	KeyFile  string //密钥文件
 }
 
 // InvokeMethod 此处添加至线程池进行远程调用
