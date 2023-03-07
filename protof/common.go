@@ -6,7 +6,7 @@ import (
 )
 
 // RpcBodyMarshal 编码
-func RpcBodyMarshal(v *RpcBody) []byte {
+func RpcBodyMarshal(v *RpcInfo) []byte {
 	body, err := proto.Marshal(v)
 	if err != nil {
 		log.Println("Proto编码错误:", err.Error())
@@ -15,7 +15,7 @@ func RpcBodyMarshal(v *RpcBody) []byte {
 }
 
 // RpcBodyUnmarshal 解码
-func RpcBodyUnmarshal(body []byte, d *RpcBody) {
+func RpcBodyUnmarshal(body []byte, d *RpcInfo) {
 	err := proto.Unmarshal(body, d)
 	if err != nil {
 		log.Println("Proto解码错误:", err.Error())
@@ -23,7 +23,6 @@ func RpcBodyUnmarshal(body []byte, d *RpcBody) {
 }
 
 // RpcBodyBuild 构建一个
-func RpcBodyBuild(body []byte) []byte {
-	r := &RpcBody{Body: body}
-	return RpcBodyMarshal(r)
+func RpcBodyBuild(body []byte) *RpcInfo {
+	return &RpcInfo{Body: body}
 }

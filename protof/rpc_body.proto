@@ -1,7 +1,0 @@
-syntax = "proto3";
-// 使用rpc的时需要设置包目录
-option go_package = "github.com/licheng1013/io-game-go/protof";
-message RpcBody{
-  bytes body = 1;
-  uint32 socketId = 2;
-}

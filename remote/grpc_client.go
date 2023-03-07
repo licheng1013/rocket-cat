@@ -15,7 +15,7 @@ type GrpcClient struct {
 	clientMap sync.Map //[string]protof.RpcServiceClient
 }
 
-func (s *GrpcClient) InvokeRemoteRpc(addr string, bytes []byte) []byte {
+func (s *GrpcClient) InvokeRemoteRpc(addr string, rpcInfo *protof.RpcInfo) []byte {
 	if len(addr) == 0 {
 		log.Println("地址为空: " + addr)
 		return []byte{}
@@ -37,7 +37,7 @@ func (s *GrpcClient) InvokeRemoteRpc(addr string, bytes []byte) []byte {
 	invoke, invokeCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer invokeCancel()
 
-	result, err := value.(protof.RpcServiceClient).InvokeRemoteFunc(invoke, &protof.RpcInfo{Body: bytes})
+	result, err := value.(protof.RpcServiceClient).InvokeRemoteFunc(invoke, rpcInfo)
 	if err != nil {
 		common.FileLogger().Println("请检查远程服务,远程错误:" + err.Error())
 		s.clientMap.Delete(addr)

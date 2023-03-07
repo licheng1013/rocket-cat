@@ -11,10 +11,10 @@ import (
 
 type GrpcServer struct {
 	protof.RpcServiceServer
-	callbackFunc func([]byte) []byte
+	callbackFunc func(in *protof.RpcInfo) []byte
 }
 
-func (s *GrpcServer) CallbackResult(f func([]byte) []byte) {
+func (s *GrpcServer) CallbackResult(f func(in *protof.RpcInfo) []byte) {
 	s.callbackFunc = f
 }
 
@@ -36,7 +36,7 @@ func (s *GrpcServer) ListenAddr(addr string) {
 // InvokeRemoteFunc 此处由Grpc客户端调用
 func (s *GrpcServer) InvokeRemoteFunc(ctx context.Context, in *protof.RpcInfo) (*protof.RpcInfo, error) {
 	common.AssertNil(s.callbackFunc, "没有注册回调方法")
-	in.Body = s.callbackFunc(in.Body)
+	in.Body = s.callbackFunc(in)
 	return in, nil
 }
 

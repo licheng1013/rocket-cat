@@ -41,7 +41,7 @@ func ManyService(port uint16) {
 	service.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
 		jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
 		if ip, err := nacos.GetIp(); err == nil {
-			bytes := rpcClient.InvokeRemoteRpc(ip.Addr(), jsonMessage.GetBytesResult())
+			bytes := rpcClient.InvokeRemoteRpc(ip.Addr(), protof.RpcBodyBuild(jsonMessage.GetBytesResult()))
 			log.Println("调用逻辑服其他方法结果:", string(bytes))
 		} else {
 			log.Println("错误信息:" + err.Error())
@@ -52,7 +52,7 @@ func ManyService(port uint16) {
 		log.Println("在关机中了")
 	})
 	go service.Start()
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1)}
 	rpcClient.InvokeRemoteRpc(clientInfo.Addr(), protof.RpcBodyBuild(jsonMessage.GetBytesResult()))
 	nacos.Close()

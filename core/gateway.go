@@ -101,6 +101,5 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 		log.Println("注册中心错误:" + err.Error())
 		return []byte{}
 	}
-	p := &protof.RpcBody{Body: bytes, SocketId: uuid}
-	return g.client.InvokeRemoteRpc(ip.Addr(), protof.RpcBodyMarshal(p))
+	return g.client.InvokeRemoteRpc(ip.Addr(), &protof.RpcInfo{Body: bytes, SocketId: uuid})
 }

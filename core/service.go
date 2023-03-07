@@ -47,28 +47,28 @@ func NewService() *Service {
 	return service
 }
 
+// CallbackResult 回调数据
+func (n *Service) CallbackResult(in *protof.RpcInfo) []byte {
+	message := n.decoder.DecoderBytes(in.Body)
+	context := &router.Context{Message: message, SocketId: in.SocketId}
+	context.RpcServer = n.rpcServer
+	n.router.ExecuteMethod(context)
+	if context.Data != nil {
+		return context.Data
+	}
+	if context.Message == nil {
+		return []byte{}
+	}
+	return context.Message.GetBytesResult()
+}
+
 func (n *Service) Start() {
 	log.SetFlags(log.LstdFlags + log.Lshortfile)
 	common.AssertNil(n.rpcServer, "Rpc服务没有设置.")
 	common.AssertNil(n.router, "路由没有设置.")
 	common.AssertNil(n.decoder, "编码器没有设置.")
 	common.AssertNil(n.register, "注册中心没有设置.")
-	n.rpcServer.CallbackResult(func(bytes []byte) []byte { //这里回调数据，并进行内部处理
-		p := &protof.RpcBody{}
-		protof.RpcBodyUnmarshal(bytes, p)
-		log.Println(p.Body)
-		message := n.decoder.DecoderBytes(p.Body)
-		context := &router.Context{Message: message, SocketId: p.SocketId}
-		context.RpcServer = n.rpcServer
-		n.router.ExecuteMethod(context)
-		if context.Data != nil {
-			return context.Data
-		}
-		if context.Message == nil {
-			return []byte{}
-		}
-		return context.Message.GetBytesResult()
-	})
+	n.rpcServer.CallbackResult(n.CallbackResult)
 	n.close = append(n.close, n.register.Close)
 	addr := n.register.RegisterInfo().Addr()
 	go n.rpcServer.ListenAddr(addr)
