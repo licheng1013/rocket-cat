@@ -5,7 +5,7 @@
 ## 介绍
 
 <p align="center">
-<img align="center" width="640" src="images/cat-6047457_640.png">
+<img align="center" width="150" src="images/cat-6047457_640.png">
 </p>
 
 - 2022/10/14
