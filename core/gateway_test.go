@@ -40,13 +40,14 @@ func TestGateway(t *testing.T) {
 	gateway := NewGateway()
 	gateway.SetSingle(false)
 
-	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: 12345,
-		ServiceName: common.GatewayName, RemoteName: common.ServicerName} // 测试时 RemoteName 传递一样的
+	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: 12344, //这里是rpc端口
+		ServiceName: common.GatewayName, RemoteName: common.ServicerName} //测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
 	nacos.RegisterClient(clientInfo)
 	nacos.Register(registers.RegisterInfo{Ip: "localhost", Port: 8848})
 
 	gateway.SetClient(&remote.GrpcClient{})
+	gateway.SetServer(&remote.GrpcServer{})
 	gateway.SetRegisterClient(nacos)
 	gateway.Start(connect.Addr, &connect.WebSocket{})
 }

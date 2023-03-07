@@ -27,7 +27,7 @@ func (s *GrpcServer) ListenAddr(addr string) {
 	}
 	v := grpc.NewServer()
 	protof.RegisterRpcServiceServer(v, s)
-	log.Println("监听Rpc地址:" + addr)
+	log.Println("服务端Rpc地址:" + addr)
 	if err := v.Serve(lis); err != nil {
 		log.Fatalf("监听失败: %v", err)
 	}

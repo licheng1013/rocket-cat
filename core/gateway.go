@@ -21,8 +21,10 @@ type Gateway struct {
 	single bool
 	// 编码器
 	decoder decoder.Decoder
-	// Remote Invoke Client
+	// Rpc 客户端
 	client remote.RpcClient
+	// Rpc 服务端
+	server *remote.GrpcServer
 	// Register Client
 	registerClient registers.Register
 }
@@ -71,6 +73,9 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 	} else {
 		common.AssertNil(g.client, "没有设置远程客户端!")
 		common.AssertNil(g.registerClient, "没有设置注册客户端!")
+		if g.server != nil { // Rpc 服务端
+			go g.server.ListenAddr(g.registerClient.RegisterInfo().Addr())
+		}
 	}
 	g.socket = socket
 	g.socket.ListenBack(g.ListenBack)
@@ -102,4 +107,14 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 		return []byte{}
 	}
 	return g.client.InvokeRemoteRpc(ip.Addr(), &protof.RpcInfo{Body: bytes, SocketId: uuid})
+}
+
+func (g *Gateway) SetServer(r *remote.GrpcServer) {
+	g.server = r
+	g.server.CallbackResult(g.CallbackResult)
+}
+
+// CallbackResult 给予远程端的回调方法
+func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
+	return []byte{}
 }
