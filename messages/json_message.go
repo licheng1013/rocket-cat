@@ -16,6 +16,15 @@ type JsonMessage struct {
 	Message   string `json:"message,omitempty"`
 	Headers   string `json:"headers,omitempty"`
 }
+func (j *JsonMessage) SetMerge(merge int64) {
+	j.Merge = merge
+}
+func (j *JsonMessage) SetCode(code int64) {
+	j.Code = code
+}
+func (j *JsonMessage) SetMessage(message string) {
+	j.Message = message
+}
 
 func (j *JsonMessage) Bind(v interface{}) (err error) {
 	if err = common.AssertPtr(v, "不是指针类型,无法绑定到结构体上"); err != nil {

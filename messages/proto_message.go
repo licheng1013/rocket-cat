@@ -12,6 +12,18 @@ type ProtoMessage struct {
 	protof.Message
 }
 
+func (p *ProtoMessage) SetMerge(merge int64) {
+	p.Merge = merge
+}
+
+func (p *ProtoMessage) SetCode(code int64) {
+	p.Code = code
+}
+
+func (p *ProtoMessage) SetMessage(message string) {
+	p.Message.Message = message
+}
+
 func (p *ProtoMessage) Bind(v interface{}) (err error) {
 	if err = common.AssertPtr(v, "不是指针类型,无法绑定到结构体上"); err != nil {
 		return

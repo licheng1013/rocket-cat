@@ -1,20 +1,20 @@
 package messages
 
 type Message interface {
-	GetMerge() int64
-	GetBody() []byte
-	GetHeartbeat() bool
-	GetCode() int64
-	GetMessage() string
-	// GetBytesResult 返回字节数据
-	GetBytesResult() []byte
-	// SetBody 设置消息 , 其内部适应了两种类型, []byte 和对应实现的类型
-	SetBody(data interface{}) Message
-	// GetHeaders 用于扩展其他参数
-	GetHeaders() string
-	// Bind 绑定到对象上
-	Bind(v interface{}) (err error)
+	GetMerge() int64                  //获取路由
+	GetBody() []byte                  //获取数据
+	GetHeartbeat() bool               //心跳
+	GetCode() int64                   //获取状态码
+	GetMessage() string               //消息
+	GetBytesResult() []byte           //转换为字节数据
+	SetBody(data interface{}) Message // 其内部适应了两种类型, []byte 和对应实现的类型
+	GetHeaders() string               //用于扩展其他参数
+	Bind(v interface{}) (err error)   //绑定到对象上
 }
 
-type MessageExt interface {
+// MessageExtend 此接口可选实现
+type MessageExtend interface { //消息扩充
+	SetMerge(merge int64)      //设置路由
+	SetCode(code int64)        //设置状态码
+	SetMessage(message string) //错误消息
 }
