@@ -1,4 +1,4 @@
-module github.com/licheng1013/io-game-go
+module github.com/licheng1013/rocket-cat
 
 require (
 	github.com/gorilla/websocket v1.5.0

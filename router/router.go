@@ -2,7 +2,7 @@ package router
 
 import (
 	"fmt"
-	"github.com/licheng1013/io-game-go/common"
+	"github.com/licheng1013/rocket-cat/common"
 	"log"
 )
 

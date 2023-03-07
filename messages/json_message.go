@@ -2,7 +2,7 @@ package messages
 
 import (
 	"encoding/json"
-	"github.com/licheng1013/io-game-go/common"
+	"github.com/licheng1013/rocket-cat/common"
 	"log"
 )
 
@@ -16,6 +16,7 @@ type JsonMessage struct {
 	Message   string `json:"message,omitempty"`
 	Headers   string `json:"headers,omitempty"`
 }
+
 func (j *JsonMessage) SetMerge(merge int64) {
 	j.Merge = merge
 }

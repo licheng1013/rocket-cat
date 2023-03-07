@@ -1,6 +1,6 @@
 package remote
 
-import "github.com/licheng1013/io-game-go/protof"
+import "github.com/licheng1013/rocket-cat/protof"
 
 // RpcClient 远程调用接口,你可以随意实现自己的远程调用！
 type RpcClient interface {

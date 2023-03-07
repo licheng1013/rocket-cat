@@ -1,13 +1,13 @@
 package core
 
 import (
-	"github.com/licheng1013/io-game-go/common"
-	"github.com/licheng1013/io-game-go/connect"
-	"github.com/licheng1013/io-game-go/decoder"
-	"github.com/licheng1013/io-game-go/protof"
-	"github.com/licheng1013/io-game-go/registers"
-	"github.com/licheng1013/io-game-go/remote"
-	router "github.com/licheng1013/io-game-go/router"
+	"github.com/licheng1013/rocket-cat/common"
+	"github.com/licheng1013/rocket-cat/connect"
+	"github.com/licheng1013/rocket-cat/decoder"
+	"github.com/licheng1013/rocket-cat/protof"
+	"github.com/licheng1013/rocket-cat/registers"
+	"github.com/licheng1013/rocket-cat/remote"
+	router "github.com/licheng1013/rocket-cat/router"
 	"log"
 )
 

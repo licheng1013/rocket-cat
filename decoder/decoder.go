@@ -1,6 +1,6 @@
 package decoder
 
-import "github.com/licheng1013/io-game-go/messages"
+import "github.com/licheng1013/rocket-cat/messages"
 
 // Decoder 对数据的解码器
 type Decoder interface {

@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/licheng1013/io-game-go/messages"
+	"github.com/licheng1013/rocket-cat/messages"
 	"log"
 	"testing"
 )

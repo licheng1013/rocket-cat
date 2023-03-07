@@ -2,8 +2,8 @@ package remote
 
 import (
 	"context"
-	"github.com/licheng1013/io-game-go/common"
-	"github.com/licheng1013/io-game-go/protof"
+	"github.com/licheng1013/rocket-cat/common"
+	"github.com/licheng1013/rocket-cat/protof"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"

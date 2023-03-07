@@ -1,4 +1,4 @@
-# IoGameGo
+# RocketCat
 
 ![Alt](https://repobeats.axiom.co/api/embed/6e9456520132509e9335fb6ee214abacae172845.svg "Repobeats analytics image")
 
@@ -10,7 +10,7 @@
 - **注意:此文档某些代码的Api已经变化了**
 
 ### 起步
-- 安装: go get github.com/licheng1013/io-game-go
+- 安装: go get github.com/licheng1013/rocket-cat
 
 ```go
 func main() {
@@ -267,11 +267,11 @@ package core
 
 import (
 	"fmt"
-	"github.com/licheng1013/io-game-go/common"
-	"github.com/licheng1013/io-game-go/decoder"
-	"github.com/licheng1013/io-game-go/registers"
-	"github.com/licheng1013/io-game-go/remote"
-	"github.com/licheng1013/io-game-go/router"
+	"github.com/licheng1013/rocket-cat/common"
+	"github.com/licheng1013/rocket-cat/decoder"
+	"github.com/licheng1013/rocket-cat/registers"
+	"github.com/licheng1013/rocket-cat/remote"
+	"github.com/licheng1013/rocket-cat/router"
 	"log"
 	"sync"
 	"testing"
