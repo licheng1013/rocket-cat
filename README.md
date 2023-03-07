@@ -4,6 +4,10 @@
 
 ## 介绍
 
+<p align="center">
+<img align="center" width="150px" src="images/cat-6047457.png">
+</p>
+
 - 2022/10/14
 - 目前还是一个实验性项目
 - 还需要很多要完成的东西
@@ -341,18 +345,4 @@ func ManyService(port uint16) {
 - 内部是如何实现？查看 remote.GrpcServer 结构体具体方法代码
 - 因为我们有注册中心，所以可以直接获取主键中心的所有逻辑服。此处只做了一个简单的示例!
 
-```go
-func (s *GrpcServer) CountRoom() {
-jsonDecoder := decoder.JsonDecoder{}
-msg := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
-var list []string
-client := GrpcClient{}
-ip := s.register.ListIp()
-for _, info := range ip {
-bytes := client.InvokeRemoteRpc(info.Ip+":"+fmt.Sprint(info.Port), msg.GetBytesResult())
-result := jsonDecoder.DecoderBytes(bytes)
-list = append(list, string(result.GetBody()))
-}
-log.Println(list)
-}
-```
+
