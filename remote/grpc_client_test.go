@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"github.com/licheng1013/io-game-go/protof"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,8 +14,8 @@ const addr = "192.168.101.10:10001"
 // 测试请求 http -> grpc
 func TestGrpcClient(t *testing.T) {
 	server := GrpcServer{}
-	server.CallbackResult(func(bytes []byte) []byte {
-		log.Println("收到数据: ", string(bytes))
+	server.CallbackResult(func(in *protof.RpcInfo) []byte {
+		log.Println("收到数据: ", string(in.Body))
 		return []byte("Hi")
 	})
 	go server.ListenAddr(addr)
@@ -34,7 +35,7 @@ var grpcClient = GrpcClient{}
 func GrpcClientTest() {
 	// 将请求处理器注册到根路径上
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		rpc := grpcClient.InvokeRemoteRpc(addr, []byte("HelloWorld"))
+		rpc := grpcClient.InvokeRemoteRpc(addr, protof.RpcBodyBuild([]byte("HelloWorld")))
 		_, _ = writer.Write(rpc)
 	})
 	// 启动一个 HTTP 服务器，监听 8080 端口
