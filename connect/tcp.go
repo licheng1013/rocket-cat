@@ -3,7 +3,6 @@ package connect
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"github.com/licheng1013/rocket-cat/common"
 	"log"
 	"net"
@@ -43,7 +42,7 @@ func (socket *TcpSocket) ListenAddr(addr string) {
 			continue
 		}
 		// 打印客户端的地址
-		fmt.Println("client connected from:", conn.RemoteAddr())
+		//fmt.Println("client connected from:", conn.RemoteAddr())
 		// 创建一个goroutine，调用处理连接的函数，传入连接对象作为参数
 		go socket.handleConn(conn)
 	}

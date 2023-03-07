@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"testing"
+	"time"
 )
 
 func TestMyProtocol(t *testing.T) {
@@ -24,6 +25,7 @@ func TestTcpServer(t *testing.T) {
 		})
 		socket.ListenAddr(Addr)
 	}()
+	time.Sleep(time.Second / 2)
 	go Client(channel)
 	select {
 	case ok := <-channel:
@@ -37,26 +39,28 @@ func Client(channel chan int) {
 	if err != nil {
 		panic(err)
 	}
-	defer conn.Close()
 	go func() {
+		data := HelloMsg
+		for i := 0; i < 8; i++ {
+			data += data
+		}
+
 		for {
 			m := &MyProtocol{}
-			_, err := conn.Write(Encode(m.SetData([]byte(HelloMsg)))) // 发送数据
+			_, err := conn.Write(Encode(m.SetData([]byte(data)))) // 发送数据
 			if err != nil {
-				fmt.Println("写入错误:", err)
-				break
+				panic(err)
 			}
 		}
 	}()
 	for {
 		buf := make([]byte, 4096)
-		n, err := conn.Read(buf[:]) // 接收数据
+		n, err := conn.Read(buf) // 接收数据
 		if err != nil {
-			fmt.Println("读取错误:", err)
-			break
+			panic(err)
 		}
 		decode := Decode(buf[:n])
-		fmt.Printf("获取数据: %s\n", string(decode.Data))
+		fmt.Println("获取数据: " + string(decode.Data))
 		channel <- 0
 	}
 }
