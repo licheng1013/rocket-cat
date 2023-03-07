@@ -1,7 +1,7 @@
 package decoder
 
 import (
-	"github.com/licheng1013/io-game-go/message"
+	"github.com/licheng1013/io-game-go/messages"
 	"github.com/licheng1013/io-game-go/protof"
 	"google.golang.org/protobuf/proto"
 	"testing"
@@ -16,7 +16,7 @@ func TestProtoDecoder(t *testing.T) {
 	u := &protof.RpcInfo{Body: []byte("小明")}
 	marshal, _ := proto.Marshal(u)
 	// 问题
-	protoMessage := message.ProtoMessage{}
+	protoMessage := messages.ProtoMessage{}
 	protoMessage.SetBody(marshal)
 	// 优化
 	decoder := ProtoDecoder{}

@@ -3,7 +3,7 @@ package core
 import (
 	"github.com/licheng1013/io-game-go/common"
 	"github.com/licheng1013/io-game-go/decoder"
-	"github.com/licheng1013/io-game-go/message"
+	"github.com/licheng1013/io-game-go/messages"
 	"github.com/licheng1013/io-game-go/protof"
 	"github.com/licheng1013/io-game-go/registers"
 	"github.com/licheng1013/io-game-go/remote"
@@ -17,6 +17,20 @@ func TestService(t *testing.T) {
 	ports := []uint16{12000, 12001}
 	//go ManyService(ports[0])
 	ManyService(ports[1])
+}
+
+type MyProxy struct {
+	proxy router.Proxy
+}
+
+func (m *MyProxy) InvokeFunc(ctx *router.Context) {
+	log.Println("代理之前")
+	m.proxy.InvokeFunc(ctx)
+	log.Println("代理之后")
+}
+
+func (m *MyProxy) SetProxy(proxy router.Proxy) {
+	m.proxy = proxy
 }
 
 // 此处测试需要配合注册中心一起测试
@@ -35,11 +49,14 @@ func ManyService(port uint16) {
 	service.SetRegister(nacos)
 	// 编码器
 	service.SetDecoder(decoder.JsonDecoder{})
+
+	service.Router().AddProxy(&MyProxy{}) // 自定义注入器
+
 	service.Router().AddAction(common.CmdKit.GetMerge(1, 2), func(ctx *router.Context) {
 		ctx.Data = []byte("1")
 	})
 	service.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
-		jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
+		jsonMessage := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
 		if ip, err := nacos.GetIp(); err == nil {
 			bytes := rpcClient.InvokeRemoteRpc(ip.Addr(), protof.RpcBodyBuild(jsonMessage.GetBytesResult()))
 			log.Println("调用逻辑服其他方法结果:", string(bytes))
@@ -53,7 +70,7 @@ func ManyService(port uint16) {
 	})
 	go service.Start()
 	time.Sleep(5 * time.Second)
-	jsonMessage := message.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1)}
+	jsonMessage := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1)}
 	rpcClient.InvokeRemoteRpc(clientInfo.Addr(), protof.RpcBodyBuild(jsonMessage.GetBytesResult()))
 	nacos.Close()
 }

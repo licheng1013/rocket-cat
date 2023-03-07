@@ -1,7 +1,7 @@
 package decoder
 
 import (
-	"github.com/licheng1013/io-game-go/message"
+	"github.com/licheng1013/io-game-go/messages"
 )
 
 type JsonDecoder struct {
@@ -13,10 +13,10 @@ func (d JsonDecoder) EncodeBytes(result interface{}) []byte {
 }
 
 // DecoderBytes 处理客户端返回的数据
-func (d JsonDecoder) DecoderBytes(bytes []byte) message.Message {
-	json := message.JsonMessage{}
+func (d JsonDecoder) DecoderBytes(bytes []byte) messages.Message {
+	json := messages.JsonMessage{}
 	// 这里转换成了map
-	err := message.MsgKit.BytesToStruct(bytes, &json)
+	err := messages.MsgKit.BytesToStruct(bytes, &json)
 	if err != nil {
 		panic(err)
 	}
@@ -24,7 +24,7 @@ func (d JsonDecoder) DecoderBytes(bytes []byte) message.Message {
 }
 
 // JsonDecoderBytes 工具方法
-func JsonDecoderBytes(bytes []byte) message.Message {
+func JsonDecoderBytes(bytes []byte) messages.Message {
 	j := &JsonDecoder{}
 	return j.DecoderBytes(bytes)
 }

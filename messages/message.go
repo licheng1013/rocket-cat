@@ -1,4 +1,4 @@
-package message
+package messages
 
 type Message interface {
 	GetMerge() int64
@@ -14,4 +14,7 @@ type Message interface {
 	GetHeaders() string
 	// Bind 绑定到对象上
 	Bind(v interface{}) (err error)
+}
+
+type MessageExt interface {
 }

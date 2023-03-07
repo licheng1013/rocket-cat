@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/licheng1013/io-game-go/message"
+	"github.com/licheng1013/io-game-go/messages"
 	"log"
 	"testing"
 )
@@ -11,7 +11,7 @@ func TestProxy(t *testing.T) {
 	a := A{}
 	c := ProxyFunc{proxy: &a}
 	d := B{proxy: &c}
-	d.InvokeFunc(&Context{Message: &message.JsonMessage{}})
+	d.InvokeFunc(&Context{Message: &messages.JsonMessage{}})
 }
 
 type A struct {

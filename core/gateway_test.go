@@ -6,7 +6,7 @@ import (
 	"github.com/licheng1013/io-game-go/common"
 	"github.com/licheng1013/io-game-go/connect"
 	"github.com/licheng1013/io-game-go/decoder"
-	"github.com/licheng1013/io-game-go/message"
+	"github.com/licheng1013/io-game-go/messages"
 	"github.com/licheng1013/io-game-go/registers"
 	"github.com/licheng1013/io-game-go/remote"
 	"github.com/licheng1013/io-game-go/router"
@@ -100,7 +100,7 @@ func WsTest() {
 		}
 	}()
 	for {
-		jsonMessage := message.JsonMessage{Body: []byte("HelloWorld")}
+		jsonMessage := messages.JsonMessage{Body: []byte("HelloWorld")}
 		jsonMessage.Merge = common.CmdKit.GetMerge(1, 1)
 		err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
 		if err != nil {
