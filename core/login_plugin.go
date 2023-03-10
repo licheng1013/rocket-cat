@@ -9,14 +9,14 @@ type LoginPlugin struct {
 }
 
 // Login 登入
-func (g *LoginPlugin) Login(userId int64, sockdId uint32) {
-	g.userMap.Store(userId, sockdId)
-	g.socketIdMap.Store(sockdId, userId)
+func (g *LoginPlugin) Login(userId int64, socketId uint32) {
+	g.userMap.Store(userId, socketId)
+	g.socketIdMap.Store(socketId, userId)
 }
 
 // LogoutBySocketId 根据socketId退出
-func (g *LoginPlugin) LogoutBySocketId(sockdId ...uint32) {
-	for _, id := range sockdId {
+func (g *LoginPlugin) LogoutBySocketId(socketId ...uint32) {
+	for _, id := range socketId {
 		value, ok := g.socketIdMap.Load(id)
 		if ok {
 			g.userMap.Delete(value)

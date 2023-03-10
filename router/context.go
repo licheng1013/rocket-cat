@@ -9,6 +9,7 @@ import (
 	"log"
 	"reflect"
 	"runtime"
+	"sync"
 )
 
 type Context struct {
@@ -24,6 +25,19 @@ type Context struct {
 
 var yellow = color.New(color.FgYellow).SprintFunc()
 var blue = color.New(color.FgBlue).SprintFunc()
+
+var logger *log.Logger
+var lock sync.Mutex
+
+// FileLogger 写入文件日志 -> 记录一些可能不重要的日志，例如客户端主动断开的错误。
+func FileLogger() *log.Logger {
+	if logger == nil {
+		lock.Lock()
+		logger = log.Default()
+		lock.Unlock()
+	}
+	return logger
+}
 
 type routerInfo struct {
 	merge string
@@ -56,5 +70,5 @@ func LogFunc(merge int64, f func(ctx *Context)) {
 }
 
 func LogPrint(format string, values ...any) {
-	log.Printf("[ROCKET CAT] "+format, values...)
+	FileLogger().Printf("[ROCKET CAT] "+format, values...)
 }

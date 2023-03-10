@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/decoder"
 	"github.com/licheng1013/rocket-cat/protof"
@@ -8,6 +9,7 @@ import (
 	"github.com/licheng1013/rocket-cat/remote"
 	"github.com/licheng1013/rocket-cat/router"
 	"log"
+	"time"
 )
 
 // Service 新手请不需要之间使用而是 NewService 进行获取对象
@@ -16,12 +18,43 @@ type Service struct {
 	router router.Router
 	// rpc 监听
 	rpcServer remote.RpcServer
+	// rpc 客户端
+	rpcClient remote.RpcClient
 	// 关机钩子
 	close []func()
 	// 编码器
 	decoder decoder.Decoder
 	// 注册中心
 	register registers.Register
+	// 线程池,用于请求多逻辑服事使用
+	Pool *common.Pool
+}
+
+// SendMessage 广播消息路由
+func (n *Service) SendMessage(bytes []byte) (result [][]byte, err error) {
+	ips, err := n.register.ListIp()
+	if err != nil {
+		return nil, err
+	}
+	channel := make(chan []byte)
+	for _, item := range ips {
+		if invokeErr := n.Pool.AddTaskNonBlocking(func() {
+			channel <- n.rpcClient.InvokeRemoteRpc(item.Addr(), protof.RpcBodyBuild(bytes))
+		}); invokeErr != nil {
+			channel <- []byte{}
+		}
+	}
+	for i := 0; i < len(ips); i++ {
+		select {
+		case b := <-channel:
+			if len(b) != 0 {
+				result = append(result, b)
+			}
+		case <-time.After(2 * time.Second):
+			err = errors.New("有逻辑服连接超时")
+		}
+	}
+	return
 }
 
 func (n *Service) Router() router.Router {
@@ -68,6 +101,10 @@ func (n *Service) Start() {
 	common.AssertNil(n.router, "路由没有设置.")
 	common.AssertNil(n.decoder, "编码器没有设置.")
 	common.AssertNil(n.register, "注册中心没有设置.")
+	if n.Pool == nil {
+		n.Pool = common.NewPool(20, 10)
+	}
+	n.Pool.Start() //开启线程池
 	n.rpcServer.CallbackResult(n.CallbackResult)
 	n.close = append(n.close, n.register.Close)
 	addr := n.register.RegisterInfo().Addr()
@@ -80,4 +117,8 @@ func (n *Service) Start() {
 
 func (n *Service) SetRegister(register registers.Register) {
 	n.register = register
+}
+
+func (n *Service) SetRpcClient(r *remote.GrpcClient) {
+	n.rpcClient = r
 }

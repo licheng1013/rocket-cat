@@ -35,7 +35,6 @@ func (m *MyProxy) SetProxy(proxy router.Proxy) {
 
 // 此处测试需要配合注册中心一起测试
 func ManyService(port uint16) {
-	rpcClient := &remote.GrpcClient{}
 	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: port,
 		ServiceName: common.ServicerName, RemoteName: common.ServicerName} // 测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
@@ -49,6 +48,7 @@ func ManyService(port uint16) {
 	service.SetRegister(nacos)
 	// 编码器
 	service.SetDecoder(decoder.JsonDecoder{})
+	service.SetRpcClient(&remote.GrpcClient{})
 
 	service.Router().AddProxy(&MyProxy{}) // 自定义注入器
 
@@ -57,11 +57,13 @@ func ManyService(port uint16) {
 	})
 	service.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
 		jsonMessage := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
-		if ip, err := nacos.GetIp(); err == nil {
-			bytes := rpcClient.InvokeRemoteRpc(ip.Addr(), protof.RpcBodyBuild(jsonMessage.GetBytesResult()))
-			log.Println("调用逻辑服其他方法结果:", string(bytes))
-		} else {
-			log.Println("错误信息:" + err.Error())
+		message, err := service.SendMessage(jsonMessage.GetBytesResult())
+		if err != nil {
+			log.Println("错误:", err.Error())
+			return
+		}
+		for _, item := range message {
+			log.Println(string(item))
 		}
 	})
 	// 关机钩子
@@ -71,6 +73,7 @@ func ManyService(port uint16) {
 	go service.Start()
 	time.Sleep(5 * time.Second)
 	jsonMessage := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1)}
+	rpcClient := &remote.GrpcClient{}
 	rpcClient.InvokeRemoteRpc(clientInfo.Addr(), protof.RpcBodyBuild(jsonMessage.GetBytesResult()))
 	nacos.Close()
 }
