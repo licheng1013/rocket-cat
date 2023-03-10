@@ -68,8 +68,8 @@ func (n *Nacos) GetIp() (RegisterInfo, error) {
 }
 
 // ListIp 获取ip
-func (n *Nacos) ListIp() ([]RegisterInfo, error) {
-	instances := n.SelectList(n.registerClientInfo.RemoteName)
+func (n *Nacos) ListIp(serverName string) ([]RegisterInfo, error) {
+	instances := n.SelectList(serverName)
 	infos := make([]RegisterInfo, 0)
 	if len(instances) == 0 {
 		return infos, errors.New("获取实例为空")

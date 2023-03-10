@@ -32,7 +32,21 @@ type Service struct {
 
 // SendMessage 广播消息路由
 func (n *Service) SendMessage(bytes []byte) (result [][]byte, err error) {
-	ips, err := n.register.ListIp()
+	return n.sendMessageByServiceName(n.register.RegisterInfo().RemoteName, bytes)
+}
+
+// SendServiceMessage 广播消息路由
+func (n *Service) SendServiceMessage(bytes []byte) (result [][]byte, err error) {
+	return n.sendMessageByServiceName(n.register.RegisterInfo().ServiceName, bytes)
+}
+
+// sendMessageByServiceName  广播消息路由
+func (n *Service) sendMessageByServiceName(serviceName string, bytes []byte) (result [][]byte, err error) {
+	ips, err := n.register.ListIp(serviceName)
+	if len(ips) == 0 {
+		log.Println("注册中心暂无可用的服务!")
+		return [][]byte{}, nil
+	}
 	if err != nil {
 		return nil, err
 	}

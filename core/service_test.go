@@ -36,7 +36,7 @@ func (m *MyProxy) SetProxy(proxy router.Proxy) {
 // 此处测试需要配合注册中心一起测试
 func ManyService(port uint16) {
 	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: port,
-		ServiceName: common.ServicerName, RemoteName: common.ServicerName} // 测试时 RemoteName 传递一样的
+		ServiceName: common.ServicerName, RemoteName: common.GatewayName} // 测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
 	nacos.RegisterClient(clientInfo)
 	nacos.Register(registers.RegisterInfo{Ip: "localhost", Port: 8848})
@@ -57,7 +57,7 @@ func ManyService(port uint16) {
 	})
 	service.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
 		jsonMessage := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
-		message, err := service.SendMessage(jsonMessage.GetBytesResult())
+		message, err := service.SendServiceMessage(jsonMessage.GetBytesResult())
 		if err != nil {
 			log.Println("错误:", err.Error())
 			return

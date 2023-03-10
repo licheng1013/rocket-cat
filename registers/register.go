@@ -11,7 +11,7 @@ type Register interface {
 	// GetIp 获取1个ip
 	GetIp() (RegisterInfo, error)
 	// ListIp 获取所有ip
-	ListIp() ([]RegisterInfo, error)
+	ListIp(serverName string) ([]RegisterInfo, error)
 	// Close 用于关机等操作
 	Close()
 	// RegisterInfo 注册信息
