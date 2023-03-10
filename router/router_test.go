@@ -10,6 +10,7 @@ import (
 func TestRouter(t *testing.T) {
 	msg := "HelloWorld"
 	router := DefaultRouter{}
+	router.DebugLog = true
 	router.AddProxy(&B{})
 	merge := common.CmdKit.GetMerge(1, 2)
 	router.AddAction(merge, func(ctx *Context) {
