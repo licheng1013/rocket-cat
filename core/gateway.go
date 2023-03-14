@@ -74,6 +74,10 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 		common.AssertNil(g.client, "没有设置远程客户端!")
 		common.AssertNil(g.registerClient, "没有设置注册客户端!")
 		if g.server != nil { // Rpc 服务端
+			g.server.CallbackResult(func(in *protof.RpcInfo) []byte {
+				// TODO 这是从 -> 逻辑服发送过来的消息
+				return nil
+			})
 			go g.server.ListenAddr(g.registerClient.RegisterInfo().Addr())
 		}
 	}

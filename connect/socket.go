@@ -14,8 +14,8 @@ type Socket interface {
 }
 
 //type Broadcast interface {
-//	// SendMessage 发送所有消息
-//	SendMessage(bytes []byte)
+//	// SendGatewayMessage 发送所有消息
+//	SendGatewayMessage(bytes []byte)
 //}
 //
 //type SelectBroadcast interface {
@@ -100,6 +100,6 @@ func (socket *MySocket) init() {
 	socket.Pool.Start()
 }
 
-//func (s *MySocket) SendMessage(bytes []byte) {
+//func (s *MySocket) SendGatewayMessage(bytes []byte) {
 //	panic("字类没有重新实现广播!")
 //}

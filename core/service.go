@@ -30,12 +30,12 @@ type Service struct {
 	Pool *common.Pool
 }
 
-// SendMessage 广播消息路由
-func (n *Service) SendMessage(bytes []byte) (result [][]byte, err error) {
+// SendGatewayMessage 广播消息路由 -> 所有网关服
+func (n *Service) SendGatewayMessage(bytes []byte) (result [][]byte, err error) {
 	return n.sendMessageByServiceName(n.register.RegisterInfo().RemoteName, bytes)
 }
 
-// SendServiceMessage 广播消息路由
+// SendServiceMessage 广播消息路由 -> 所有逻辑服
 func (n *Service) SendServiceMessage(bytes []byte) (result [][]byte, err error) {
 	return n.sendMessageByServiceName(n.register.RegisterInfo().ServiceName, bytes)
 }
