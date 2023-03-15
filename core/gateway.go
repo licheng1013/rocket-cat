@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/connect"
 	"github.com/licheng1013/rocket-cat/decoder"
@@ -27,6 +28,19 @@ type Gateway struct {
 	server *remote.GrpcServer
 	// Register Client
 	registerClient registers.Register
+	// 插件
+	pluginMap map[int32]remote.CallRpcInfo
+}
+
+// AddPlugin 添加插件
+func (g *Gateway) AddPlugin(r remote.CallRpcInfo) {
+	if g.pluginMap == nil {
+		g.pluginMap = make(map[int32]remote.CallRpcInfo)
+	}
+	if g.pluginMap[r.GetId()] != nil {
+		panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id已经存在不能重复添加!")
+	}
+	g.pluginMap[r.GetId()] = r
 }
 
 func (g *Gateway) SetClient(client remote.RpcClient) {
@@ -120,5 +134,14 @@ func (g *Gateway) SetServer(r *remote.GrpcServer) {
 
 // CallbackResult 给予远程端的回调方法
 func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
-	return []byte{}
+	body := &remote.CallBody{}
+	err := body.ToUnmarshal(in.Body)
+	if err != nil {
+		log.Println("json转换失败->请检查或者报告问题!")
+	}
+	if g.pluginMap == nil || g.pluginMap[body.Id] == nil {
+		return []byte{}
+	}
+	// -> 返回给逻辑服!
+	return g.pluginMap[body.Id].CallbackResult(in.GetBody())
 }

@@ -8,6 +8,14 @@ type LoginPlugin struct {
 	socketIdMap sync.Map
 }
 
+func (g *LoginPlugin) CallbackResult(bytes []byte) []byte {
+	return []byte{}
+}
+
+func (g *LoginPlugin) GetId() int32 {
+	return 1
+}
+
 // Login 登入
 func (g *LoginPlugin) Login(userId int64, socketId uint32) {
 	g.userMap.Store(userId, socketId)
