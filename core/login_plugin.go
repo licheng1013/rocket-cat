@@ -58,9 +58,9 @@ func (g *LoginPlugin) CallbackResult(bytes []byte) []byte {
 	}
 	switch l.LoginAction {
 	case Login:
-        if len(l.UserId) == 1 && len(l.SocketId) == 1 {
-        	g.Login(l.UserId[0],l.SocketId[0])
-        }else{
+		if len(l.UserId) == 1 && len(l.SocketId) == 1 {
+			g.Login(l.UserId[0], l.SocketId[0])
+		} else {
 			log.Println("LoginPlugin -> UserId或SocketId为空")
 		}
 		break
@@ -71,17 +71,17 @@ func (g *LoginPlugin) CallbackResult(bytes []byte) []byte {
 		g.LogoutByUserId(l.UserId...)
 		break
 	case ListSocketId:
-		l.SocketId =  g.ListSocketId()
+		l.SocketId = g.ListSocketId()
 		break
 	case ListUserId:
 		l.UserId = g.ListUserId()
 		break
 	}
-    marshal, err := l.ToMarshal()
-    if err != nil {
+	marshal, err := l.ToMarshal()
+	if err != nil {
 		log.Panicln("LoginBody -> 解析失败请检查或报告")
 		return []byte{}
-    }
+	}
 	return marshal
 }
 
