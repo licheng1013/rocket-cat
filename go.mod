@@ -1,6 +1,8 @@
 module github.com/licheng1013/rocket-cat
 
 require (
+	github.com/fatih/color v1.14.1
+	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/nacos-group/nacos-sdk-go/v2 v2.1.2
 	github.com/xtaci/kcp-go/v5 v5.6.1
@@ -36,8 +38,6 @@ require (
 )
 
 require (
-	github.com/fatih/color v1.14.1 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.14 // indirect
 	github.com/klauspost/reedsolomon v1.10.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect

@@ -43,6 +43,15 @@ func (g *Gateway) AddPlugin(r remote.CallRpcInfo) {
 	g.pluginMap[r.GetId()] = r
 }
 
+func (g *Gateway) UsePlugin(r remote.CallRpcInfo,f func(r remote.CallRpcInfo))  {
+	r = g.pluginMap[r.GetId()]
+    if r == nil {
+		log.Println("Plugin: "+fmt.Sprint(r.GetId())+" -> Id 不存在!")
+		return
+    }
+	f(r)
+}
+
 func (g *Gateway) SetClient(client remote.RpcClient) {
 	g.client = client
 }
@@ -78,6 +87,15 @@ func NewGateway() *Gateway {
 	g.router = &router.DefaultRouter{}
 	return g
 }
+
+func DefaultGateway() *Gateway {
+	g := &Gateway{}
+	g.SetSingle(true)
+	g.router = &router.DefaultRouter{}
+	g.AddPlugin(&LoginPlugin{})
+	return g
+}
+
 
 func (g *Gateway) Start(addr string, socket connect.Socket) {
 	log.SetFlags(log.LstdFlags + log.Lshortfile)

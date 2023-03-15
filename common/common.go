@@ -1,12 +1,12 @@
 package common
 
 import (
-	"errors"
-	"log"
-	"os"
-	"os/signal"
-	"reflect"
-	"syscall"
+    "errors"
+    "log"
+    "os"
+    "os/signal"
+    "reflect"
+    "syscall"
 )
 
 // 断言工具
@@ -31,6 +31,8 @@ func AssertNil(v interface{}, errorInfo string) {
 		panic(errorInfo)
 	}
 }
+
+
 
 const (
 	GatewayName  = "gateway-game"
