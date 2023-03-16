@@ -21,6 +21,8 @@ type Context struct {
 	Data []byte
 	// 链接Id -> 连接建立时的唯一id
 	SocketId uint32
+	// 网关服的RpcIp,单机模式此处为空。将会传递到逻辑服当中
+	RpcIp string
 }
 
 var yellow = color.New(color.FgYellow).SprintFunc()

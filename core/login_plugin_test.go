@@ -1,12 +1,13 @@
 package core
 
 import (
+	"fmt"
 	"testing"
 )
 
 func TestLoginBody(t *testing.T) {
 	t.Log("HelloWorld")
-	l := &LoginBody{LoginAction: LogoutByUserId, UserId: []int64{1, 22}, SocketId: []uint32{3, 4}}
+	l := &LoginBody{LoginAction: LogoutByUserId, UserIds: []int64{1, 22}, SocketIds: []uint32{3, 4}}
 	data, _ := l.ToMarshal()
 
 	l2 := &LoginBody{}
@@ -15,5 +16,8 @@ func TestLoginBody(t *testing.T) {
 }
 
 func TestMap(t *testing.T) {
-
+	login := &LoginPlugin{}
+	login.Login(2, 1)
+	fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
+	fmt.Printf("login.ListSocketId(): %v\n", login.ListSocketId())
 }

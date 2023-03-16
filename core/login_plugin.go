@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"github.com/licheng1013/rocket-cat/router"
 	"log"
 	"sync"
 )
@@ -14,6 +15,7 @@ const (
 	LogoutByUserId
 	ListSocketId
 	ListUserId
+	IsLogin
 )
 
 type LoginPlugin struct {
@@ -28,13 +30,17 @@ type LoginInterface interface {
 	LogoutByUserId(userId ...int64)
 	ListSocketId() (socketIds []uint32)
 	ListUserId() (userIds []int64)
+	IsLogin(userId int64) (ok bool)
 }
 
 // LoginBody 登入数据
 type LoginBody struct {
 	LoginAction LoginAction
-	UserId      []int64
-	SocketId    []uint32
+	UserIds     []int64
+	SocketIds   []uint32
+	UserId      int64
+	SocketId    uint32
+	IsLogin     bool
 }
 
 // ToMarshal 转换为字节
@@ -49,7 +55,7 @@ func (b *LoginBody) ToUnmarshal(data []byte) (err error) {
 	return
 }
 
-func (g *LoginPlugin) CallbackResult(bytes []byte) []byte {
+func (g *LoginPlugin) InvokeResult(bytes []byte) []byte {
 	l := &LoginBody{}
 	err := l.ToUnmarshal(bytes)
 	if err != nil {
@@ -58,23 +64,30 @@ func (g *LoginPlugin) CallbackResult(bytes []byte) []byte {
 	}
 	switch l.LoginAction {
 	case Login:
-		if len(l.UserId) == 1 && len(l.SocketId) == 1 {
-			g.Login(l.UserId[0], l.SocketId[0])
+		if l.UserId != 0 && l.SocketId != 0 {
+			g.Login(l.UserId, l.SocketId)
 		} else {
 			log.Println("LoginPlugin -> UserId或SocketId为空")
 		}
 		break
 	case LogoutBySocketId:
-		g.LogoutBySocketId(l.SocketId...)
+		g.LogoutBySocketId(l.SocketIds...)
 		break
 	case LogoutByUserId:
-		g.LogoutByUserId(l.UserId...)
+		g.LogoutByUserId(l.UserIds...)
 		break
 	case ListSocketId:
-		l.SocketId = g.ListSocketId()
+		l.SocketIds = g.ListSocketId()
 		break
 	case ListUserId:
-		l.UserId = g.ListUserId()
+		l.UserIds = g.ListUserId()
+		break
+	case IsLogin:
+		if l.UserId != 0 {
+			l.IsLogin = g.IsLogin(l.UserId)
+		} else {
+			log.Println("LoginPlugin -> UserId为空")
+		}
 		break
 	}
 	marshal, err := l.ToMarshal()
@@ -85,8 +98,10 @@ func (g *LoginPlugin) CallbackResult(bytes []byte) []byte {
 	return marshal
 }
 
+const pluginId = 1
+
 func (g *LoginPlugin) GetId() int32 {
-	return 1
+	return pluginId
 }
 
 // Login 登入
@@ -133,4 +148,62 @@ func (g *LoginPlugin) ListUserId() (userIds []int64) {
 		return true
 	})
 	return
+}
+
+// IsLogin 是否登入了
+func (g *LoginPlugin) IsLogin(userId int64) (ok bool) {
+	_, ok = g.userMap.Load(userId)
+	return
+}
+
+type LoginPluginService struct {
+	service *Service
+	ctx     *router.Context
+}
+
+func (l *LoginPluginService) SetContext(ctx *router.Context) {
+	l.ctx = ctx
+}
+
+func (l *LoginPluginService) InvokeResult(bytes []byte) []byte {
+	data, _ := l.service.SendGatewayMessage(bytes)
+	return data[0]
+}
+
+func (l *LoginPluginService) GetId() int32 {
+	return pluginId
+}
+
+func (l *LoginPluginService) SetService(service *Service) {
+	l.service = service
+}
+
+func (l *LoginPluginService) Login(userId int64, socketId uint32) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (l *LoginPluginService) LogoutBySocketId(socketId ...uint32) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (l *LoginPluginService) LogoutByUserId(userId ...int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (l *LoginPluginService) ListSocketId() (socketIds []uint32) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (l *LoginPluginService) ListUserId() (userIds []int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (l *LoginPluginService) IsLogin(userId int64) (ok bool) {
+	//TODO implement me
+	panic("implement me")
 }

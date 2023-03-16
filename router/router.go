@@ -69,7 +69,11 @@ func (r *DefaultRouter) ExecuteMethod(msg *Context) {
 	//	proxy.SetProxy(v)         //设置代理对象
 	//	v = proxy                 //把当前对象设置下个代理
 	//}
-	r.middlewares.InvokeFunc(msg)
+	if r.middlewares == nil {
+		r.InvokeFunc(msg)
+	} else {
+		r.middlewares.InvokeFunc(msg)
+	}
 }
 
 // AddProxy 添加代理器，最先添加的最最后执行。 异常中间件应该在最后添加机，用于捕获所有异常  ProxyFunc

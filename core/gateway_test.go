@@ -1,6 +1,14 @@
 package core
 
 import (
+	"fmt"
+	"log"
+	"net/url"
+	"os"
+	"os/signal"
+	"testing"
+	"time"
+
 	"github.com/gorilla/websocket"
 	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/connect"
@@ -9,20 +17,22 @@ import (
 	"github.com/licheng1013/rocket-cat/registers"
 	"github.com/licheng1013/rocket-cat/remote"
 	"github.com/licheng1013/rocket-cat/router"
-	"log"
-	"net/url"
-	"os"
-	"os/signal"
-	"testing"
-	"time"
 )
 
 func TestSingleGateway(t *testing.T) {
 	socket := &connect.WebSocket{}
 	channel := make(chan int)
-	gateway := NewGateway()
+	gateway := DefaultGateway()
 	gateway.SetDecoder(decoder.JsonDecoder{})
 	gateway.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
+		gateway.UsePlugin(&LoginPlugin{}, func(r remote.Plugin) {
+			login := r.(LoginInterface)
+			userId := 12345
+			if !login.IsLogin(int64(userId)) {
+				login.Login(12345, ctx.SocketId)
+				fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
+			}
+		})
 		socket.SendMessage(ctx.Message.SetBody([]byte("Hi")).GetBytesResult())
 		ctx.Message.SetBody([]byte("Hi Ok 2"))
 	})

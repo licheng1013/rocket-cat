@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/connect"
 	"github.com/licheng1013/rocket-cat/decoder"
@@ -9,7 +11,6 @@ import (
 	"github.com/licheng1013/rocket-cat/registers"
 	"github.com/licheng1013/rocket-cat/remote"
 	router "github.com/licheng1013/rocket-cat/router"
-	"log"
 )
 
 // Gateway 请使用 NewGateway 创建
@@ -29,13 +30,13 @@ type Gateway struct {
 	// Register Client
 	registerClient registers.Register
 	// 插件
-	pluginMap map[int32]remote.CallRpcInfo
+	pluginMap map[int32]remote.Plugin
 }
 
 // AddPlugin 添加插件
-func (g *Gateway) AddPlugin(r remote.CallRpcInfo) {
+func (g *Gateway) AddPlugin(r remote.Plugin) {
 	if g.pluginMap == nil {
-		g.pluginMap = make(map[int32]remote.CallRpcInfo)
+		g.pluginMap = make(map[int32]remote.Plugin)
 	}
 	if g.pluginMap[r.GetId()] != nil {
 		panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id已经存在不能重复添加!")
@@ -43,12 +44,12 @@ func (g *Gateway) AddPlugin(r remote.CallRpcInfo) {
 	g.pluginMap[r.GetId()] = r
 }
 
-func (g *Gateway) UsePlugin(r remote.CallRpcInfo,f func(r remote.CallRpcInfo))  {
+func (g *Gateway) UsePlugin(r remote.Plugin, f func(r remote.Plugin)) {
 	r = g.pluginMap[r.GetId()]
-    if r == nil {
-		log.Println("Plugin: "+fmt.Sprint(r.GetId())+" -> Id 不存在!")
+	if r == nil {
+		log.Println("Plugin: " + fmt.Sprint(r.GetId()) + " -> Id 不存在!")
 		return
-    }
+	}
 	f(r)
 }
 
@@ -96,7 +97,6 @@ func DefaultGateway() *Gateway {
 	return g
 }
 
-
 func (g *Gateway) Start(addr string, socket connect.Socket) {
 	log.SetFlags(log.LstdFlags + log.Lshortfile)
 	common.AssertNil(socket, "没有设置链接协议")
@@ -142,7 +142,7 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 		log.Println("注册中心错误:" + err.Error())
 		return []byte{}
 	}
-	return g.client.InvokeRemoteRpc(ip.Addr(), &protof.RpcInfo{Body: bytes, SocketId: uuid})
+	return g.client.InvokeRemoteRpc(ip.Addr(), &protof.RpcInfo{Body: bytes, SocketId: uuid, Ip: g.registerClient.RegisterInfo().Addr()})
 }
 
 func (g *Gateway) SetServer(r *remote.GrpcServer) {
@@ -161,5 +161,5 @@ func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
 		return []byte{}
 	}
 	// -> 返回给逻辑服!
-	return g.pluginMap[body.Id].CallbackResult(in.GetBody())
+	return g.pluginMap[body.Id].InvokeResult(in.GetBody())
 }
