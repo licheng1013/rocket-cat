@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"github.com/licheng1013/rocket-cat/protof"
 	"github.com/licheng1013/rocket-cat/router"
 	"log"
 	"sync"
@@ -85,12 +86,12 @@ func (g *LoginPlugin) GetId() int32 {
 
 // Login 登入,已存在则为false
 func (g *LoginPlugin) Login(userId int64, socketId uint32) bool {
-	value, ok := g.userMap.Load(userId) // 第一次肯定是空,否则就是已登入
+	_, ok := g.userMap.Load(userId) // 第一次肯定是空即false,否则就是已登入
 	if !ok {
 		g.userMap.Store(userId, socketId)
 		g.socketIdMap.Store(socketId, userId)
 	}
-	return value == nil
+	return !ok
 }
 
 // LogoutByUserId 根据用户id退出
@@ -103,14 +104,6 @@ func (g *LoginPlugin) LogoutByUserId(userId int64) bool {
 	return ok
 }
 
-// ListSocketId 获取所有客户端id
-func (g *LoginPlugin) ListSocketId() (socketIds []uint32) {
-	g.socketIdMap.Range(func(key, value any) bool {
-		socketIds = append(socketIds, key.(uint32))
-		return true
-	})
-	return
-}
 
 // ListUserId 获取所有用户id
 func (g *LoginPlugin) ListUserId() (userIds []int64) {
@@ -124,6 +117,21 @@ func (g *LoginPlugin) ListUserId() (userIds []int64) {
 type LoginPluginService struct {
 	service *Service
 	ctx     *router.Context
+}
+
+func (l *LoginPluginService) Login(userId int64, socketId uint32) bool {
+	l.service.rpcClient.InvokeRemoteRpc(l.ctx.RpcIp,&protof.RpcInfo{})
+	return false
+}
+
+func (l *LoginPluginService) LogoutByUserId(userId int64) bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (l *LoginPluginService) ListUserId() (userIds []int64) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (l *LoginPluginService) SetContext(ctx *router.Context) {

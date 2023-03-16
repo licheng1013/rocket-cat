@@ -27,7 +27,7 @@ func TestSingleGateway(t *testing.T) {
 	gateway.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
 		gateway.UsePlugin(&LoginPlugin{}, func(r Plugin) {
 			login := r.(LoginInterface)
-			if !login.Login(12345, ctx.SocketId) {
+			if login.Login(12345, ctx.SocketId) {
 				fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
 			}
 		})
