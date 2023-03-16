@@ -7,7 +7,7 @@ import (
 
 func TestLoginBody(t *testing.T) {
 	t.Log("HelloWorld")
-	l := &LoginBody{LoginAction: LogoutByUserId, UserIds: []int64{1, 22}, SocketIds: []uint32{3, 4}}
+	l := &LoginBody{LoginAction: LogoutByUserId, UserIds: []int64{1, 22}}
 	data, _ := l.ToMarshal()
 
 	l2 := &LoginBody{}

@@ -30,13 +30,13 @@ type Gateway struct {
 	// Register Client
 	registerClient registers.Register
 	// 插件
-	pluginMap map[int32]remote.Plugin
+	pluginMap map[int32]Plugin
 }
 
 // AddPlugin 添加插件
-func (g *Gateway) AddPlugin(r remote.Plugin) {
+func (g *Gateway) AddPlugin(r Plugin) {
 	if g.pluginMap == nil {
-		g.pluginMap = make(map[int32]remote.Plugin)
+		g.pluginMap = make(map[int32]Plugin)
 	}
 	if g.pluginMap[r.GetId()] != nil {
 		panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id已经存在不能重复添加!")
@@ -44,7 +44,7 @@ func (g *Gateway) AddPlugin(r remote.Plugin) {
 	g.pluginMap[r.GetId()] = r
 }
 
-func (g *Gateway) UsePlugin(r remote.Plugin, f func(r remote.Plugin)) {
+func (g *Gateway) UsePlugin(r Plugin, f func(r Plugin)) {
 	r = g.pluginMap[r.GetId()]
 	if r == nil {
 		log.Println("Plugin: " + fmt.Sprint(r.GetId()) + " -> Id 不存在!")
@@ -152,7 +152,7 @@ func (g *Gateway) SetServer(r *remote.GrpcServer) {
 
 // CallbackResult 给予远程端的回调方法
 func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
-	body := &remote.CallBody{}
+	body := &CallBody{}
 	err := body.ToUnmarshal(in.Body)
 	if err != nil {
 		log.Println("json转换失败->请检查或者报告问题!")

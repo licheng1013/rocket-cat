@@ -11,11 +11,8 @@ type LoginAction int8
 
 const (
 	Login = iota
-	LogoutBySocketId
 	LogoutByUserId
-	ListSocketId
 	ListUserId
-	IsLogin
 )
 
 type LoginPlugin struct {
@@ -25,22 +22,17 @@ type LoginPlugin struct {
 }
 
 type LoginInterface interface {
-	Login(userId int64, socketId uint32)
-	LogoutBySocketId(socketId ...uint32)
-	LogoutByUserId(userId ...int64)
-	ListSocketId() (socketIds []uint32)
+	Login(userId int64, socketId uint32) bool
+	LogoutByUserId(userId int64) bool
 	ListUserId() (userIds []int64)
-	IsLogin(userId int64) (ok bool)
 }
 
 // LoginBody 登入数据
 type LoginBody struct {
 	LoginAction LoginAction
 	UserIds     []int64
-	SocketIds   []uint32
 	UserId      int64
 	SocketId    uint32
-	IsLogin     bool
 }
 
 // ToMarshal 转换为字节
@@ -70,24 +62,11 @@ func (g *LoginPlugin) InvokeResult(bytes []byte) []byte {
 			log.Println("LoginPlugin -> UserId或SocketId为空")
 		}
 		break
-	case LogoutBySocketId:
-		g.LogoutBySocketId(l.SocketIds...)
-		break
 	case LogoutByUserId:
-		g.LogoutByUserId(l.UserIds...)
-		break
-	case ListSocketId:
-		l.SocketIds = g.ListSocketId()
+		g.LogoutByUserId(l.UserId)
 		break
 	case ListUserId:
 		l.UserIds = g.ListUserId()
-		break
-	case IsLogin:
-		if l.UserId != 0 {
-			l.IsLogin = g.IsLogin(l.UserId)
-		} else {
-			log.Println("LoginPlugin -> UserId为空")
-		}
 		break
 	}
 	marshal, err := l.ToMarshal()
@@ -104,32 +83,24 @@ func (g *LoginPlugin) GetId() int32 {
 	return pluginId
 }
 
-// Login 登入
-func (g *LoginPlugin) Login(userId int64, socketId uint32) {
-	g.userMap.Store(userId, socketId)
-	g.socketIdMap.Store(socketId, userId)
-}
-
-// LogoutBySocketId 根据socketId退出
-func (g *LoginPlugin) LogoutBySocketId(socketId ...uint32) {
-	for _, id := range socketId {
-		value, ok := g.socketIdMap.Load(id)
-		if ok {
-			g.userMap.Delete(value)
-			g.socketIdMap.Delete(id)
-		}
+// Login 登入,已存在则为false
+func (g *LoginPlugin) Login(userId int64, socketId uint32) bool {
+	value, ok := g.userMap.Load(userId) // 第一次肯定是空,否则就是已登入
+	if !ok {
+		g.userMap.Store(userId, socketId)
+		g.socketIdMap.Store(socketId, userId)
 	}
+	return value == nil
 }
 
 // LogoutByUserId 根据用户id退出
-func (g *LoginPlugin) LogoutByUserId(userId ...int64) {
-	for _, id := range userId {
-		value, ok := g.userMap.Load(id)
-		if ok {
-			g.userMap.Delete(id)
-			g.socketIdMap.Delete(value)
-		}
+func (g *LoginPlugin) LogoutByUserId(userId int64) bool {
+	value, ok := g.userMap.Load(userId)
+	if ok {
+		g.userMap.Delete(userId)
+		g.socketIdMap.Delete(value)
 	}
+	return ok
 }
 
 // ListSocketId 获取所有客户端id
@@ -147,12 +118,6 @@ func (g *LoginPlugin) ListUserId() (userIds []int64) {
 		userIds = append(userIds, key.(int64))
 		return true
 	})
-	return
-}
-
-// IsLogin 是否登入了
-func (g *LoginPlugin) IsLogin(userId int64) (ok bool) {
-	_, ok = g.userMap.Load(userId)
 	return
 }
 
@@ -176,34 +141,4 @@ func (l *LoginPluginService) GetId() int32 {
 
 func (l *LoginPluginService) SetService(service *Service) {
 	l.service = service
-}
-
-func (l *LoginPluginService) Login(userId int64, socketId uint32) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (l *LoginPluginService) LogoutBySocketId(socketId ...uint32) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (l *LoginPluginService) LogoutByUserId(userId ...int64) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (l *LoginPluginService) ListSocketId() (socketIds []uint32) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (l *LoginPluginService) ListUserId() (userIds []int64) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (l *LoginPluginService) IsLogin(userId int64) (ok bool) {
-	//TODO implement me
-	panic("implement me")
 }
