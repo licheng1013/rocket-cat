@@ -20,22 +20,20 @@ import (
 )
 
 func TestSingleGateway(t *testing.T) {
-	socket := &connect.WebSocket{}
 	channel := make(chan int)
 	gateway := DefaultGateway()
-	gateway.SetDecoder(decoder.JsonDecoder{})
 	gateway.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
 		gateway.UsePlugin(LoginPluginId, func(r Plugin) {
 			login := r.(LoginInterface)
 			if login.Login(12345, ctx.SocketId) {
 				fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
 				login.SendAllUserMessage(ctx.Message.SetBody([]byte("用户")).GetBytesResult())
-				socket.SendMessage(ctx.Message.SetBody([]byte("广播")).GetBytesResult())
+				gateway.SendMessage(ctx.Message.SetBody([]byte("广播")).GetBytesResult())
 			}
 		})
 		ctx.Message.SetBody([]byte("业务返回Hi->Ok->2"))
 	})
-	go gateway.Start(connect.Addr, socket)
+	go gateway.Start(connect.Addr, &connect.WebSocket{})
 	time.Sleep(time.Second * 2) //等待完全启动
 	go WsTest(channel)
 	select {
@@ -43,7 +41,6 @@ func TestSingleGateway(t *testing.T) {
 		time.Sleep(time.Second * 3)
 		log.Println(ok)
 	}
-
 }
 
 func TestGateway(t *testing.T) {

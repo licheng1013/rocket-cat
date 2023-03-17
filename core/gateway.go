@@ -74,6 +74,8 @@ func DefaultGateway() *Gateway {
 	g.SetSingle(true)
 	g.router = &router.DefaultRouter{}
 	g.AddPlugin(&LoginPlugin{})
+	g.SetDecoder(decoder.JsonDecoder{})
+
 	return g
 }
 
@@ -148,4 +150,9 @@ func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
 	}
 	plugin := g.pluginMap[in.SocketId]
 	return plugin.(GatewayPlugin).InvokeResult(in.GetBody())
+}
+
+// SendMessage 广播所有
+func (g *Gateway) SendMessage(result []byte) {
+	g.socket.SendMessage(result)
 }
