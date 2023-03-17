@@ -25,7 +25,7 @@ func TestSingleGateway(t *testing.T) {
 	gateway := DefaultGateway()
 	gateway.SetDecoder(decoder.JsonDecoder{})
 	gateway.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
-		gateway.UsePlugin(&LoginPlugin{}, func(r Plugin) {
+		gateway.UsePlugin(LoginPluginId, func(r Plugin) {
 			login := r.(LoginInterface)
 			if login.Login(12345, ctx.SocketId) {
 				fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())

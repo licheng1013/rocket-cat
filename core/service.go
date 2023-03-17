@@ -2,7 +2,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/decoder"
 	"github.com/licheng1013/rocket-cat/protof"
@@ -29,28 +28,8 @@ type Service struct {
 	register registers.Register
 	// 线程池,用于请求多逻辑服事使用
 	Pool *common.Pool
-	// 插件
-	pluginMap map[int32]ServicePlugin
-}
-
-// AddPlugin 添加插件
-func (n *Service) AddPlugin(r ServicePlugin) {
-	if n.pluginMap == nil {
-		n.pluginMap = make(map[int32]ServicePlugin)
-	}
-	if n.pluginMap[r.GetId()] != nil {
-		panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id已经存在不能重复添加!")
-	}
-	n.pluginMap[r.GetId()] = r
-}
-
-func (n *Service) UsePlugin(r Plugin, f func(r Plugin)) {
-	r = n.pluginMap[r.GetId()]
-	if r == nil {
-		log.Println("Plugin: " + fmt.Sprint(r.GetId()) + " -> Id 不存在!")
-		return
-	}
-	f(r)
+	// 插件系统
+	PluginService
 }
 
 // SendGatewayMessage 广播消息路由 -> 所有网关服
@@ -128,7 +107,13 @@ func (n *Service) CallbackResult(in *protof.RpcInfo) []byte {
 	context := &router.Context{Message: message, SocketId: in.SocketId, RpcIp: in.Ip}
 	context.RpcServer = n.rpcServer
 	for _, plugin := range n.pluginMap {
-		plugin.SetContext(context)
+		switch plugin.(type) {
+		case ServicePlugin:
+			plugin.(ServicePlugin).SetContext(context)
+			break
+		default:
+			log.Printf("此插件Id: %v 没有实现 -> ServicePlugin 接口所以将不会执行\n", plugin.GetId())
+		}
 	}
 	n.router.ExecuteMethod(context)
 	if context.Data != nil {

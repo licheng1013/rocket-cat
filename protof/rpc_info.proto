@@ -3,6 +3,7 @@ syntax = "proto3";
 option go_package = "github.com/licheng1013/rocket-cat/protof";
 message RpcInfo{
   bytes body = 1;
+  // 此字段用于传递插件id或socketId
   uint32 socketId = 2;
   string ip = 3;
 }

@@ -1,44 +1,56 @@
 package core
 
 import (
-	"encoding/json"
+	"fmt"
 	"github.com/licheng1013/rocket-cat/router"
+	"log"
 )
 
-// Plugin 插件
+// Plugin 插件顶级接口
 type Plugin interface {
-	// InvokeResult 回传信息
-	InvokeResult([]byte) []byte
 	// GetId 唯一Id
-	GetId() int32
+	GetId() uint32
 }
 
-// ServicePlugin 用于逻辑服的插件功能
-type ServicePlugin interface {
+// GatewayPlugin 网关服插件必须实现的接口
+type GatewayPlugin interface {
+	// GetId 唯一Id
+	GetId() uint32
 	// InvokeResult 回传信息
 	InvokeResult([]byte) []byte
+}
+
+// ServicePlugin 逻辑服插件必须实现的接口
+type ServicePlugin interface {
 	// GetId 唯一Id
-	GetId() int32
+	GetId() uint32
 	// SetService 设置逻辑服实例
 	SetService(plugin *Service)
 	// SetContext 设置,每次调用逻辑服都会执行!
 	SetContext(ctx *router.Context)
 }
 
-// CallBody 回传信息
-type CallBody struct {
-	Id   int32
-	Data []byte
+type PluginService struct {
+	// 插件
+	pluginMap map[uint32]Plugin
 }
 
-// ToMarshal 转换为字节
-func (b *CallBody) ToMarshal() (data []byte, err error) {
-	data, err = json.Marshal(b)
-	return
+// AddPlugin 添加插件
+func (g *PluginService) AddPlugin(r Plugin) {
+	if g.pluginMap == nil {
+		g.pluginMap = make(map[uint32]Plugin)
+	}
+	if g.pluginMap[r.GetId()] != nil {
+		panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id已经存在不能重复添加!")
+	}
+	g.pluginMap[r.GetId()] = r
 }
 
-// ToUnmarshal 转换为对象
-func (b *CallBody) ToUnmarshal(data []byte) (err error) {
-	err = json.Unmarshal(data, b)
-	return
+func (g *PluginService) UsePlugin(pluginId uint32, f func(r Plugin)) {
+	v := g.pluginMap[pluginId]
+	if v == nil {
+		log.Println("Plugin: " + fmt.Sprint(pluginId) + " -> Id 不存在!")
+		return
+	}
+	f(v)
 }

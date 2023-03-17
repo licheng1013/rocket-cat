@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/licheng1013/rocket-cat/common"
@@ -29,28 +28,8 @@ type Gateway struct {
 	server *remote.GrpcServer
 	// Register Client
 	registerClient registers.Register
-	// 插件
-	pluginMap map[int32]Plugin
-}
-
-// AddPlugin 添加插件
-func (g *Gateway) AddPlugin(r Plugin) {
-	if g.pluginMap == nil {
-		g.pluginMap = make(map[int32]Plugin)
-	}
-	if g.pluginMap[r.GetId()] != nil {
-		panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id已经存在不能重复添加!")
-	}
-	g.pluginMap[r.GetId()] = r
-}
-
-func (g *Gateway) UsePlugin(r Plugin, f func(r Plugin)) {
-	r = g.pluginMap[r.GetId()]
-	if r == nil {
-		log.Println("Plugin: " + fmt.Sprint(r.GetId()) + " -> Id 不存在!")
-		return
-	}
-	f(r)
+	// 插件系统
+	PluginService
 }
 
 func (g *Gateway) SetClient(client remote.RpcClient) {
@@ -152,14 +131,15 @@ func (g *Gateway) SetServer(r *remote.GrpcServer) {
 
 // CallbackResult 给予远程端的回调方法
 func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
-	body := &CallBody{}
-	err := body.ToUnmarshal(in.Body)
-	if err != nil {
-		log.Println("json转换失败->请检查或者报告问题!")
-	}
-	if g.pluginMap == nil || g.pluginMap[body.Id] == nil {
+	if g.pluginMap == nil || g.pluginMap[in.SocketId] == nil {
+		log.Println("插件不存在")
 		return []byte{}
 	}
-	// -> 返回给逻辑服!
-	return g.pluginMap[body.Id].InvokeResult(in.GetBody())
+	plugin := g.pluginMap[in.SocketId]
+	switch plugin.(type) {
+	case GatewayPlugin:
+		return plugin.(GatewayPlugin).InvokeResult(in.GetBody())
+	}
+	log.Println("网关插件没有实现GatewayPlugin接口")
+	return []byte{}
 }

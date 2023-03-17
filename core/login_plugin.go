@@ -8,6 +8,10 @@ import (
 	"sync"
 )
 
+// LoginPluginId 登入插件Id
+const LoginPluginId = 1
+
+// LoginAction  插件内部路由
 type LoginAction int8
 
 const (
@@ -30,58 +34,62 @@ type LoginInterface interface {
 
 // LoginBody 登入数据
 type LoginBody struct {
-	LoginAction LoginAction
-	UserIds     []int64
-	UserId      int64
-	SocketId    uint32
+	// 动作逻辑服需要调用网关服的那些方法
+	Action LoginAction
+	// 所有登入id
+	UserIds []int64
+	// 用户Id
+	UserId int64
+	// 连接建立时的id
+	SocketId uint32
+	// 登入或退出状态
+	State bool
 }
 
 // ToMarshal 转换为字节
-func (b *LoginBody) ToMarshal() (data []byte, err error) {
-	data, err = json.Marshal(b)
-	return
+func (b *LoginBody) ToMarshal() (data []byte) {
+	data, err := json.Marshal(b)
+	if err != nil {
+		log.Println("json转换失败: " + err.Error())
+	}
+	if data == nil { //返回空
+		return []byte{}
+	}
+	return data
 }
 
 // ToUnmarshal 转换为对象
-func (b *LoginBody) ToUnmarshal(data []byte) (err error) {
-	err = json.Unmarshal(data, b)
+func (b *LoginBody) ToUnmarshal(data []byte) {
+	err := json.Unmarshal(data, b)
+	if err != nil {
+		log.Println("json解析失败:" + err.Error())
+	}
 	return
 }
 
 func (g *LoginPlugin) InvokeResult(bytes []byte) []byte {
 	l := &LoginBody{}
-	err := l.ToUnmarshal(bytes)
-	if err != nil {
-		log.Panicln("LoginBody -> 解析失败请检查或报告")
-		return []byte{}
-	}
-	switch l.LoginAction {
+	l.ToUnmarshal(bytes)
+	switch l.Action {
 	case Login:
 		if l.UserId != 0 && l.SocketId != 0 {
-			g.Login(l.UserId, l.SocketId)
+			l.State = g.Login(l.UserId, l.SocketId)
 		} else {
 			log.Println("LoginPlugin -> UserId或SocketId为空")
 		}
 		break
 	case LogoutByUserId:
-		g.LogoutByUserId(l.UserId)
+		l.State = g.LogoutByUserId(l.UserId)
 		break
 	case ListUserId:
 		l.UserIds = g.ListUserId()
 		break
 	}
-	marshal, err := l.ToMarshal()
-	if err != nil {
-		log.Panicln("LoginBody -> 解析失败请检查或报告")
-		return []byte{}
-	}
-	return marshal
+	return l.ToMarshal()
 }
 
-const pluginId = 1
-
-func (g *LoginPlugin) GetId() int32 {
-	return pluginId
+func (g *LoginPlugin) GetId() uint32 {
+	return LoginPluginId
 }
 
 // Login 登入,已存在则为false
@@ -104,7 +112,6 @@ func (g *LoginPlugin) LogoutByUserId(userId int64) bool {
 	return ok
 }
 
-
 // ListUserId 获取所有用户id
 func (g *LoginPlugin) ListUserId() (userIds []int64) {
 	g.userMap.Range(func(key, value any) bool {
@@ -119,32 +126,58 @@ type LoginPluginService struct {
 	ctx     *router.Context
 }
 
+// Login 登入肯定是，登入当前连接，难道你从a网关登入到b网关去吗。。。
 func (l *LoginPluginService) Login(userId int64, socketId uint32) bool {
-	l.service.rpcClient.InvokeRemoteRpc(l.ctx.RpcIp,&protof.RpcInfo{})
+	body := LoginBody{Action: Login, UserId: userId, SocketId: socketId}
+	rpc := l.service.rpcClient.InvokeRemoteRpc(l.ctx.RpcIp, &protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
+	if len(rpc) == 0 { // 此处数据为空必然是网关服出现问题
+		return false
+	}
+	body.ToUnmarshal(rpc)
+	return body.State
+}
+
+// LogoutByUserId 根据用户id退出,这里需要广播所有网关进行退出登入操作,因为逻辑服并不知道用户登入在那个网关服
+func (l *LoginPluginService) LogoutByUserId(userId int64) bool {
+	body := LoginBody{UserId: userId, Action: LogoutByUserId}
+	message, err := l.service.SendGatewayMessage(body.ToMarshal())
+	if err != nil {
+		return false
+	}
+	for _, bytes := range message { //遍历所有结果知道有一个true那即为退出成功!
+		if len(bytes) == 0 {
+			continue
+		}
+		body.ToUnmarshal(bytes)
+		if body.State {
+			return true
+		}
+	}
 	return false
 }
 
-func (l *LoginPluginService) LogoutByUserId(userId int64) bool {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (l *LoginPluginService) ListUserId() (userIds []int64) {
-	//TODO implement me
-	panic("implement me")
+	body := LoginBody{Action: ListUserId}
+	message, err := l.service.SendGatewayMessage(body.ToMarshal())
+	if err != nil {
+		return []int64{}
+	}
+	for _, bytes := range message {
+		if len(bytes) == 0 {
+			continue
+		}
+		body.ToUnmarshal(bytes)
+		userIds = append(userIds, body.UserIds...)
+	}
+	return
 }
 
 func (l *LoginPluginService) SetContext(ctx *router.Context) {
 	l.ctx = ctx
 }
 
-func (l *LoginPluginService) InvokeResult(bytes []byte) []byte {
-	data, _ := l.service.SendGatewayMessage(bytes)
-	return data[0]
-}
-
-func (l *LoginPluginService) GetId() int32 {
-	return pluginId
+func (l *LoginPluginService) GetId() uint32 {
+	return LoginPluginId
 }
 
 func (l *LoginPluginService) SetService(service *Service) {
