@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/licheng1013/rocket-cat/common"
@@ -25,7 +26,7 @@ type Gateway struct {
 	// Rpc 客户端
 	client remote.RpcClient
 	// Rpc 服务端
-	server *remote.GrpcServer
+	server remote.RpcServer
 	// Register Client
 	registerClient registers.Register
 	// 插件系统
@@ -77,6 +78,16 @@ func DefaultGateway() *Gateway {
 }
 
 func (g *Gateway) Start(addr string, socket connect.Socket) {
+	// 插件初始化
+	for _, item := range g.PluginService.pluginMap {
+		switch item.(type) {
+		case GatewayPlugin:
+			item.(GatewayPlugin).SetService(g)
+			break
+		default:
+			panic(fmt.Sprintf("此插件: %v 并没有实现 GatewayPlugin 接口", item.GetId()))
+		}
+	}
 	log.SetFlags(log.LstdFlags + log.Lshortfile)
 	common.AssertNil(socket, "没有设置链接协议")
 	if g.single {
@@ -124,7 +135,7 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 	return g.client.InvokeRemoteRpc(ip.Addr(), &protof.RpcInfo{Body: bytes, SocketId: uuid, Ip: g.registerClient.RegisterInfo().Addr()})
 }
 
-func (g *Gateway) SetServer(r *remote.GrpcServer) {
+func (g *Gateway) SetServer(r remote.RpcServer) {
 	g.server = r
 	g.server.CallbackResult(g.CallbackResult)
 }
@@ -136,10 +147,5 @@ func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
 		return []byte{}
 	}
 	plugin := g.pluginMap[in.SocketId]
-	switch plugin.(type) {
-	case GatewayPlugin:
-		return plugin.(GatewayPlugin).InvokeResult(in.GetBody())
-	}
-	log.Println("网关插件没有实现GatewayPlugin接口")
-	return []byte{}
+	return plugin.(GatewayPlugin).InvokeResult(in.GetBody())
 }

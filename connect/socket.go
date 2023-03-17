@@ -11,6 +11,8 @@ type Socket interface {
 	// uuid 为连接建立时的唯一id,message为具体消息内容
 	ListenBack(func(uuid uint32, message []byte) []byte)
 	ListenAddr(addr string)
+	SendSelectMessage(bytes []byte, socketIds ...uint32)
+	SendMessage(bytes []byte)
 }
 
 //type Broadcast interface {

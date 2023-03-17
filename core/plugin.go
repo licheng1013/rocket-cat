@@ -16,6 +16,8 @@ type Plugin interface {
 type GatewayPlugin interface {
 	// GetId 唯一Id
 	GetId() uint32
+	// SetService 设置逻辑服实例
+	SetService(plugin *Gateway)
 	// InvokeResult 回传信息
 	InvokeResult([]byte) []byte
 }

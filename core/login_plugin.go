@@ -18,6 +18,8 @@ const (
 	Login = iota
 	LogoutByUserId
 	ListUserId
+	SendAllUserMessage
+	SendByUserIdMessage
 )
 
 type LoginPlugin struct {
@@ -26,10 +28,38 @@ type LoginPlugin struct {
 	socketIdMap sync.Map
 }
 
+// SendAllUserMessage 广播所有登入用户
+func (g *LoginPlugin) SendAllUserMessage(data []byte) {
+	var socketId []uint32
+	g.userMap.Range(func(key, value any) bool {
+		socketId = append(socketId, value.(uint32))
+		return true
+	})
+	g.gateway.socket.SendSelectMessage(data, socketId...)
+}
+
+// SendByUserIdMessage 根据用户id进行广播
+func (g *LoginPlugin) SendByUserIdMessage(data []byte, userIds ...int64) {
+	var socketId []uint32
+	for _, userId := range userIds {
+		value, ok := g.userMap.Load(userId)
+		if ok {
+			socketId = append(socketId, value.(uint32))
+		}
+	}
+	g.gateway.socket.SendSelectMessage(data, socketId...)
+}
+
+func (g *LoginPlugin) SetService(plugin *Gateway) {
+	g.gateway = plugin
+}
+
 type LoginInterface interface {
 	Login(userId int64, socketId uint32) bool
 	LogoutByUserId(userId int64) bool
 	ListUserId() (userIds []int64)
+	SendAllUserMessage(data []byte)
+	SendByUserIdMessage(data []byte, userIds ...int64)
 }
 
 // LoginBody 登入数据
@@ -44,6 +74,8 @@ type LoginBody struct {
 	SocketId uint32
 	// 登入或退出状态
 	State bool
+	// 广播数据
+	Data []byte
 }
 
 // ToMarshal 转换为字节
@@ -83,6 +115,12 @@ func (g *LoginPlugin) InvokeResult(bytes []byte) []byte {
 		break
 	case ListUserId:
 		l.UserIds = g.ListUserId()
+		break
+	case SendAllUserMessage:
+		g.SendAllUserMessage(l.Data)
+		break
+	case SendByUserIdMessage:
+		g.SendByUserIdMessage(l.Data, l.UserIds...)
 		break
 	}
 	return l.ToMarshal()
@@ -126,6 +164,17 @@ type LoginPluginService struct {
 	ctx     *router.Context
 }
 
+
+func (l *LoginPluginService) SendAllUserMessage(data []byte) {
+	body := LoginBody{Action: SendAllUserMessage,Data: data}
+	_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId,Body: body.ToMarshal()})
+}
+
+func (l *LoginPluginService) SendByUserIdMessage(data []byte, userIds ...int64) {
+	body := LoginBody{Action: SendByUserIdMessage,Data: data,UserIds: userIds}
+	_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId,Body: body.ToMarshal()})
+}
+
 // Login 登入肯定是，登入当前连接，难道你从a网关登入到b网关去吗。。。
 func (l *LoginPluginService) Login(userId int64, socketId uint32) bool {
 	body := LoginBody{Action: Login, UserId: userId, SocketId: socketId}
@@ -140,7 +189,7 @@ func (l *LoginPluginService) Login(userId int64, socketId uint32) bool {
 // LogoutByUserId 根据用户id退出,这里需要广播所有网关进行退出登入操作,因为逻辑服并不知道用户登入在那个网关服
 func (l *LoginPluginService) LogoutByUserId(userId int64) bool {
 	body := LoginBody{UserId: userId, Action: LogoutByUserId}
-	message, err := l.service.SendGatewayMessage(body.ToMarshal())
+	message, err := l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId,Body: body.ToMarshal()})
 	if err != nil {
 		return false
 	}
@@ -158,7 +207,7 @@ func (l *LoginPluginService) LogoutByUserId(userId int64) bool {
 
 func (l *LoginPluginService) ListUserId() (userIds []int64) {
 	body := LoginBody{Action: ListUserId}
-	message, err := l.service.SendGatewayMessage(body.ToMarshal())
+	message, err := l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId,Body: body.ToMarshal()})
 	if err != nil {
 		return []int64{}
 	}

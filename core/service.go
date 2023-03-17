@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/decoder"
 	"github.com/licheng1013/rocket-cat/protof"
@@ -33,22 +34,17 @@ type Service struct {
 }
 
 // SendGatewayMessage 广播消息路由 -> 所有网关服
-func (n *Service) SendGatewayMessage(bytes []byte) (result [][]byte, err error) {
-	return n.sendMessageByServiceName(n.register.RegisterInfo().RemoteName, bytes)
-}
-
-// SendGatewayMessageByIp 广播消息路由 -> 所有网关服
-func (n *Service) SendGatewayMessageByIp(ip string, bytes []byte) (result []byte) {
-	return n.rpcClient.InvokeRemoteRpc(ip, protof.RpcBodyBuild(bytes))
+func (n *Service) SendGatewayMessage(info *protof.RpcInfo) (result [][]byte, err error) {
+	return n.sendMessageByServiceName(n.register.RegisterInfo().RemoteName, info)
 }
 
 // SendServiceMessage 广播消息路由 -> 所有逻辑服
 func (n *Service) SendServiceMessage(bytes []byte) (result [][]byte, err error) {
-	return n.sendMessageByServiceName(n.register.RegisterInfo().ServiceName, bytes)
+	return n.sendMessageByServiceName(n.register.RegisterInfo().ServiceName, protof.RpcBodyBuild(bytes))
 }
 
 // sendMessageByServiceName  广播消息路由
-func (n *Service) sendMessageByServiceName(serviceName string, bytes []byte) (result [][]byte, err error) {
+func (n *Service) sendMessageByServiceName(serviceName string, rpcInfo *protof.RpcInfo) (result [][]byte, err error) {
 	ips, err := n.register.ListIp(serviceName)
 	if len(ips) == 0 {
 		log.Println("注册中心暂无可用的服务!")
@@ -60,7 +56,7 @@ func (n *Service) sendMessageByServiceName(serviceName string, bytes []byte) (re
 	channel := make(chan []byte)
 	for _, item := range ips {
 		if invokeErr := n.Pool.AddTaskNonBlocking(func() {
-			channel <- n.rpcClient.InvokeRemoteRpc(item.Addr(), protof.RpcBodyBuild(bytes))
+			channel <- n.rpcClient.InvokeRemoteRpc(item.Addr(), rpcInfo)
 		}); invokeErr != nil {
 			channel <- []byte{}
 		}
@@ -126,6 +122,17 @@ func (n *Service) CallbackResult(in *protof.RpcInfo) []byte {
 }
 
 func (n *Service) Start() {
+	// 插件初始化
+	for _, item := range n.PluginService.pluginMap {
+		switch item.(type) {
+		case ServicePlugin:
+			item.(ServicePlugin).SetService(n)
+			break
+		default:
+			panic(fmt.Sprintf("此插件: %v 并没有实现 ServicePlugin 接口", item.GetId()))
+		}
+	}
+
 	log.SetFlags(log.LstdFlags + log.Lshortfile)
 	common.AssertNil(n.rpcServer, "Rpc服务没有设置.")
 	common.AssertNil(n.router, "路由没有设置.")
