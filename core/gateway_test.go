@@ -29,16 +29,18 @@ func TestSingleGateway(t *testing.T) {
 			login := r.(LoginInterface)
 			if login.Login(12345, ctx.SocketId) {
 				fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
+				login.SendAllUserMessage(ctx.Message.SetBody([]byte("用户")).GetBytesResult())
+				socket.SendMessage(ctx.Message.SetBody([]byte("广播")).GetBytesResult())
 			}
 		})
-		socket.SendMessage(ctx.Message.SetBody([]byte("Hi")).GetBytesResult())
-		ctx.Message.SetBody([]byte("Hi Ok 2"))
+		ctx.Message.SetBody([]byte("业务返回Hi->Ok->2"))
 	})
 	go gateway.Start(connect.Addr, socket)
-	time.Sleep(time.Second / 2) //等待完全启动
+	time.Sleep(time.Second * 2) //等待完全启动
 	go WsTest(channel)
 	select {
 	case ok := <-channel:
+		time.Sleep(time.Second * 3)
 		log.Println(ok)
 	}
 
@@ -83,14 +85,18 @@ func WsTest(v chan int) {
 				log.Println("读取消息错误:", err)
 				return
 			}
-			log.Println("收到消息:", string(dto.GetBody()))
+			log.Printf("收到消息-> %v", string(dto.GetBody()))
 			count++
-			if count >= 2 {
+			if count >= 3 {
 				v <- 0
 			}
 		}
 	}()
+	var b bool
 	for {
+		if b {
+			continue
+		}
 		jsonMessage := messages.JsonMessage{Body: []byte("HelloWorld")}
 		jsonMessage.Merge = common.CmdKit.GetMerge(1, 1)
 		err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
@@ -98,5 +104,6 @@ func WsTest(v chan int) {
 			log.Println("写:", err)
 			return
 		}
+		b = true
 	}
 }
