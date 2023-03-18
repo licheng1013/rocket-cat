@@ -36,7 +36,8 @@
 
 ### 起步
 
-- 安装后复制下列代码即可运行.
+- 安装后复制下列代码即可运行.或者访问示例地址 -> [rocket-cat-example](https://github.com/licheng1013/rocket-cat-example)
+- 注意: 示例地址永远保持最新修改
 - go get github.com/licheng1013/rocket-cat
 
 ```go
