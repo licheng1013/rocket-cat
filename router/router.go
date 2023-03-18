@@ -10,7 +10,7 @@ import (
 // Router 路由器功能
 type Router interface {
 	// AddAction 添加路由
-	AddAction(merge int64, method func(ctx *Context))
+	AddAction(cmd, subCmd int64, method func(ctx *Context))
 	// ExecuteMethod 执行函数
 	ExecuteMethod(msg *Context)
 	// AddProxy 添加代理
@@ -26,7 +26,8 @@ type DefaultRouter struct {
 }
 
 // AddAction 添加函数
-func (r *DefaultRouter) AddAction(merge int64, method func(msg *Context)) {
+func (r *DefaultRouter) AddAction(cmd, subCmd int64, method func(msg *Context)) {
+	merge := common.CmdKit.GetMerge(cmd, subCmd)
 	if r.routerMap == nil {
 		r.routerMap = map[int64]func(msg *Context){}
 	}
@@ -35,7 +36,7 @@ func (r *DefaultRouter) AddAction(merge int64, method func(msg *Context)) {
 		LogFunc(merge, method)
 		return
 	}
-	panic(fmt.Sprintf("路由重复: %v-%v ", common.CmdKit.GetCmd(merge), common.CmdKit.GetSubCmd(merge)))
+	panic(fmt.Sprintf("路由重复: %v-%v ", cmd, subCmd))
 }
 
 // InvokeFunc 代理函数执行

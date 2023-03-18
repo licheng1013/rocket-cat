@@ -22,7 +22,7 @@ import (
 func TestSingleGateway(t *testing.T) {
 	channel := make(chan int)
 	gateway := DefaultGateway()
-	gateway.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
+	gateway.Router().AddAction(1, 1, func(ctx *router.Context) {
 		gateway.UsePlugin(LoginPluginId, func(r Plugin) {
 			login := r.(LoginInterface)
 			if login.Login(12345, ctx.SocketId) {
@@ -34,11 +34,11 @@ func TestSingleGateway(t *testing.T) {
 		ctx.Message.SetBody([]byte("业务返回Hi->Ok->2"))
 	})
 	go gateway.Start(connect.Addr, &connect.WebSocket{})
-	time.Sleep(time.Second * 2) //等待完全启动
+	time.Sleep(time.Second * 1) //等待完全启动
 	go WsTest(channel)
 	select {
 	case ok := <-channel:
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 1)
 		log.Println(ok)
 	}
 }

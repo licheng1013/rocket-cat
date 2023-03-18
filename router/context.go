@@ -7,6 +7,7 @@ import (
 	"github.com/licheng1013/rocket-cat/messages"
 	"github.com/licheng1013/rocket-cat/remote"
 	"log"
+	"os"
 	"reflect"
 	"runtime"
 	"sync"
@@ -26,16 +27,20 @@ type Context struct {
 }
 
 var yellow = color.New(color.FgYellow).SprintFunc()
+var green = color.New(color.FgHiGreen).SprintFunc()
 var blue = color.New(color.FgBlue).SprintFunc()
+var blueBg = color.New(color.FgBlue).SprintFunc()
 
 var logger *log.Logger
 var lock sync.Mutex
+
+var greenText = green("MERGE")
 
 // FileLogger 写入文件日志 -> 记录一些可能不重要的日志，例如客户端主动断开的错误。
 func FileLogger() *log.Logger {
 	if logger == nil {
 		lock.Lock()
-		logger = log.Default()
+		logger = log.New(os.Stderr, blueBg("[ROCKET CAT] "), log.LstdFlags)
 		lock.Unlock()
 	}
 	return logger
@@ -53,7 +58,7 @@ func LogFuncTime(merge int64, time string) {
 	if info == nil {
 		return
 	}
-	LogPrint("MERGE: %s | %s --> %s.\n", yellow(info.merge), time, blue(info.name))
+	LogPrint(greenText+": %s | %s \n", yellow(info.merge), time)
 }
 
 func LogFunc(merge int64, f func(ctx *Context)) {
@@ -62,15 +67,28 @@ func LogFunc(merge int64, f func(ctx *Context)) {
 		cmd := common.CmdKit.GetCmd(merge)
 		subCmd := common.CmdKit.GetSubCmd(merge)
 		mergeInfo := fmt.Sprint(cmd) + "-" + fmt.Sprint(subCmd)
+		name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 		info = &routerInfo{
 			merge: mergeInfo,
-			name:  runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name(),
+			name:  name,
 		}
 		infoMap[merge] = info
 	}
-	LogPrint("MERGE: %s --> %s.\n", yellow(info.merge), blue(info.name))
+	LogPrint(greenText+": %s --> %s\n", yellow(info.merge), blue(info.name))
 }
 
 func LogPrint(format string, values ...any) {
-	FileLogger().Printf("[ROCKET CAT] "+format, values...)
+	FileLogger().Printf(format, values...)
+}
+
+const Version = "0.0.13"
+
+func StartLogo() {
+	FileLogger().Println(
+		green("\n" +
+			"      /\\_/\\" +
+			"\n     / o o \\" +
+			"\n    =(   W  )=" +
+			"\n     )     (" +
+			"\n    (__\\_/__) Version -> " + Version))
 }

@@ -80,6 +80,7 @@ func DefaultGateway() *Gateway {
 }
 
 func (g *Gateway) Start(addr string, socket connect.Socket) {
+	router.StartLogo()
 	// 插件初始化
 	for _, item := range g.PluginService.pluginMap {
 		switch item.(type) {

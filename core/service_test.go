@@ -52,10 +52,10 @@ func ManyService(port uint16) {
 
 	service.Router().AddProxy(&MyProxy{}) // 自定义注入器
 
-	service.Router().AddAction(common.CmdKit.GetMerge(1, 2), func(ctx *router.Context) {
+	service.Router().AddAction(1, 2, func(ctx *router.Context) {
 		ctx.Data = []byte("1")
 	})
-	service.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
+	service.Router().AddAction(1, 1, func(ctx *router.Context) {
 		jsonMessage := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
 		message, err := service.SendServiceMessage(jsonMessage.GetBytesResult())
 		if err != nil {

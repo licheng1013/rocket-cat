@@ -13,7 +13,7 @@ func TestRouter(t *testing.T) {
 	router.DebugLog = true
 	router.AddProxy(&B{})
 	merge := common.CmdKit.GetMerge(1, 2)
-	router.AddAction(merge, func(ctx *Context) {
+	router.AddAction(1, 2, func(ctx *Context) {
 		fmt.Println("具体业务")
 		fmt.Println("收到消息:" + string(ctx.Message.GetBody()))
 		ctx.Message = nil
@@ -21,4 +21,8 @@ func TestRouter(t *testing.T) {
 	c := &Context{Message: &messages.JsonMessage{Merge: merge, Body: []byte(msg)}}
 	router.ExecuteMethod(c)
 	fmt.Println(c.Message)
+}
+
+func TestLogin(t *testing.T) {
+	StartLogo()
 }

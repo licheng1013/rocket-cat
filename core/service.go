@@ -122,6 +122,7 @@ func (n *Service) CallbackResult(in *protof.RpcInfo) []byte {
 }
 
 func (n *Service) Start() {
+	router.StartLogo()
 	// 插件初始化
 	for _, item := range n.PluginService.pluginMap {
 		switch item.(type) {
