@@ -37,7 +37,7 @@ func (socket *TcpSocket) ListenAddr(addr string) {
 		conn, err := listener.AcceptTCP()
 		// 如果错误不为空，打印错误并继续循环
 		if err != nil {
-			common.Logger().Println("tcp连接错误:" + err.Error())
+			common.FileLogger().Println("tcp连接错误:" + err.Error())
 			continue
 		}
 		// 打印客户端的地址
@@ -52,13 +52,8 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 	uuid := common.UuidKit.UUID()
 	messageChannel := make(chan []byte)
 	socket.UuidOnCoon.Store(uuid, messageChannel)
-	go func() {
-		for data := range messageChannel {
-			socket.queue <- data
-		}
-	}()
 
-	socket.AsyncResult(func(bytes []byte) {
+	socket.AsyncResult(uuid, func(bytes []byte) {
 		if len(bytes) == 0 {
 			return
 		}

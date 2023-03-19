@@ -33,7 +33,7 @@ func (socket *KcpSocket) listenerKcp(addr string) {
 	for {
 		conn, err := lis.AcceptKCP()
 		if err != nil {
-			common.Logger().Println("监听异常:", err.Error())
+			common.FileLogger().Println("监听异常:", err.Error())
 		}
 		go socket.handleConn(conn)
 	}
@@ -45,17 +45,12 @@ func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
 	uuid := common.UuidKit.UUID()
 	messageChannel := make(chan []byte)
 	socket.UuidOnCoon.Store(uuid, messageChannel)
-	go func() {
-		for data := range messageChannel {
-			socket.queue <- data
-		}
-	}()
 
-	socket.AsyncResult(func(bytes []byte) {
+	socket.AsyncResult(uuid, func(bytes []byte) {
 		_, err := conn.Write(bytes)
 		if err != nil {
 			// router.FileLogger().Println("写入错误:", err)
-			common.Logger().Println("kcp写入错误: " + err.Error())
+			common.FileLogger().Println("kcp写入错误: " + err.Error())
 			_ = conn.Close()
 			socket.close(uuid)
 		}
@@ -66,7 +61,7 @@ func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
 		// 读取长度 n
 		n, err := conn.Read(buf)
 		if err != nil {
-			common.Logger().Println("kcp读取错误:", err.Error())
+			common.FileLogger().Println("kcp读取错误:", err.Error())
 			socket.close(uuid)
 			break
 		}
