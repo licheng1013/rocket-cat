@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/licheng1013/rocket-cat/common"
-	"log"
 	"net"
 	"strconv"
 )
@@ -38,7 +37,7 @@ func (socket *TcpSocket) ListenAddr(addr string) {
 		conn, err := listener.AcceptTCP()
 		// 如果错误不为空，打印错误并继续循环
 		if err != nil {
-			log.Println("tcp连接错误:" + err.Error())
+			common.Logger().Println("tcp连接错误:" + err.Error())
 			continue
 		}
 		// 打印客户端的地址

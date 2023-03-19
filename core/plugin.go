@@ -2,8 +2,8 @@ package core
 
 import (
 	"fmt"
+	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/router"
-	"log"
 )
 
 // Plugin 插件顶级接口
@@ -51,7 +51,7 @@ func (g *PluginService) AddPlugin(r Plugin) {
 func (g *PluginService) UsePlugin(pluginId uint32, f func(r Plugin)) {
 	v := g.pluginMap[pluginId]
 	if v == nil {
-		log.Println("Plugin: " + fmt.Sprint(pluginId) + " -> Id 不存在!")
+		common.Logger().Println("Plugin: " + fmt.Sprint(pluginId) + " -> Id 不存在!")
 		return
 	}
 	f(v)

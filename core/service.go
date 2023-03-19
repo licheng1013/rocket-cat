@@ -47,7 +47,7 @@ func (n *Service) SendServiceMessage(bytes []byte) (result [][]byte, err error) 
 func (n *Service) sendMessageByServiceName(serviceName string, rpcInfo *protof.RpcInfo) (result [][]byte, err error) {
 	ips, err := n.register.ListIp(serviceName)
 	if len(ips) == 0 {
-		log.Println("注册中心暂无可用的服务!")
+		common.Logger().Println("注册中心暂无可用的服务!")
 		return [][]byte{}, nil
 	}
 	if err != nil {

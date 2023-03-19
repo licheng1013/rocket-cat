@@ -54,13 +54,13 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	//	size++
 	//	return true
 	//})
-	//common.FileLogger().Println("在线连接数:", size)
+	//common.Logger().Println("在线连接数:", size)
 
 	socket.AsyncResult(func(bytes []byte) {
 		err = c.WriteMessage(websocket.BinaryMessage, bytes)
 		if err != nil {
-			// log.Println("写入错误:", err)
-			common.FileLogger().Println("websocket写入错误: " + err.Error())
+			// router.FileLogger().Println("写入错误:", err)
+			common.Logger().Println("websocket写入错误: " + err.Error())
 			_ = c.Close()
 			socket.close(uuid)
 		}
@@ -70,7 +70,7 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		// 1 字符串，2 字节
 		_, message, err := c.ReadMessage()
 		if err != nil {
-			common.FileLogger().Println("websocket读取错误: " + err.Error())
+			common.Logger().Println("websocket读取错误: " + err.Error())
 			socket.close(uuid)
 			break
 		}
@@ -82,8 +82,8 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		//}
 		//err = c.WriteMessage(mt, bytes)
 		//if err != nil {
-		//	// log.Println("写入错误:", err)
-		//	common.FileLogger().Println("websocket写入错误: " + err.Error())
+		//	// router.FileLogger().Println("写入错误:", err)
+		//	common.Logger().Println("websocket写入错误: " + err.Error())
 		//	_ = c.Close()
 		//	socket.UuidOnCoon.Delete(uuid)
 		//	break

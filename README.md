@@ -72,7 +72,7 @@ func main() {
 	go WsTest(channel)
 	select {
 	case ok := <-channel:
-		log.Println(ok)
+		router.FileLogger().Println(ok)
 	}
 }
 
@@ -96,10 +96,10 @@ func WsTest(v chan int) {
 			jsonDecoder := decoder.JsonDecoder{}
 			dto := jsonDecoder.DecoderBytes(m)
 			if err != nil {
-				log.Println("读取消息错误:", err)
+				router.FileLogger().Println("读取消息错误:", err)
 				return
 			}
-			log.Println("收到消息:", string(dto.GetBody()))
+			router.FileLogger().Println("收到消息:", string(dto.GetBody()))
 			count++
 			if count >= 2 {
 				v <- 0
@@ -111,7 +111,7 @@ func WsTest(v chan int) {
 		jsonMessage.Merge = common.CmdKit.GetMerge(1, 1)
 		err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
 		if err != nil {
-			log.Println("写:", err)
+			router.FileLogger().Println("写:", err)
 			return
 		}
 	}

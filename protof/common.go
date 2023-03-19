@@ -1,15 +1,15 @@
 package protof
 
 import (
+	"github.com/licheng1013/rocket-cat/common"
 	"google.golang.org/protobuf/proto"
-	"log"
 )
 
 // RpcBodyMarshal 编码
 func RpcBodyMarshal(v *RpcInfo) []byte {
 	body, err := proto.Marshal(v)
 	if err != nil {
-		log.Println("Proto编码错误:", err.Error())
+		common.Logger().Println("Proto编码错误:", err.Error())
 	}
 	return body
 }
@@ -18,7 +18,7 @@ func RpcBodyMarshal(v *RpcInfo) []byte {
 func RpcBodyUnmarshal(body []byte, d *RpcInfo) {
 	err := proto.Unmarshal(body, d)
 	if err != nil {
-		log.Println("Proto解码错误:", err.Error())
+		common.Logger().Println("Proto解码错误:", err.Error())
 	}
 }
 

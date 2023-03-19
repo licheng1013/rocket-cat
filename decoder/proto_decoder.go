@@ -1,6 +1,7 @@
 package decoder
 
 import (
+	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/messages"
 	"google.golang.org/protobuf/proto"
 )
@@ -9,8 +10,18 @@ type ProtoDecoder struct {
 }
 
 func (p ProtoDecoder) EncodeBytes(result interface{}) []byte {
-	bytes := messages.MsgKit.StructToBytes(result.(proto.Message))
-	return bytes
+	switch result.(type) {
+	case []byte:
+		return result.([]byte)
+	case proto.Message:
+		bytes, err := proto.Marshal(result.(proto.Message))
+		if err != nil {
+			common.Logger().Println("ProtoDecoder -> 转换失败")
+			break
+		}
+		return bytes
+	}
+	return []byte{}
 }
 
 func (p ProtoDecoder) DecoderBytes(bytes []byte) messages.Message {
@@ -18,7 +29,7 @@ func (p ProtoDecoder) DecoderBytes(bytes []byte) messages.Message {
 	// 转换反序列话
 	err := proto.Unmarshal(bytes, &msg)
 	if err != nil {
-		panic(err)
+		common.Logger().Println("ProtoDecoder -> 解析失败")
 	}
 	return &msg
 }

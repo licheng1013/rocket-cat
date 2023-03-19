@@ -26,7 +26,7 @@ type Socket interface {
 //}
 
 // Addr ----------------- 这里时测试数据
-const Addr = "192.168.101.10:12345"
+const Addr = "0.0.0.0:12345"
 const HelloMsg = "HelloWorld"
 
 // MySocket Socket接口的通用字段

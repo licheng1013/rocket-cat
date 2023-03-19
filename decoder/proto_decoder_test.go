@@ -2,8 +2,6 @@ package decoder
 
 import (
 	"github.com/licheng1013/rocket-cat/messages"
-	"github.com/licheng1013/rocket-cat/protof"
-	"google.golang.org/protobuf/proto"
 	"testing"
 )
 
@@ -13,19 +11,16 @@ type user2 struct {
 }
 
 func TestProtoDecoder(t *testing.T) {
-	u := &protof.RpcInfo{Body: []byte("小明")}
-	marshal, _ := proto.Marshal(u)
 	// 问题
 	protoMessage := messages.ProtoMessage{}
-	protoMessage.SetBody(marshal)
+	protoMessage.Code = -1
+	protoMessage.Body = []byte("测试消息")
+	protoMessage.Merge = 10
+	protoMessage.Heartbeat = true
+	protoMessage.Headers = "扩展参数"
 	// 优化
 	decoder := ProtoDecoder{}
-	msg := decoder.DecoderBytes(protoMessage.GetBytesResult())
+	bytes := decoder.EncodeBytes(&protoMessage)
+	msg := decoder.DecoderBytes(bytes)
 	t.Log(msg)
-	var v protof.RpcInfo
-	err := protoMessage.Bind(&v)
-	if err != nil {
-		panic(err)
-	}
-	t.Log(string(v.Body))
 }

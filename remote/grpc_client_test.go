@@ -1,9 +1,9 @@
 package remote
 
 import (
+	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/protof"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"testing"
 	"time"
@@ -15,7 +15,7 @@ const addr = "192.168.101.10:10001"
 func TestGrpcClient(t *testing.T) {
 	server := GrpcServer{}
 	server.CallbackResult(func(in *protof.RpcInfo) []byte {
-		log.Println("收到数据: ", string(in.Body))
+		common.Logger().Println("收到数据: ", string(in.Body))
 		return []byte("Hi")
 	})
 	go server.ListenAddr(addr)
@@ -27,7 +27,7 @@ func TestGrpcClient(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://localhost:8080/", nil)
 	resp, _ := client.Do(req)
 	body, _ := ioutil.ReadAll(resp.Body)
-	log.Println("返回结果:", string(body))
+	common.Logger().Println("返回结果:", string(body))
 }
 
 var grpcClient = GrpcClient{}

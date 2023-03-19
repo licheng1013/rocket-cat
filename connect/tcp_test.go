@@ -2,7 +2,7 @@ package connect
 
 import (
 	"fmt"
-	"log"
+	"github.com/licheng1013/rocket-cat/common"
 	"net"
 	"testing"
 	"time"
@@ -29,7 +29,7 @@ func TestTcpServer(t *testing.T) {
 	go Client(channel)
 	select {
 	case ok := <-channel:
-		log.Println(ok)
+		common.Logger().Println(ok)
 	}
 }
 

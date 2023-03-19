@@ -3,6 +3,7 @@ package connect
 import (
 	"crypto/tls"
 	"github.com/gorilla/websocket"
+	"github.com/licheng1013/rocket-cat/common"
 	"log"
 	"net/url"
 	"os"
@@ -24,11 +25,11 @@ func server(tls *Tls) {
 	socket := WebSocket{}
 	socket.Tls = tls
 	socket.OnClose(func(uuid uint32) {
-		log.Println(uuid, "关闭了")
+		common.Logger().Println(uuid, "关闭了")
 	})
 	go func() {
 		socket.ListenBack(func(uuid uint32, message []byte) []byte {
-			log.Println(uuid)
+			common.Logger().Println(uuid)
 			socket.SendMessage([]byte{}) // 测试空消息是否会返回
 			return message
 		})
@@ -40,7 +41,7 @@ func server(tls *Tls) {
 	for i := 0; i < 2; i++ {
 		select {
 		case ok := <-channel:
-			log.Println(ok)
+			common.Logger().Println(ok)
 		}
 	}
 }
@@ -73,10 +74,10 @@ func WsClient(channel chan int, enableTsl bool) {
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
-			log.Println("读取消息错误:", err)
+			common.Logger().Println("读取消息错误:", err)
 			break
 		}
-		log.Println("获取数据:" + string(msg)) // 此处可能会打印多次,因为 channel <- 0 传输到通道也需要时间
+		common.Logger().Println("获取数据:" + string(msg)) // 此处可能会打印多次,因为 channel <- 0 传输到通道也需要时间
 		channel <- 0
 	}
 }

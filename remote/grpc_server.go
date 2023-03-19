@@ -27,7 +27,7 @@ func (s *GrpcServer) ListenAddr(addr string) {
 	}
 	v := grpc.NewServer()
 	protof.RegisterRpcServiceServer(v, s)
-	log.Println("服务端Rpc地址:" + addr)
+	common.Logger().Println("服务端Rpc地址:" + addr)
 	if err := v.Serve(lis); err != nil {
 		log.Fatalf("监听失败: %v", err)
 	}
@@ -51,5 +51,5 @@ func (s *GrpcServer) InvokeRemoteFunc(ctx context.Context, in *protof.RpcInfo) (
 //		result := jsonDecoder.DecoderBytes(bytes)
 //		list = append(list, string(result.GetBody()))
 //	}
-//	log.Println(list)
+//	router.FileLogger().Println(list)
 //}

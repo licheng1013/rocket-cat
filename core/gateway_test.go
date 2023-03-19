@@ -39,7 +39,7 @@ func TestSingleGateway(t *testing.T) {
 	select {
 	case ok := <-channel:
 		time.Sleep(time.Second * 1)
-		log.Println(ok)
+		common.Logger().Println(ok)
 	}
 }
 
@@ -48,7 +48,7 @@ func TestGateway(t *testing.T) {
 	gateway.SetSingle(false)
 
 	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: 12344, //这里是rpc端口
-		ServiceName: common.GatewayName, RemoteName: common.ServicerName} //测试时 RemoteName 传递一样的
+		ServiceName: common.GatewayName, RemoteName: common.ServiceName} //测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
 	nacos.RegisterClient(clientInfo)
 	nacos.Register(registers.RegisterInfo{Ip: "localhost", Port: 8848})
@@ -79,7 +79,7 @@ func WsTest(v chan int) {
 			jsonDecoder := decoder.JsonDecoder{}
 			dto := jsonDecoder.DecoderBytes(m)
 			if err != nil {
-				log.Println("读取消息错误:", err)
+				common.Logger().Println("读取消息错误:", err)
 				return
 			}
 			log.Printf("收到消息-> %v", string(dto.GetBody()))
@@ -98,7 +98,7 @@ func WsTest(v chan int) {
 		jsonMessage.Merge = common.CmdKit.GetMerge(1, 1)
 		err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
 		if err != nil {
-			log.Println("写:", err)
+			common.Logger().Println("写:", err)
 			return
 		}
 		b = true
