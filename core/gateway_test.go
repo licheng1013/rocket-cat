@@ -23,14 +23,14 @@ func TestSingleGateway(t *testing.T) {
 	channel := make(chan int)
 	gateway := DefaultGateway()
 	gateway.Router().AddAction(1, 1, func(ctx *router.Context) {
-		gateway.UsePlugin(LoginPluginId, func(r Plugin) {
-			login := r.(LoginInterface)
-			if login.Login(12345, ctx.SocketId) {
-				fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
-				login.SendAllUserMessage(ctx.Message.SetBody([]byte("用户")).GetBytesResult())
-				gateway.SendMessage(ctx.Message.SetBody([]byte("广播")).GetBytesResult())
-			}
-		})
+		r := gateway.GetPlugin(LoginPluginId)
+		login := r.(LoginInterface)
+		if login.Login(12345, ctx.SocketId) {
+			fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
+			login.SendAllUserMessage(ctx.Message.SetBody([]byte("用户")).GetBytesResult())
+			gateway.SendMessage(ctx.Message.SetBody([]byte("广播")).GetBytesResult())
+		}
+
 		ctx.Message.SetBody([]byte("业务返回Hi->Ok->2"))
 	})
 	go gateway.Start(connect.Addr, &connect.WebSocket{})

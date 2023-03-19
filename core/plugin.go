@@ -48,11 +48,11 @@ func (g *PluginService) AddPlugin(r Plugin) {
 	g.pluginMap[r.GetId()] = r
 }
 
-func (g *PluginService) UsePlugin(pluginId uint32, f func(r Plugin)) {
+func (g *PluginService) GetPlugin(pluginId uint32) Plugin {
 	v := g.pluginMap[pluginId]
 	if v == nil {
 		common.Logger().Println("Plugin: " + fmt.Sprint(pluginId) + " -> Id 不存在!")
-		return
+		return nil
 	}
-	f(v)
+	return v
 }
