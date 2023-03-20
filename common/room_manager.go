@@ -24,12 +24,20 @@ func (m *roomManger) CreateRoom() *Room {
 	for {
 		mrand.Seed(time.Now().UnixNano()) // 设置种子为当前时间戳
 		n := mrand.Int63n(100000)
-		if _, b := m.GetByRoomId(n); !b { // 直到不存在房间时赋予id
+		if  b := m.GetByRoomId(n); b == nil { // 直到不存在房间时赋予id
 			room.RoomId = n
 			break
 		}
 	}
 	return room
+}
+
+func (m *roomManger) GetByUserId(userId int64) *Room {
+	value, ok := m.userOnRoom.Load(userId)
+	if ok {
+		return value.(*Room)
+	}
+	return nil
 }
 
 // AddRoom 添加房间
@@ -94,8 +102,12 @@ func (m *roomManger) ListRoom() (list []Room) {
 }
 
 // GetByRoomId 根据房间id获取房间， 对象,是否存在
-func (m *roomManger) GetByRoomId(roomId int64) (any, bool) {
-	return m.roomIdOnRoom.Load(roomId)
+func (m *roomManger) GetByRoomId(roomId int64) *Room {
+	value, ok := m.roomIdOnRoom.Load(roomId)
+	if ok {
+		return value.(*Room)
+	}
+	return nil
 }
 
 type RoomStatus int
@@ -113,6 +125,14 @@ type Room struct {
 	UserList []Player
 	// 房间状态
 	RoomStatus
+}
+
+// UserIds 获取所有用户Id
+func (r *Room) UserIds() (list []int64) {
+	for _, player := range r.UserList {
+		list = append(list, player.UserId())
+	}
+	return
 }
 
 type Player interface {

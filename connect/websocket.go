@@ -32,8 +32,8 @@ func (socket *WebSocket) ListenAddr(addr string) {
 	}
 }
 func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
-	upgrader := websocket.Upgrader{}
-	c, err := upgrader.Upgrade(w, r, nil)
+	upgrade := websocket.Upgrader{}
+	c, err := upgrade.Upgrade(w, r, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -42,24 +42,18 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	messageChannel := make(chan []byte)
 	socket.UuidOnCoon.Store(uuid, messageChannel)
 
-	go func() {
-		for bytes := range messageChannel {
-			socket.queue <- bytes
-		}
-	}()
-
 	// 统计数
 	//size := 0
 	//socket.UuidOnCoon.Range(func(key, value interface{}) bool {
 	//	size++
 	//	return true
 	//})
-	//common.FileLogger().Println("在线连接数:", size)
+	//common.Logger().Println("在线连接数:", size)
 
-	socket.AsyncResult(func(bytes []byte) {
+	socket.AsyncResult(uuid, func(bytes []byte) {
 		err = c.WriteMessage(websocket.BinaryMessage, bytes)
 		if err != nil {
-			// log.Println("写入错误:", err)
+			// router.FileLogger().Println("写入错误:", err)
 			common.FileLogger().Println("websocket写入错误: " + err.Error())
 			_ = c.Close()
 			socket.close(uuid)
@@ -82,8 +76,8 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 		//}
 		//err = c.WriteMessage(mt, bytes)
 		//if err != nil {
-		//	// log.Println("写入错误:", err)
-		//	common.FileLogger().Println("websocket写入错误: " + err.Error())
+		//	// router.FileLogger().Println("写入错误:", err)
+		//	common.Logger().Println("websocket写入错误: " + err.Error())
 		//	_ = c.Close()
 		//	socket.UuidOnCoon.Delete(uuid)
 		//	break

@@ -1,6 +1,7 @@
 package connect
 
 import (
+	"github.com/licheng1013/rocket-cat/common"
 	"github.com/xtaci/kcp-go/v5"
 	"io"
 	"log"
@@ -19,12 +20,12 @@ func TestKcpServer(t *testing.T) {
 	go KcpClient(channel)
 	select {
 	case ok := <-channel:
-		log.Println(ok)
+		common.Logger().Println(ok)
 	}
 }
 
 func KcpClient(channel chan int) {
-	//log.Println("客户端监听:" + Addr)
+	//common.Logger().Println("客户端监听:" + Addr)
 	if client, err := kcp.DialWithOptions(Addr, nil, 10, 3); err == nil {
 		data := HelloMsg
 		buf := make([]byte, len(data))
@@ -35,13 +36,13 @@ func KcpClient(channel chan int) {
 		}()
 		for {
 			if _, err := io.ReadFull(client, buf); err == nil {
-				log.Println("获取数据:" + string(buf))
+				common.Logger().Println("获取数据:" + string(buf))
 				channel <- 0
 			} else {
 				log.Fatal(err)
 			}
 		}
 	} else {
-		log.Println("监听异常:", err)
+		common.Logger().Println("监听异常:", err)
 	}
 }

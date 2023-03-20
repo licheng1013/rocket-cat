@@ -2,9 +2,9 @@ package core
 
 import (
 	"encoding/json"
+	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/protof"
 	"github.com/licheng1013/rocket-cat/router"
-	"log"
 	"sync"
 )
 
@@ -82,7 +82,7 @@ type LoginBody struct {
 func (b *LoginBody) ToMarshal() (data []byte) {
 	data, err := json.Marshal(b)
 	if err != nil {
-		log.Println("json转换失败: " + err.Error())
+		common.Logger().Println("json转换失败: " + err.Error())
 	}
 	if data == nil { //返回空
 		return []byte{}
@@ -94,7 +94,7 @@ func (b *LoginBody) ToMarshal() (data []byte) {
 func (b *LoginBody) ToUnmarshal(data []byte) {
 	err := json.Unmarshal(data, b)
 	if err != nil {
-		log.Println("json解析失败:" + err.Error())
+		common.Logger().Println("json解析失败:" + err.Error())
 	}
 	return
 }
@@ -107,7 +107,7 @@ func (g *LoginPlugin) InvokeResult(bytes []byte) []byte {
 		if l.UserId != 0 && l.SocketId != 0 {
 			l.State = g.Login(l.UserId, l.SocketId)
 		} else {
-			log.Println("LoginPlugin -> UserId或SocketId为空")
+			common.Logger().Println("LoginPlugin -> UserId或SocketId为空")
 		}
 		break
 	case LogoutByUserId:
@@ -164,15 +164,14 @@ type LoginPluginService struct {
 	ctx     *router.Context
 }
 
-
 func (l *LoginPluginService) SendAllUserMessage(data []byte) {
-	body := LoginBody{Action: SendAllUserMessage,Data: data}
-	_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId,Body: body.ToMarshal()})
+	body := LoginBody{Action: SendAllUserMessage, Data: data}
+	_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
 }
 
 func (l *LoginPluginService) SendByUserIdMessage(data []byte, userIds ...int64) {
-	body := LoginBody{Action: SendByUserIdMessage,Data: data,UserIds: userIds}
-	_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId,Body: body.ToMarshal()})
+	body := LoginBody{Action: SendByUserIdMessage, Data: data, UserIds: userIds}
+	_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
 }
 
 // Login 登入肯定是，登入当前连接，难道你从a网关登入到b网关去吗。。。
@@ -189,7 +188,7 @@ func (l *LoginPluginService) Login(userId int64, socketId uint32) bool {
 // LogoutByUserId 根据用户id退出,这里需要广播所有网关进行退出登入操作,因为逻辑服并不知道用户登入在那个网关服
 func (l *LoginPluginService) LogoutByUserId(userId int64) bool {
 	body := LoginBody{UserId: userId, Action: LogoutByUserId}
-	message, err := l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId,Body: body.ToMarshal()})
+	message, err := l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
 	if err != nil {
 		return false
 	}
@@ -207,7 +206,7 @@ func (l *LoginPluginService) LogoutByUserId(userId int64) bool {
 
 func (l *LoginPluginService) ListUserId() (userIds []int64) {
 	body := LoginBody{Action: ListUserId}
-	message, err := l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId,Body: body.ToMarshal()})
+	message, err := l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
 	if err != nil {
 		return []int64{}
 	}

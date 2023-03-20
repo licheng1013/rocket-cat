@@ -3,7 +3,6 @@ package messages
 import (
 	"encoding/json"
 	"github.com/licheng1013/rocket-cat/common"
-	"log"
 )
 
 // JsonMessage 必须实现 Message 接口
@@ -51,7 +50,7 @@ func (j *JsonMessage) SetBody(data interface{}) Message {
 	default:
 		bytes, err := json.Marshal(data)
 		if err != nil {
-			log.Println("Json转换器错误,具体错误: " + err.Error())
+			common.Logger().Println("Json转换器错误,具体错误: " + err.Error())
 		}
 		j.Body = bytes
 	}

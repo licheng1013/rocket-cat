@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"log"
 	"testing"
 	"time"
 )
@@ -20,7 +19,7 @@ func TestThread(t *testing.T) {
 
 	go func() {
 		for bytes := range listData {
-			log.Println(string(bytes))
+			Logger().Println(string(bytes))
 		}
 	}()
 

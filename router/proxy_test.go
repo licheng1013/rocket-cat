@@ -2,7 +2,6 @@ package router
 
 import (
 	"github.com/licheng1013/rocket-cat/messages"
-	"log"
 	"testing"
 )
 
@@ -18,7 +17,7 @@ type A struct {
 }
 
 func (p *A) InvokeFunc(ctx *Context) {
-	log.Println("业务执行")
+	FileLogger().Println("业务执行")
 	ctx.Message.SetBody([]byte("ok"))
 }
 func (p *A) SetProxy(proxy Proxy) {
@@ -30,9 +29,9 @@ type B struct {
 }
 
 func (p *B) InvokeFunc(ctx *Context) {
-	log.Println("B执行")
+	FileLogger().Println("B执行")
 	p.proxy.InvokeFunc(ctx)
-	log.Println("B之后")
+	FileLogger().Println("B之后")
 }
 func (p *B) SetProxy(proxy Proxy) {
 	p.proxy = proxy

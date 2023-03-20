@@ -3,12 +3,12 @@ package registers
 import (
 	"errors"
 	"fmt"
+	"github.com/licheng1013/rocket-cat/common"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/model"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
-	"log"
 	"time"
 )
 
@@ -28,10 +28,10 @@ func (n *Nacos) RegisterInfo() RegisterInfo {
 func (n *Nacos) Close() {
 	success, err := n.namingClient.DeregisterInstance(n.logoutParam)
 	if err != nil {
-		log.Println("注销错误:" + err.Error())
+		common.Logger().Println("注销错误:" + err.Error())
 	}
 	if success {
-		log.Println("注销成功！")
+		common.Logger().Println("注销成功！")
 	}
 }
 
@@ -50,7 +50,7 @@ func (n *Nacos) Register(info RegisterInfo) {
 	if success, err := n.namingClient.RegisterInstance(n.registerParam); err != nil || !success {
 		panic(err)
 	}
-	log.Println("注册中心:", info.Ip+":"+fmt.Sprint(info.Port))
+	common.Logger().Println("注册中心:", info.Ip+":"+fmt.Sprint(info.Port))
 	go n.heartbeat() // 心跳功能
 }
 
@@ -94,7 +94,7 @@ func NewNacos() *Nacos {
 //	if err != nil {
 //		print(err)
 //	}
-//	log.Println("所有实例: ", instances)
+//	common.Logger().Println("所有实例: ", instances)
 //}
 
 // SelectList 只获取存活的实例
@@ -113,7 +113,7 @@ func (n *Nacos) heartbeat() {
 	for true {
 		instance, err := n.namingClient.UpdateInstance(n.updateParam)
 		if err != nil || !instance {
-			log.Println("更新实例失败,请检查Nacos!", err)
+			common.Logger().Println("更新实例失败,请检查Nacos!", err)
 		}
 		time.Sleep(1 * time.Second)
 	}

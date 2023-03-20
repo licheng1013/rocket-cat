@@ -14,9 +14,9 @@ type C struct {
 }
 
 func (p *C) InvokeFunc(msg message.Message) []byte {
-	log.Println("C执行")
+	router.FileLogger().Println("C执行")
 	invokeFunc := p.proxy.InvokeFunc(msg)
-	log.Println("C之后")
+	router.FileLogger().Println("C之后")
 	return invokeFunc
 }
 func (p *C) SetProxy(proxy Proxy) {

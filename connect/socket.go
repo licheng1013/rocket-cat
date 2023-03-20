@@ -26,17 +26,17 @@ type Socket interface {
 //}
 
 // Addr ----------------- 这里时测试数据
-const Addr = "192.168.101.10:12345"
+const Addr = "0.0.0.0:12345"
 const HelloMsg = "HelloWorld"
 
 // MySocket Socket接口的通用字段
 type MySocket struct {
 	proxyMethod func(uuid uint32, message []byte) []byte //代理方法
 	UuidOnCoon  sync.Map                                 // 连接
-	queue       chan []byte                              //结果
-	Pool        *common.Pool                             //线程池
-	onClose     func(uuid uint32)                        //关闭钩子，当链接关闭时触发
-	Tls         *Tls
+	//queue       chan []byte                              //结果
+	Pool    *common.Pool      //线程池
+	onClose func(uuid uint32) //关闭钩子，当链接关闭时触发
+	Tls     *Tls
 }
 
 type Tls struct {
@@ -47,19 +47,24 @@ type Tls struct {
 // InvokeMethod 此处添加至线程池进行远程调用
 func (socket *MySocket) InvokeMethod(uuid uint32, message []byte) {
 	_ = socket.Pool.AddTaskNonBlocking(func() {
-		socket.queue <- socket.proxyMethod(uuid, message)
+		value, ok := socket.UuidOnCoon.Load(uuid)
+		if ok {
+			value.(chan []byte) <- socket.proxyMethod(uuid, message)
+		}
 	})
 }
 
 // AsyncResult 这里是同步的，因为流不允许并发写入
-func (socket *MySocket) AsyncResult(f func(bytes []byte)) {
+func (socket *MySocket) AsyncResult(uuid uint32, f func(bytes []byte)) {
 	go func() {
-		socket.queue = make(chan []byte)
-		for bytes := range socket.queue {
-			if bytes == nil || len(bytes) == 0 {
-				continue // 返回的数据为空则不写入客户端
+		value, ok := socket.UuidOnCoon.Load(uuid)
+		if ok {
+			for bytes := range value.(chan []byte) {
+				if bytes == nil || len(bytes) == 0 {
+					continue // 返回的数据为空则不写入客户端
+				}
+				f(bytes)
 			}
-			f(bytes)
 		}
 	}()
 }

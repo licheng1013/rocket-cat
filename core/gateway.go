@@ -108,7 +108,7 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 	}
 	g.socket = socket
 	g.socket.ListenBack(g.ListenBack)
-	log.Println("监听Socket:" + addr)
+	common.Logger().Println("监听Socket:" + addr)
 	go g.socket.ListenAddr(addr) // 启动线程监听端口
 	common.StopApplication()
 	if !g.single {
@@ -132,7 +132,7 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 	// 此处调用远程方法
 	ip, err := g.registerClient.GetIp()
 	if err != nil {
-		log.Println("注册中心错误:" + err.Error())
+		common.Logger().Println("注册中心错误:" + err.Error())
 		return []byte{}
 	}
 	return g.client.InvokeRemoteRpc(ip.Addr(), &protof.RpcInfo{Body: bytes, SocketId: uuid, Ip: g.registerClient.RegisterInfo().Addr()})
@@ -146,7 +146,7 @@ func (g *Gateway) SetServer(r remote.RpcServer) {
 // CallbackResult 给予远程端的回调方法
 func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
 	if g.pluginMap == nil || g.pluginMap[in.SocketId] == nil {
-		log.Println("插件不存在")
+		common.Logger().Println("插件不存在")
 		return []byte{}
 	}
 	plugin := g.pluginMap[in.SocketId]
