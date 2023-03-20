@@ -1,5 +1,10 @@
 package core
 
+import (
+	"encoding/json"
+	"github.com/licheng1013/rocket-cat/common"
+)
+
 // BindPluginId 绑定插件Id
 const BindPluginId = 2
 
@@ -29,8 +34,9 @@ func (b *BindPlugin) SetService(plugin *Gateway) {
 }
 
 func (b *BindPlugin) InvokeResult(bytes []byte) []byte {
-	//TODO implement me
-	panic("implement me")
+	body := &BindBody{}
+	body.ToUnmarshal(bytes)
+	return []byte{}
 }
 
 
@@ -41,4 +47,25 @@ type BindBody struct {
 	UserIds []int64
 	// 绑定Ip
 	Ip string
+}
+
+// ToMarshal 转换为字节
+func (b *BindBody) ToMarshal() (data []byte) {
+	data, err := json.Marshal(b)
+	if err != nil {
+		common.Logger().Println("json转换失败: " + err.Error())
+	}
+	if data == nil { //返回空
+		return []byte{}
+	}
+	return data
+}
+
+// ToUnmarshal 转换为对象
+func (b *BindBody) ToUnmarshal(data []byte) {
+	err := json.Unmarshal(data, b)
+	if err != nil {
+		common.Logger().Println("json解析失败:" + err.Error())
+	}
+	return
 }
