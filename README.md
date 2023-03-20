@@ -5,10 +5,12 @@
 ## 介绍
 
 <p align="center">
-<img align="center" width="150" src="images/cat-6047457_640.png">
+<img align="center" width="150" src="images/hearts.svg">
 </p>
 
 - RocketCat 是一个游戏框架，设计之初考虑了充足的扩展性，以及简单的易用性。
+- 为了提高体验我们准备了Goland插件 [RocketCat Plugin](https://plugins.jetbrains.com/plugin/21283-rocketcat)
+- 此插件提供了基本的路由导航，项目模板创建等功能。强烈推荐使用。
 
 ### 架构图
 
