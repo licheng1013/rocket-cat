@@ -11,9 +11,6 @@ import (
 // LoginPluginId 登入插件Id
 const LoginPluginId = 1
 
-// LoginAction  插件内部路由
-type LoginAction int8
-
 const (
 	Login = iota
 	LogoutByUserId
@@ -65,7 +62,7 @@ type LoginInterface interface {
 // LoginBody 登入数据
 type LoginBody struct {
 	// 动作逻辑服需要调用网关服的那些方法
-	Action LoginAction
+	Action uint8
 	// 所有登入id
 	UserIds []int64
 	// 用户Id
