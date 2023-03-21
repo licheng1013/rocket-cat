@@ -31,6 +31,8 @@ type Gateway struct {
 	registerClient registers.Register
 	// 插件系统
 	PluginService
+	// 绑定 socketId 和 ip
+	socketIdIpMap map[uint32]string
 }
 
 func (g *Gateway) SetClient(client remote.RpcClient) {
@@ -134,6 +136,10 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 	if err != nil {
 		common.Logger().Println("注册中心错误:" + err.Error())
 		return []byte{}
+	}
+	remoteIp := g.socketIdIpMap[uuid]
+	if remoteIp != "" {
+		return g.client.InvokeRemoteRpc(remoteIp, &protof.RpcInfo{Body: bytes, SocketId: uuid, Ip: g.registerClient.RegisterInfo().Addr()})
 	}
 	return g.client.InvokeRemoteRpc(ip.Addr(), &protof.RpcInfo{Body: bytes, SocketId: uuid, Ip: g.registerClient.RegisterInfo().Addr()})
 }

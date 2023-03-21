@@ -17,7 +17,7 @@ type GatewayPlugin interface {
 	// GetId 唯一Id
 	GetId() uint32
 	// SetService 设置逻辑服实例
-	SetService(plugin *Gateway)
+	SetService(service *Gateway)
 	// InvokeResult 回传信息
 	InvokeResult([]byte) []byte
 }
@@ -27,7 +27,7 @@ type ServicePlugin interface {
 	// GetId 唯一Id
 	GetId() uint32
 	// SetService 设置逻辑服实例
-	SetService(plugin *Service)
+	SetService(service *Service)
 	// SetContext 设置,每次调用逻辑服都会执行!
 	SetContext(ctx *router.Context)
 }

@@ -24,6 +24,14 @@ func (p ProtoDecoder) EncodeBytes(result interface{}) []byte {
 	return []byte{}
 }
 
+// EncodeBytesTool 工具方法
+func (p ProtoDecoder) EncodeBytesTool(cmd,subCmd int64,body *messages.ProtoMessage) []byte {
+	body.Merge = common.CmdKit.GetMerge(cmd,subCmd)
+	return p.EncodeBytes(&body)
+}
+
+
+
 func (p ProtoDecoder) DecoderBytes(bytes []byte) messages.Message {
 	msg := messages.ProtoMessage{}
 	// 转换反序列话

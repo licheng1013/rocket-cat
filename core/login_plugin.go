@@ -17,6 +17,7 @@ const (
 	ListUserId
 	SendAllUserMessage
 	SendByUserIdMessage
+	IsLogin
 )
 
 type LoginPlugin struct {
@@ -57,6 +58,7 @@ type LoginInterface interface {
 	ListUserId() (userIds []int64)
 	SendAllUserMessage(data []byte)
 	SendByUserIdMessage(data []byte, userIds ...int64)
+	IsLogin(userId int64) bool
 }
 
 // LoginBody 登入数据
@@ -119,12 +121,31 @@ func (g *LoginPlugin) InvokeResult(bytes []byte) []byte {
 	case SendByUserIdMessage:
 		g.SendByUserIdMessage(l.Data, l.UserIds...)
 		break
+	case IsLogin:
+		l.State = g.IsLogin(l.UserId)
+		break
 	}
 	return l.ToMarshal()
 }
 
 func (g *LoginPlugin) GetId() uint32 {
 	return LoginPluginId
+}
+
+// GetSocketIdByUserId 获取连接id
+// 逻辑服可能不需要此方法，暂时不帮逻辑服实现
+func (g *LoginPlugin) GetSocketIdByUserId(userId int64) uint32 {
+	value, ok := g.userMap.Load(userId)
+	if ok {
+		return value.(uint32)
+	}
+	return 0
+}
+
+// IsLogin 是否登入
+func (g *LoginPlugin) IsLogin(userId int64) bool {
+	_, ok := g.userMap.Load(userId)
+	return ok
 }
 
 // Login 登入,已存在则为false
@@ -169,6 +190,25 @@ func (l *LoginPluginService) SendAllUserMessage(data []byte) {
 func (l *LoginPluginService) SendByUserIdMessage(data []byte, userIds ...int64) {
 	body := LoginBody{Action: SendByUserIdMessage, Data: data, UserIds: userIds}
 	_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
+}
+
+// IsLogin 是否登入
+func (l *LoginPluginService) IsLogin(userId int64) bool {
+	body := LoginBody{UserId: userId, Action: IsLogin}
+	message, err := l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
+	if err != nil {
+		return false
+	}
+	for _, bytes := range message { //遍历所有结果知道有一个true那即为退出成功!
+		if len(bytes) == 0 {
+			continue
+		}
+		body.ToUnmarshal(bytes)
+		if body.State {
+			return true
+		}
+	}
+	return false
 }
 
 // Login 登入肯定是，登入当前连接，难道你从a网关登入到b网关去吗。。。

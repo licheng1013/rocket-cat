@@ -51,6 +51,7 @@ func (n *Service) sendMessageByServiceName(serviceName string, rpcInfo *protof.R
 		return [][]byte{}, nil
 	}
 	if err != nil {
+		//common.Logger().Println("注册中心错误 -> " + err.Error())
 		return nil, err
 	}
 	channel := make(chan []byte)
