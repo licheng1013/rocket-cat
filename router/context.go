@@ -81,7 +81,7 @@ func LogPrint(format string, values ...any) {
 	FileLogger().Printf(format, values...)
 }
 
-const Version = "0.0.16"
+const Version = "0.0.17"
 
 func StartLogo() {
 	FileLogger().Println(
