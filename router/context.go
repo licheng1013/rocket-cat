@@ -2,15 +2,16 @@ package router
 
 import (
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/licheng1013/rocket-cat/common"
-	"github.com/licheng1013/rocket-cat/messages"
-	"github.com/licheng1013/rocket-cat/remote"
 	"log"
 	"os"
 	"reflect"
 	"runtime"
 	"sync"
+
+	"github.com/fatih/color"
+	"github.com/licheng1013/rocket-cat/common"
+	"github.com/licheng1013/rocket-cat/messages"
+	"github.com/licheng1013/rocket-cat/remote"
 )
 
 type Context struct {
@@ -81,7 +82,7 @@ func LogPrint(format string, values ...any) {
 	FileLogger().Printf(format, values...)
 }
 
-const Version = "0.0.17"
+const Version = "0.0.18"
 
 func StartLogo() {
 	FileLogger().Println(

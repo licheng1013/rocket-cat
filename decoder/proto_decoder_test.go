@@ -1,8 +1,9 @@
 package decoder
 
 import (
-	"github.com/licheng1013/rocket-cat/messages"
 	"testing"
+
+	"github.com/licheng1013/rocket-cat/messages"
 )
 
 type user2 struct {
