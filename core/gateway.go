@@ -76,6 +76,7 @@ func DefaultGateway() *Gateway {
 	g.SetSingle(true)
 	g.router = &router.DefaultRouter{}
 	g.AddPlugin(&LoginPlugin{})
+	g.AddPlugin(&BindPlugin{})
 	g.SetDecoder(decoder.JsonDecoder{})
 
 	return g

@@ -3,14 +3,15 @@ package core
 import (
 	"errors"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/decoder"
 	"github.com/licheng1013/rocket-cat/protof"
 	"github.com/licheng1013/rocket-cat/registers"
 	"github.com/licheng1013/rocket-cat/remote"
 	"github.com/licheng1013/rocket-cat/router"
-	"log"
-	"time"
 )
 
 // Service 新手请不需要之间使用而是 NewService 进行获取对象
@@ -95,6 +96,14 @@ func (n *Service) SetRouter(router router.Router) {
 func NewService() *Service {
 	service := &Service{}
 	service.SetRouter(&router.DefaultRouter{})
+	return service
+}
+
+func DefaultService() *Service {
+	service := &Service{}
+	service.SetRouter(&router.DefaultRouter{})
+	service.AddPlugin(&LoginPluginService{})
+	service.AddPlugin(&BindPluginService{})
 	return service
 }
 
