@@ -2,13 +2,16 @@
 package connect
 
 import (
+	"net/http"
+
 	"github.com/gorilla/websocket"
 	"github.com/licheng1013/rocket-cat/common"
-	"net/http"
 )
 
 type WebSocket struct {
 	MySocket
+	// ws连接路径
+	Path string
 }
 
 func (socket *WebSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
@@ -20,7 +23,11 @@ func (socket *WebSocket) ListenAddr(addr string) {
 	if socket.proxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
-	http.HandleFunc("/ws", socket.ws)
+	// 判断Path是否为空并设置默认值/ws
+	if socket.Path == "" {
+		socket.Path = "/ws"
+	}
+	http.HandleFunc(socket.Path, socket.ws)
 	if socket.Tls != nil {
 		if err := http.ListenAndServeTLS(addr, socket.Tls.CertFile, socket.Tls.KeyFile, nil); err != nil {
 			panic(err)
