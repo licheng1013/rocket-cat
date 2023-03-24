@@ -2,10 +2,11 @@ package core
 
 import (
 	"encoding/json"
+	"sync"
+
 	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/protof"
 	"github.com/licheng1013/rocket-cat/router"
-	"sync"
 )
 
 // LoginPluginId 登入插件Id
