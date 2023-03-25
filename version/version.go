@@ -7,7 +7,7 @@ import (
 	"runtime"
 )
 
-const Version = "0.0.18"
+const Version = "0.0.19"
 
 func StartLogo() {
 	// 获取go版本号
