@@ -2,10 +2,8 @@ package core
 
 import (
 	"fmt"
-	"github.com/licheng1013/rocket-cat/decoder"
 	"github.com/licheng1013/rocket-cat/messages"
 	"log"
-	"net/url"
 	"testing"
 	"time"
 
@@ -33,9 +31,9 @@ func TestSingleGateway(t *testing.T) {
 	})
 	socket := &connect.WebSocket{}
 	socket.Debug = true
-	go gateway.Start(connect.Addr, socket)
+	gateway.Start(connect.Addr, socket)
 	time.Sleep(time.Second * 1) //等待完全启动
-	go WsTest(channel)
+	//go WsTest(channel)
 	select {
 	case ok := <-channel:
 		time.Sleep(time.Second * 1)
@@ -60,28 +58,33 @@ func TestGateway(t *testing.T) {
 }
 
 func WsTest(v chan int) {
-	u := url.URL{Scheme: "ws", Host: connect.Addr, Path: "/ws"}
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	// 连接WebSocket服务器
+	conn, _, err := websocket.DefaultDialer.Dial("ws://"+connect.Addr+"/ws", nil)
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
-	for {
-		// 只写一次就可以了
-		jsonMessage := messages.JsonMessage{Body: []byte("HelloWorld")}
-		jsonMessage.Merge = common.CmdKit.GetMerge(1, 1)
-		err = c.WriteMessage(websocket.BinaryMessage, jsonMessage.GetBytesResult())
-		if err != nil {
-			common.Logger().Println("写:", err)
+	message := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1), Body: []byte("Hello, world!")}
+
+	go func() {
+		for true {
+			// 读取消息
+			_, p, err := conn.ReadMessage()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			// 打印消息
+			fmt.Printf("收到消息: %s\n", p)
 		}
-		_, m, err := c.ReadMessage()
-		jsonDecoder := decoder.JsonDecoder{}
-		dto := jsonDecoder.DecoderBytes(m)
+	}()
+
+	for true {
+		// 发送消息
+		err = conn.WriteMessage(websocket.BinaryMessage, message.GetBytesResult())
 		if err != nil {
-			log.Println("read:", err)
+			log.Println(err)
 			return
 		}
-		log.Printf("收到消息-> %v", string(dto.GetBody()))
-		time.Sleep(time.Second)
 	}
 
 }
