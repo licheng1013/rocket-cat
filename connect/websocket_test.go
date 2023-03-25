@@ -31,14 +31,21 @@ func server(tls *Tls) {
 		socket.ListenBack(func(uuid uint32, message []byte) []byte {
 			common.Logger().Println(uuid)
 			socket.SendMessage([]byte{}) // 测试空消息是否会返回
-			return message
+			//return message
+			socket.SendSelectMessage([]byte("ok"), uuid)
+			return []byte{}
 		})
 		socket.ListenAddr(Addr)
 	}()
-	go WsClient(channel, tls != nil)
+
+	// 客户端数量
+	clientNum := 5
+	for i := 0; i < clientNum; i++ {
+		go WsClient(channel, tls != nil)
+	}
 	time.Sleep(1 * time.Second) // 需要等待1秒让客户端启动完成
 	socket.SendMessage([]byte("广播消息-HelloWorld"))
-	for i := 0; i < 2; i++ {
+	for i := 0; i < clientNum*2; i++ {
 		select {
 		case ok := <-channel:
 			common.Logger().Println(ok)

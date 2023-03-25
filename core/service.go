@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"github.com/licheng1013/rocket-cat/version"
 	"log"
 	"time"
 
@@ -132,7 +133,7 @@ func (n *Service) CallbackResult(in *protof.RpcInfo) []byte {
 }
 
 func (n *Service) Start() {
-	router.StartLogo()
+	version.StartLogo()
 	// 插件初始化
 	for _, item := range n.PluginService.pluginMap {
 		switch item.(type) {

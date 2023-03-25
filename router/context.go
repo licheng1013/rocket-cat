@@ -81,15 +81,3 @@ func LogFunc(merge int64, f func(ctx *Context)) {
 func LogPrint(format string, values ...any) {
 	FileLogger().Printf(format, values...)
 }
-
-const Version = "0.0.18"
-
-func StartLogo() {
-	FileLogger().Println(
-		green("\n" +
-			"      /\\_/\\" +
-			"\n     / o o \\" +
-			"\n    =(   W  )=" +
-			"\n     )     (" +
-			"\n    (__\\_/__) Version -> " + Version))
-}

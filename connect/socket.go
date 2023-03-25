@@ -37,6 +37,7 @@ type MySocket struct {
 	Pool    *common.Pool      //线程池
 	onClose func(uuid uint32) //关闭钩子，当链接关闭时触发
 	Tls     *Tls
+	Debug   bool // 是否开启调试模式，开启后会打印发送日志
 }
 
 type Tls struct {
@@ -60,6 +61,9 @@ func (socket *MySocket) AsyncResult(uuid uint32, f func(bytes []byte)) {
 		value, ok := socket.UuidOnCoon.Load(uuid)
 		if ok {
 			for bytes := range value.(chan []byte) {
+				if socket.Debug {
+					common.Logger().Println("发送数据:", string(bytes))
+				}
 				if bytes == nil || len(bytes) == 0 {
 					continue // 返回的数据为空则不写入客户端
 				}

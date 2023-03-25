@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/licheng1013/rocket-cat/version"
 	"log"
 
 	"github.com/licheng1013/rocket-cat/common"
@@ -83,7 +84,7 @@ func DefaultGateway() *Gateway {
 }
 
 func (g *Gateway) Start(addr string, socket connect.Socket) {
-	router.StartLogo()
+	version.StartLogo()
 	// 插件初始化
 	for _, item := range g.PluginService.pluginMap {
 		switch item.(type) {
