@@ -126,7 +126,7 @@ type Room struct {
 	// 房间状态
 	RoomStatus
 	// 同步数据
-	list []*SafeMap
+	List []*SafeMap
 }
 
 // Start 进行房间的帧同步，以每秒60帧为例，每1/60秒执行一次
@@ -142,21 +142,30 @@ func (r *Room) Start(f func()) {
 			}
 			// 执行每一帧
 			manager.WaitNextFrame(f)
-			r.list = append(r.list, NewSafeMap())
+			r.List = append(r.List, NewSafeMap())
 		}
 	}()
 }
 
 // AddSyncData 添加同步数据
 func (r *Room) AddSyncData(userId int64, value any) {
-	if len(r.list) == 0 {
+	if len(r.List) == 0 {
 		return
 	}
-	safeMap := r.list[len(r.list)-1]
+	safeMap := r.List[len(r.List)-1]
 	if safeMap != nil {
 		safeMap.Set(userId, value)
 	}
 }
+
+// GetLastSyncData 获取最后帧的同步数据
+func (r *Room) GetLastSyncData() *SafeMap {
+	if  len(r.List) == 0 {
+		return NewSafeMap()
+	}
+	return r.List[len(r.List)-1]
+}
+
 
 // UserIds 获取所有用户Id
 func (r *Room) UserIds() (list []int64) {
