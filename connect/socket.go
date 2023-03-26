@@ -47,10 +47,12 @@ type Tls struct {
 
 // InvokeMethod 此处添加至线程池进行远程调用
 func (socket *MySocket) InvokeMethod(uuid uint32, message []byte) {
-	_ = socket.Pool.AddTaskNonBlocking(func() {
+	socket.Pool.AddTask(func() {
+		method := socket.proxyMethod(uuid, message)
 		value, ok := socket.UuidOnCoon.Load(uuid)
 		if ok {
-			value.(chan []byte) <- socket.proxyMethod(uuid, message)
+			socket.sendChan(value, method)
+			//value.(chan []byte) <- socket.proxyMethod(uuid, message)
 		}
 	})
 }
@@ -58,9 +60,9 @@ func (socket *MySocket) InvokeMethod(uuid uint32, message []byte) {
 // AsyncResult 这里是同步的，因为流不允许并发写入
 func (socket *MySocket) AsyncResult(uuid uint32, f func(bytes []byte)) {
 	go func() {
-		value, ok := socket.UuidOnCoon.Load(uuid)
-		if ok {
-			for {
+		for {
+			value, ok := socket.UuidOnCoon.Load(uuid)
+			if ok {
 				// 使用select语句判断chan是否已经关闭
 				select {
 				case bytes, v := <-value.(chan []byte):
@@ -77,6 +79,7 @@ func (socket *MySocket) AsyncResult(uuid uint32, f func(bytes []byte)) {
 					}
 				}
 			}
+
 		}
 	}()
 }
@@ -94,9 +97,18 @@ func (socket *MySocket) SendSelectMessage(bytes []byte, socketIds ...uint32) {
 // SendMessage 广播功能
 func (socket *MySocket) SendMessage(bytes []byte) {
 	socket.UuidOnCoon.Range(func(key, value any) bool {
-		value.(chan []byte) <- bytes
+		//value.(chan []byte) <- bytes
+		socket.sendChan(value, bytes)
 		return true
 	})
+}
+
+// 判断 chan 是否关闭,没关闭则发送
+func (socket *MySocket) sendChan(value any, data []byte) {
+	if value == nil {
+		return
+	}
+	value.(chan []byte) <- data
 }
 
 func (socket *MySocket) OnClose(close func(uuid uint32)) {
@@ -105,25 +117,38 @@ func (socket *MySocket) OnClose(close func(uuid uint32)) {
 
 // close 关闭连接并处理通道
 func (socket *MySocket) close(uuid uint32) {
-	value, ok := socket.UuidOnCoon.Load(uuid)
+	_, ok := socket.UuidOnCoon.Load(uuid)
 	if ok {
 		socket.UuidOnCoon.Delete(uuid)
-		close(value.(chan []byte))
+		//close(value.(chan []byte))
 	}
 	if socket.onClose != nil {
 		socket.onClose(uuid)
 	}
 }
 
-// 初始化线程池
-func (socket *MySocket) init() {
-	if socket.Pool == nil {
-		// 创建一个线程池，指定工作协程数为3，任务队列大小为10
-		socket.Pool = common.NewPool(20, 30)
-	}
-	socket.Pool.Start()
-}
-
 //func (s *MySocket) SendGatewayMessage(bytes []byte) {
 //	panic("字类没有重新实现广播!")
 //}
+
+// 获取一个新chan和uuid
+func (socket *MySocket) getNewChan() (uuid uint32) {
+	for {
+		uuid = common.UuidKit.UUID()
+		_, ok := socket.UuidOnCoon.Load(uuid)
+		if !ok { // 如果不存在则创建
+			socket.UuidOnCoon.Store(uuid, make(chan []byte, 120)) // 通道缓冲区大小为120)
+			return
+		}
+	}
+}
+
+// 处理err,如果err不为空则关闭连接
+func (socket *MySocket) handleErr(err error, uuid uint32, errInfo string) bool {
+	if err != nil {
+		common.FileLogger().Println(errInfo + err.Error())
+		socket.close(uuid)
+		return true
+	}
+	return false
+}

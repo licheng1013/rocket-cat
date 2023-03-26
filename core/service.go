@@ -58,11 +58,9 @@ func (n *Service) sendMessageByServiceName(serviceName string, rpcInfo *protof.R
 	}
 	channel := make(chan []byte)
 	for _, item := range ips {
-		if invokeErr := n.Pool.AddTaskNonBlocking(func() {
+		n.Pool.AddTask(func() {
 			channel <- n.rpcClient.InvokeRemoteRpc(item.Addr(), rpcInfo)
-		}); invokeErr != nil {
-			channel <- []byte{}
-		}
+		})
 	}
 	for i := 0; i < len(ips); i++ {
 		select {
@@ -151,9 +149,8 @@ func (n *Service) Start() {
 	common.AssertNil(n.decoder, "编码器没有设置.")
 	common.AssertNil(n.register, "注册中心没有设置.")
 	if n.Pool == nil {
-		n.Pool = common.NewPool(20, 10)
+		n.Pool = common.NewPool()
 	}
-	n.Pool.Start() //开启线程池
 	n.rpcServer.CallbackResult(n.CallbackResult)
 	n.close = append(n.close, n.register.Close)
 	addr := n.register.RegisterInfo().Addr()

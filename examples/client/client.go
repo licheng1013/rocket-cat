@@ -13,15 +13,29 @@ import (
 
 // 测试多用户连接
 func main() {
-
-	body1 := core.LoginBody{UserId: 1}
-	body2 := core.LoginBody{UserId: 2}
-	go ConnServer(body1)
-	time.Sleep(time.Second)
-	ConnServer(body2)
+	countChan := make(chan int, 100000)
+	threadCount := 10
+	for i := 0; i < threadCount; i++ {
+		body1 := core.LoginBody{UserId: int64(i + 1)}
+		go ConnServer(body1, countChan)
+	}
+	i := threadCount * 1000
+	var c int64
+	// 开始时间
+	start := time.Now().UnixMilli()
+	for range countChan {
+		c++
+		log.Println("收到消息：", c)
+		if c >= int64(i) {
+			break
+		}
+	}
+	// 结束时间并打印
+	end := time.Now().UnixMilli()
+	fmt.Println("耗时：", end-start, "ms")
 }
 
-func ConnServer(body core.LoginBody) {
+func ConnServer(body core.LoginBody, count chan int) {
 	// 连接WebSocket服务器
 	conn, _, err := websocket.DefaultDialer.Dial("ws://"+connect.Addr+"/ws", nil)
 	if err != nil {
@@ -31,25 +45,22 @@ func ConnServer(body core.LoginBody) {
 	go func() {
 		for true {
 			// 读取消息
-			_, p, err := conn.ReadMessage()
+			_, _, err := conn.ReadMessage()
 			if err != nil {
 				log.Println(err)
 				return
 			}
 			// 打印消息
-			fmt.Printf("收到消息: %s - %v\n", p, body.UserId)
+			//fmt.Printf("收到消息: %s - %v\n", p, body.UserId)
+			count <- 1
 		}
 	}()
-	i := 0
 	for true {
-		if i == 0 {
-			// 发送消息
-			err = conn.WriteMessage(websocket.BinaryMessage, message.GetBytesResult())
-			if err != nil {
-				log.Println(err)
-				return
-			}
+		// 发送消息
+		err = conn.WriteMessage(websocket.BinaryMessage, message.GetBytesResult())
+		if err != nil {
+			log.Println(err)
+			return
 		}
-		i++
 	}
 }

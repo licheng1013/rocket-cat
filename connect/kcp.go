@@ -15,7 +15,6 @@ func (socket *KcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) 
 }
 
 func (socket *KcpSocket) ListenAddr(addr string) {
-	socket.init()
 	if socket.proxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
@@ -41,41 +40,20 @@ func (socket *KcpSocket) listenerKcp(addr string) {
 }
 
 func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
-
-	uuid := common.UuidKit.UUID()
-	messageChannel := make(chan []byte)
-	socket.UuidOnCoon.Store(uuid, messageChannel)
-
+	uuid := socket.getNewChan()
 	socket.AsyncResult(uuid, func(bytes []byte) {
 		_, err := conn.Write(bytes)
-		if err != nil {
-			// router.FileLogger().Println("写入错误:", err)
-			common.FileLogger().Println("kcp写入错误: " + err.Error())
-			_ = conn.Close()
-			socket.close(uuid)
+		if socket.handleErr(err, uuid, "kcp写入错误: ") {
+			return
 		}
 	})
-
 	var buf = make([]byte, 4096)
 	for {
 		// 读取长度 n
 		n, err := conn.Read(buf)
-		if err != nil {
-			common.FileLogger().Println("kcp读取错误:", err.Error())
-			socket.close(uuid)
+		if socket.handleErr(err, uuid, "kcp读取错误: ") {
 			break
 		}
 		socket.InvokeMethod(uuid, buf[:n])
-
-		// log.Printf("收到消息: %s", buf[:n])
-		//bytes := socket.proxyMethod(buf[:n])
-		//if len(bytes) == 0 {
-		//	continue
-		//}
-		//n, err = conn.Write(bytes)
-		//if err != nil {
-		//	common.Logger().Println("kcp写入错误:", err.Error())
-		//	break
-		//}
 	}
 }

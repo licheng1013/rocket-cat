@@ -17,7 +17,6 @@ func (socket *TcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) 
 }
 
 func (socket *TcpSocket) ListenAddr(addr string) {
-	socket.init()
 	host, port, _ := net.SplitHostPort(addr)
 	ip := net.ParseIP(host)
 	parseInt, err := strconv.ParseInt(port, 10, 32)
@@ -49,9 +48,7 @@ func (socket *TcpSocket) ListenAddr(addr string) {
 
 func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 
-	uuid := common.UuidKit.UUID()
-	messageChannel := make(chan []byte)
-	socket.UuidOnCoon.Store(uuid, messageChannel)
+	uuid := socket.getNewChan()
 
 	socket.AsyncResult(uuid, func(bytes []byte) {
 		if len(bytes) == 0 {
@@ -60,10 +57,8 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 		data := &MyProtocol{}
 		data.SetData(bytes)
 		_, err := conn.Write(Encode(data))
-		if err != nil {
-			common.FileLogger().Println("tcp写入错误:", err.Error())
-			_ = conn.Close()
-			socket.close(uuid)
+		if socket.handleErr(err, uuid, "tcp写入错误: ") {
+			return
 		}
 	})
 
@@ -75,26 +70,13 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 	for {
 		// 从连接中读取数据，返回读取的字节数和错误
 		n, err := conn.Read(buf)
-		if err != nil {
-			common.FileLogger().Println("tcp读取错误: " + err.Error())
-			socket.close(uuid)
-			break
+		if socket.handleErr(err, uuid, "tcp读取错误: ") {
+			return
 		}
 		// 调用解码函数，将字节切片转换为自定义协议的结构体
 		mp := Decode(buf[:n])
 		socket.InvokeMethod(uuid, mp.Data)
 
-		//result := socket.proxyMethod(mp.Data)
-		//if len(result) == 0 {
-		//	continue
-		//}
-		//data := &MyProtocol{}
-		//data.SetData(result)
-		//_, err = conn.Write(Encode(data))
-		//if err != nil {
-		//	common.FileLogger().Println("tcp写入错误:", err.Error())
-		//	break
-		//}
 	}
 }
 
