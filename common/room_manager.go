@@ -24,7 +24,7 @@ func (m *roomManger) CreateRoom() *Room {
 	for {
 		mrand.Seed(time.Now().UnixNano()) // 设置种子为当前时间戳
 		n := mrand.Int63n(100000)
-		if  b := m.GetByRoomId(n); b == nil { // 直到不存在房间时赋予id
+		if b := m.GetByRoomId(n); b == nil { // 直到不存在房间时赋予id
 			room.RoomId = n
 			break
 		}
@@ -125,6 +125,37 @@ type Room struct {
 	UserList []Player
 	// 房间状态
 	RoomStatus
+	// 同步数据
+	list []*SafeMap
+}
+
+// Start 进行房间的帧同步，以每秒60帧为例，每1/60秒执行一次
+func (r *Room) Start(f func()) {
+	// 使用 common.SyncManager 进行帧同步
+	// 帧同步数据
+	manager := NewFrameSyncManager(60, time.Second/60)
+	manager.Start()
+	go func() {
+		for true {
+			if r == nil || r.RoomStatus == Close {
+				return
+			}
+			// 执行每一帧
+			manager.WaitNextFrame(f)
+			r.list = append(r.list, NewSafeMap())
+		}
+	}()
+}
+
+// AddSyncData 添加同步数据
+func (r *Room) AddSyncData(userId int64, value any) {
+	if len(r.list) == 0 {
+		return
+	}
+	safeMap := r.list[len(r.list)-1]
+	if safeMap != nil {
+		safeMap.Set(userId, value)
+	}
 }
 
 // UserIds 获取所有用户Id
