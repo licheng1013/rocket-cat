@@ -103,6 +103,7 @@ func (socket *MySocket) OnClose(close func(uuid uint32)) {
 	socket.onClose = close
 }
 
+// close 关闭连接并处理通道
 func (socket *MySocket) close(uuid uint32) {
 	value, ok := socket.UuidOnCoon.Load(uuid)
 	if ok {
