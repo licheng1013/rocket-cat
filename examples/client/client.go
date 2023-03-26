@@ -13,6 +13,50 @@ import (
 
 // 测试多用户连接
 func main() {
+	for i := 0; i < 1000; i++ {
+		go Single()
+	}
+	Single()
+}
+
+func Single() {
+	max := 1000
+	// 连接WebSocket服务器
+	conn, _, err := websocket.DefaultDialer.Dial("ws://"+connect.Addr+"/ws", nil)
+	if err != nil {
+		log.Fatal("dial:", err)
+	}
+	c := &core.LoginBody{UserId: 1}
+	message := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1), Body: c.ToMarshal()}
+	var count int
+	go func() {
+		// 开始时间
+		for true {
+			// 读取消息
+			_, _, err := conn.ReadMessage()
+			count++
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
+	}()
+	start := time.Now().UnixMilli()
+	for true {
+		if count >= max {
+			fmt.Printf("收到消息：%v,%v\n", count, time.Now().UnixMilli()-start)
+			return
+		}
+		// 发送消息
+		err = conn.WriteMessage(websocket.BinaryMessage, message.GetBytesResult())
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}
+}
+
+func ManyTest() {
 	countChan := make(chan int, 100000)
 	threadCount := 10
 	for i := 0; i < threadCount; i++ {

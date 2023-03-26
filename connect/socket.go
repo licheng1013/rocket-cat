@@ -78,8 +78,9 @@ func (socket *MySocket) AsyncResult(uuid uint32, f func(bytes []byte)) {
 						return
 					}
 				}
+			} else { // 修复循环问题
+				return
 			}
-
 		}
 	}()
 }

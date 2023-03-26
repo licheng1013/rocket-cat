@@ -5,6 +5,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/nacos-group/nacos-sdk-go/v2 v2.1.2
+	github.com/panjf2000/ants/v2 v2.7.2
 	github.com/xtaci/kcp-go/v5 v5.6.1
 	google.golang.org/protobuf v1.28.0
 )
@@ -43,10 +44,8 @@ require (
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
-	github.com/panjf2000/ants/v2 v2.7.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
-	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/templexxx/cpu v0.0.7 // indirect
 	github.com/templexxx/xorsimd v0.4.1 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
