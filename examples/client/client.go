@@ -14,9 +14,9 @@ import (
 // 测试多用户连接
 func main() {
 
-	body1 := core.LoginBody{UserId: 1}
+	//body1 := core.LoginBody{UserId: 1}
 	body2 := core.LoginBody{UserId: 2}
-	go ConnServer(body1)
+	//go ConnServer(body1)
 	time.Sleep(time.Second)
 	ConnServer(body2)
 }

@@ -60,14 +60,22 @@ func (socket *MySocket) AsyncResult(uuid uint32, f func(bytes []byte)) {
 	go func() {
 		value, ok := socket.UuidOnCoon.Load(uuid)
 		if ok {
-			for bytes := range value.(chan []byte) {
-				if socket.Debug {
-					common.Logger().Println("发送数据:", string(bytes))
+			for {
+				// 使用select语句判断chan是否已经关闭
+				select {
+				case bytes, v := <-value.(chan []byte):
+					if v {
+						if socket.Debug {
+							common.Logger().Println("发送数据:", string(bytes))
+						}
+						if bytes == nil || len(bytes) == 0 {
+							continue // 返回的数据为空则不写入客户端
+						}
+						f(bytes)
+					} else {
+						return
+					}
 				}
-				if bytes == nil || len(bytes) == 0 {
-					continue // 返回的数据为空则不写入客户端
-				}
-				f(bytes)
 			}
 		}
 	}()
@@ -96,7 +104,11 @@ func (socket *MySocket) OnClose(close func(uuid uint32)) {
 }
 
 func (socket *MySocket) close(uuid uint32) {
-	socket.UuidOnCoon.Delete(uuid)
+	value, ok := socket.UuidOnCoon.Load(uuid)
+	if ok {
+		socket.UuidOnCoon.Delete(uuid)
+		close(value.(chan []byte))
+	}
 	if socket.onClose != nil {
 		socket.onClose(uuid)
 	}
