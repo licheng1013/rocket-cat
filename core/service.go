@@ -132,6 +132,7 @@ func (n *Service) CallbackResult(in *protof.RpcInfo) []byte {
 
 func (n *Service) Start() {
 	version.StartLogo()
+	n.router.AddProxy(&router.ErrProxy{}) // 添加错误代理
 	// 插件初始化
 	for _, item := range n.PluginService.pluginMap {
 		switch item.(type) {

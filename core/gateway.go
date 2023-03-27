@@ -88,6 +88,7 @@ func DefaultGateway() *Gateway {
 
 func (g *Gateway) Start(addr string) {
 	version.StartLogo()
+	g.router.AddProxy(&router.ErrProxy{}) // 添加错误代理
 	// 插件初始化
 	for _, item := range g.PluginService.pluginMap {
 		switch item.(type) {
