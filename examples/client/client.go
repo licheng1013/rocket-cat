@@ -13,14 +13,20 @@ import (
 
 // 测试多用户连接
 func main() {
-	for i := 0; i < 1000; i++ {
+	// 开始时间
+	start := time.Now().UnixMilli()
+	for i := 0; i < 100; i++ {
 		go Single()
 	}
+	time.Sleep(5 * time.Second)
 	Single()
+	endTime := time.Now().UnixMilli()
+	// 打印
+	fmt.Printf("总耗时：%vms\n", endTime-start)
 }
 
 func Single() {
-	max := 1000
+	max := 100000
 	// 连接WebSocket服务器
 	conn, _, err := websocket.DefaultDialer.Dial("ws://"+connect.Addr+"/ws", nil)
 	if err != nil {
