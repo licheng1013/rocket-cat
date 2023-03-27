@@ -31,11 +31,11 @@ const HelloMsg = "HelloWorld"
 
 // MySocket Socket接口的通用字段
 type MySocket struct {
-	proxyMethod func(uuid uint32, message []byte) []byte //代理方法
-	UuidOnCoon  sync.Map                                 // 连接
+	proxyMethod func(socketId uint32, message []byte) []byte //代理方法
+	UuidOnCoon  sync.Map                                     // 连接
 	//queue       chan []byte                              //结果
-	Pool    *common.Pool      //线程池
-	onClose func(uuid uint32) //关闭钩子，当链接关闭时触发
+	Pool    *common.Pool          //线程池
+	onClose func(socketId uint32) //关闭钩子，当链接关闭时触发
 	Tls     *Tls
 	Debug   bool // 是否开启调试模式，开启后会打印发送日志
 }
@@ -46,22 +46,22 @@ type Tls struct {
 }
 
 // InvokeMethod 此处添加至线程池进行远程调用
-func (socket *MySocket) InvokeMethod(uuid uint32, message []byte) {
+func (socket *MySocket) InvokeMethod(socketId uint32, message []byte) {
 	socket.Pool.AddTask(func() {
-		method := socket.proxyMethod(uuid, message)
-		value, ok := socket.UuidOnCoon.Load(uuid)
+		method := socket.proxyMethod(socketId, message)
+		value, ok := socket.UuidOnCoon.Load(socketId)
 		if ok {
 			socket.sendChan(value, method)
-			//value.(chan []byte) <- socket.proxyMethod(uuid, message)
+			//value.(chan []byte) <- socket.proxyMethod(socketId, message)
 		}
 	})
 }
 
 // AsyncResult 这里是同步的，因为流不允许并发写入
-func (socket *MySocket) AsyncResult(uuid uint32, f func(bytes []byte)) {
+func (socket *MySocket) AsyncResult(socketId uint32, f func(bytes []byte)) {
 	go func() {
 		for {
-			value, ok := socket.UuidOnCoon.Load(uuid)
+			value, ok := socket.UuidOnCoon.Load(socketId)
 			if ok {
 				// 使用select语句判断chan是否已经关闭
 				select {
@@ -112,19 +112,19 @@ func (socket *MySocket) sendChan(value any, data []byte) {
 	value.(chan []byte) <- data
 }
 
-func (socket *MySocket) OnClose(close func(uuid uint32)) {
+func (socket *MySocket) OnClose(close func(socketId uint32)) {
 	socket.onClose = close
 }
 
 // close 关闭连接并处理通道
-func (socket *MySocket) close(uuid uint32) {
-	_, ok := socket.UuidOnCoon.Load(uuid)
+func (socket *MySocket) close(socketId uint32) {
+	_, ok := socket.UuidOnCoon.Load(socketId)
 	if ok {
-		socket.UuidOnCoon.Delete(uuid)
+		socket.UuidOnCoon.Delete(socketId)
 		//close(value.(chan []byte))
 	}
 	if socket.onClose != nil {
-		socket.onClose(uuid)
+		socket.onClose(socketId)
 	}
 }
 
@@ -133,22 +133,22 @@ func (socket *MySocket) close(uuid uint32) {
 //}
 
 // 获取一个新chan和uuid
-func (socket *MySocket) getNewChan() (uuid uint32) {
+func (socket *MySocket) getNewChan() (socketId uint32) {
 	for {
-		uuid = common.UuidKit.UUID()
-		_, ok := socket.UuidOnCoon.Load(uuid)
+		socketId = common.UuidKit.UUID()
+		_, ok := socket.UuidOnCoon.Load(socketId)
 		if !ok { // 如果不存在则创建
-			socket.UuidOnCoon.Store(uuid, make(chan []byte, 120)) // 通道缓冲区大小为120)
+			socket.UuidOnCoon.Store(socketId, make(chan []byte, 120)) // 通道缓冲区大小为120)
 			return
 		}
 	}
 }
 
 // 处理err,如果err不为空则关闭连接
-func (socket *MySocket) handleErr(err error, uuid uint32, errInfo string) bool {
+func (socket *MySocket) handleErr(err error, socketId uint32, errInfo string) bool {
 	if err != nil {
 		common.FileLogger().Println(errInfo + err.Error())
-		socket.close(uuid)
+		socket.close(socketId)
 		return true
 	}
 	return false

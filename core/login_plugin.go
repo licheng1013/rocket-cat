@@ -27,6 +27,15 @@ type LoginPlugin struct {
 	socketIdMap sync.Map
 }
 
+// ExistSocketId 根据socketId判断是否登入
+func (g *LoginPlugin) ExistSocketId(socketId uint32) int64 {
+	value, ok := g.socketIdMap.Load(socketId)
+	if ok {
+		return value.(int64)
+	}
+	return 0
+}
+
 // SendAllUserMessage 广播所有登入用户
 func (g *LoginPlugin) SendAllUserMessage(data []byte) {
 	var socketId []uint32

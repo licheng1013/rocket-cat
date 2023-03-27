@@ -36,6 +36,10 @@ type Gateway struct {
 	socketIdIpMap map[uint32]string
 }
 
+func (g *Gateway) SetSocket(socket connect.Socket) {
+	g.socket = socket
+}
+
 func (g *Gateway) SetClient(client remote.RpcClient) {
 	g.client = client
 }
@@ -79,11 +83,10 @@ func DefaultGateway() *Gateway {
 	g.AddPlugin(&LoginPlugin{})
 	g.AddPlugin(&BindPlugin{})
 	g.SetDecoder(decoder.JsonDecoder{})
-
 	return g
 }
 
-func (g *Gateway) Start(addr string, socket connect.Socket) {
+func (g *Gateway) Start(addr string) {
 	version.StartLogo()
 	// 插件初始化
 	for _, item := range g.PluginService.pluginMap {
@@ -96,7 +99,7 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 		}
 	}
 	log.SetFlags(log.LstdFlags + log.Lshortfile)
-	common.AssertNil(socket, "没有设置链接协议")
+	common.AssertNil(g.socket, "没有设置链接协议")
 	if g.single {
 		common.AssertNil(g.decoder, "没有设置编码器: decoder")
 	} else {
@@ -110,7 +113,6 @@ func (g *Gateway) Start(addr string, socket connect.Socket) {
 			go g.server.ListenAddr(g.registerClient.RegisterInfo().Addr())
 		}
 	}
-	g.socket = socket
 	g.socket.ListenBack(g.ListenBack)
 	common.Logger().Println("监听Socket:" + addr)
 	go g.socket.ListenAddr(addr) // 启动线程监听端口

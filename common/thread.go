@@ -8,7 +8,9 @@ type Pool struct {
 
 // NewPool 创建一个新的线程池
 func NewPool() *Pool {
-	return &Pool{}
+	// 当您调用此函数时，将预先存储池的全部容量
+	pool := &Pool{}
+	return pool
 }
 
 // AddTask 向线程池中添加一个新的任务，如果队列已满，则阻塞等待直到有空位或超时返回错误。
@@ -18,6 +20,3 @@ func (p *Pool) AddTask(task func()) {
 		Logger().Println("线程池错误 -> " + err.Error())
 	}
 }
-
-
-

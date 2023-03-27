@@ -15,7 +15,7 @@ import (
 func main() {
 	// 开始时间
 	start := time.Now().UnixMilli()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		go Single()
 	}
 	time.Sleep(5 * time.Second)
@@ -26,7 +26,7 @@ func main() {
 }
 
 func Single() {
-	max := 100000
+	max := 1000000
 	// 连接WebSocket服务器
 	conn, _, err := websocket.DefaultDialer.Dial("ws://"+connect.Addr+"/ws", nil)
 	if err != nil {
@@ -41,6 +41,9 @@ func Single() {
 			// 读取消息
 			_, _, err := conn.ReadMessage()
 			count++
+			if count >= max {
+				return
+			}
 			if err != nil {
 				log.Println(err)
 				return

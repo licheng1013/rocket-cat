@@ -31,7 +31,8 @@ func TestSingleGateway(t *testing.T) {
 	})
 	socket := &connect.WebSocket{}
 	socket.Debug = true
-	gateway.Start(connect.Addr, socket)
+	gateway.SetSocket(socket)
+	gateway.Start(connect.Addr)
 	time.Sleep(time.Second * 1) //等待完全启动
 	//go WsTest(channel)
 	select {
@@ -54,7 +55,9 @@ func TestGateway(t *testing.T) {
 	gateway.SetClient(&remote.GrpcClient{})
 	gateway.SetServer(&remote.GrpcServer{})
 	gateway.SetRegisterClient(nacos)
-	gateway.Start(connect.Addr, &connect.WebSocket{})
+	socket := &connect.WebSocket{}
+	gateway.SetSocket(socket)
+	gateway.Start(connect.Addr)
 }
 
 func WsTest(v chan int) {
