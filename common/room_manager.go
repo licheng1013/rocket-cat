@@ -20,7 +20,6 @@ type roomManger struct {
 // CreateRoom 创建房间
 func (m *roomManger) CreateRoom() *Room {
 	room := &Room{}
-	room.RoomStatus = Open
 	for {
 		mrand.Seed(time.Now().UnixNano()) // 设置种子为当前时间戳
 		n := mrand.Int63n(100000)
@@ -81,10 +80,15 @@ func (m *roomManger) RemoveRoom(roomId int64) {
 	m.roomIdOnRoom.Delete(roomId)
 }
 
-// RoomClear 清理房间已经关闭的
-func (m *roomManger) RoomClear() {
+// RoomClear 处理已经打开的房间并且30秒没有同步数据的房间 max 最大房间未动秒数
+func (m *roomManger) RoomClear(max int64) {
 	m.roomIdOnRoom.Range(func(key, value any) bool {
 		room := value.(*Room)
+		if room.RoomStatus == Open {
+			if room.LastSyncTime+max < time.Now().Unix() {
+				room.RoomStatus = Close
+			}
+		}
 		if room.RoomStatus == Close {
 			m.RemoveRoom(room.RoomId)
 		}
@@ -127,12 +131,15 @@ type Room struct {
 	RoomStatus
 	// 同步数据
 	List []*SafeMap
+	// 十位时间戳
+	LastSyncTime int64
 }
 
 // Start 进行房间的帧同步，以每秒60帧为例，每1/60秒执行一次
 func (r *Room) Start(f func()) {
 	// 使用 common.SyncManager 进行帧同步
 	// 帧同步数据
+	r.RoomStatus = Open
 	manager := NewFrameSyncManager(60, time.Second/60)
 	manager.Start()
 	go func() {
@@ -149,6 +156,7 @@ func (r *Room) Start(f func()) {
 
 // AddSyncData 添加同步数据
 func (r *Room) AddSyncData(userId int64, value any) {
+	r.LastSyncTime = time.Now().Unix()
 	if len(r.List) == 0 {
 		return
 	}
@@ -160,12 +168,11 @@ func (r *Room) AddSyncData(userId int64, value any) {
 
 // GetLastSyncData 获取最后帧的同步数据
 func (r *Room) GetLastSyncData() *SafeMap {
-	if  len(r.List) == 0 {
+	if len(r.List) == 0 {
 		return NewSafeMap()
 	}
 	return r.List[len(r.List)-1]
 }
-
 
 // UserIds 获取所有用户Id
 func (r *Room) UserIds() (list []int64) {
