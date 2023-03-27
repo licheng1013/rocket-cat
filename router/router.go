@@ -20,9 +20,22 @@ type Router interface {
 // DefaultRouter 路由功能
 type DefaultRouter struct {
 	// 路由Id : 目标方法
-	routerMap   map[int64]func(ctx *Context)
+	routerMap map[int64]func(ctx *Context)
+	// 代理
 	middlewares Proxy
-	DebugLog    bool
+	// 日志开启
+	DebugLog bool
+	// 跳过某个路由日志
+	SkipLogMap map[int64]bool
+}
+
+// AddSkipLog 添加排除日志方法
+func (r *DefaultRouter) AddSkipLog(cmd, subCmd int64) {
+	merge := common.CmdKit.GetMerge(cmd, subCmd)
+	if r.SkipLogMap == nil {
+		r.SkipLogMap = map[int64]bool{}
+	}
+	r.SkipLogMap[merge] = true
 }
 
 // AddAction 添加函数
@@ -47,7 +60,8 @@ func (r *DefaultRouter) InvokeFunc(ctx *Context) {
 		ctx.Message = nil
 		return
 	}
-	if r.DebugLog {
+	// 增加跳过日志打印
+	if r.DebugLog && !r.SkipLogMap[merge] {
 		startTime := time.Now()
 		r.routerMap[merge](ctx)
 		entTime := time.Now()
@@ -63,13 +77,6 @@ func (r *DefaultRouter) SetProxy(proxy Proxy) {
 }
 
 func (r *DefaultRouter) ExecuteMethod(msg *Context) {
-	//var v Proxy
-	//v = &ProxyFunc{r}
-	//for i := range r.middlewares { //循环代理
-	//	proxy := r.middlewares[i] //获取代理
-	//	proxy.SetProxy(v)         //设置代理对象
-	//	v = proxy                 //把当前对象设置下个代理
-	//}
 	if r.middlewares == nil {
 		r.InvokeFunc(msg)
 	} else {
