@@ -1,9 +1,9 @@
 package decoder
 
 import (
-	"testing"
-
 	"github.com/licheng1013/rocket-cat/messages"
+	"github.com/licheng1013/rocket-cat/protof"
+	"testing"
 )
 
 type user2 struct {
@@ -12,16 +12,30 @@ type user2 struct {
 }
 
 func TestProtoDecoder(t *testing.T) {
-	// 问题
-	protoMessage := messages.ProtoMessage{}
-	protoMessage.Code = -1
-	protoMessage.Body = []byte("测试消息")
-	protoMessage.Merge = 10
-	protoMessage.Heartbeat = true
-	protoMessage.Headers = "扩展参数"
-	// 优化
+	info := &protof.RpcInfo{Body: []byte("Hello")}
+	// 增加简单方法
 	decoder := ProtoDecoder{}
-	bytes := decoder.EncodeBytes(&protoMessage)
-	msg := decoder.DecoderBytes(bytes)
+	data := decoder.Tool(1, 1, info)
+	msg := decoder.DecoderBytes(data)
+	info = &protof.RpcInfo{}
+	_ = msg.Bind(info)
+	t.Log(info)
+	// 验证
+	if string(info.Body) == "Hello" {
+		t.Log("测试成功")
+	} else {
+		t.Log("测试失败")
+	}
+
+	// 测试
+	message := &messages.ProtoMessage{}
+	message.Headers = "HelloWorld"
+	bytes := decoder.EncodeBytes(message)
+	msg = decoder.DecoderBytes(bytes)
 	t.Log(msg)
+	if message.Headers == msg.GetHeaders() {
+		t.Log("测试成功")
+	} else {
+		t.Log("测试失败")
+	}
 }

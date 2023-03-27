@@ -13,4 +13,14 @@ func TestJsonDecoder(t *testing.T) {
 	bytes := decoder.EncodeBytes(jsonMessage)
 	msg := decoder.DecoderBytes(bytes)
 	t.Log(msg)
+
+	// 测试
+	data := decoder.Tool(1, 1, 1)
+	msg = decoder.DecoderBytes(data)
+	t.Log(string(msg.GetBody()))
+	if string(msg.GetBody()) == "1" {
+		t.Log("测试成功")
+	} else {
+		t.Log("测试失败")
+	}
 }

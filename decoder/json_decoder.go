@@ -33,12 +33,12 @@ func (d JsonDecoder) DecoderBytes(bytes []byte) messages.Message {
 	return &msg
 }
 
-// EncodeBytesTool 工具方法
-func (d JsonDecoder) EncodeBytesTool(cmd,subCmd int64,body *messages.JsonMessage) []byte {
-	body.Merge = common.CmdKit.GetMerge(cmd,subCmd)
-	return d.EncodeBytes(&body)
+// Tool 工具方法
+func (d JsonDecoder) Tool(cmd, subCmd int64, body interface{}) []byte {
+	message := messages.JsonMessage{Merge: common.CmdKit.GetMerge(cmd, subCmd)}
+	message.SetBody(body)
+	return d.EncodeBytes(&message)
 }
-
 
 // JsonDecoderBytes 工具方法
 func JsonDecoderBytes(bytes []byte) messages.Message {

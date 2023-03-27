@@ -24,13 +24,14 @@ func (p ProtoDecoder) EncodeBytes(result interface{}) []byte {
 	return []byte{}
 }
 
-// EncodeBytesTool 工具方法
-func (p ProtoDecoder) EncodeBytesTool(cmd,subCmd int64,body *messages.ProtoMessage) []byte {
-	body.Merge = common.CmdKit.GetMerge(cmd,subCmd)
-	return p.EncodeBytes(&body)
+// Tool 工具方法,用于简化编码,减少代码量
+func (p ProtoDecoder) Tool(cmd, subCmd int64, body proto.Message) []byte {
+	merge := common.CmdKit.GetMerge(cmd, subCmd)
+	message := messages.ProtoMessage{}
+	message.Merge = merge
+	message.SetBody(body)
+	return p.EncodeBytes(&message)
 }
-
-
 
 func (p ProtoDecoder) DecoderBytes(bytes []byte) messages.Message {
 	msg := messages.ProtoMessage{}
