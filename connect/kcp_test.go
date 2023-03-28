@@ -12,7 +12,6 @@ import (
 )
 
 func TestKcpServer(t *testing.T) {
-	channel := make(chan int)
 	go func() {
 		// 打印线程数
 		for true {
@@ -32,6 +31,7 @@ func TestKcpServer(t *testing.T) {
 	})
 	//socket.ListenAddr("localhost:12355")
 	go socket.ListenAddr("localhost:12355")
+	channel := make(chan int)
 	time.Sleep(time.Second)
 	go KcpClient(channel)
 	select {
