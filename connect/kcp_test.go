@@ -6,17 +6,31 @@ import (
 	"github.com/xtaci/kcp-go/v5"
 	"io"
 	"log"
+	"runtime"
 	"testing"
 	"time"
 )
 
 func TestKcpServer(t *testing.T) {
 	channel := make(chan int)
+	go func() {
+		// 打印线程数
+		for true {
+			fmt.Println("协程数 -> ", runtime.NumGoroutine())
+			time.Sleep(3 * time.Second)
+		}
+	}()
 	socket := KcpSocket{}
+	socket.OnClose(func(socketId uint32) {
+		// 关闭连接
+		log.Println("关闭连接 -> ", socketId)
+	})
 	socket.Pool = common.NewPool()
 	socket.ListenBack(func(uuid uint32, bytes []byte) []byte {
+		fmt.Println("收到数据:" + string(bytes))
 		return bytes
 	})
+	//socket.ListenAddr("localhost:12355")
 	go socket.ListenAddr("localhost:12355")
 	time.Sleep(time.Second)
 	go KcpClient(channel)
