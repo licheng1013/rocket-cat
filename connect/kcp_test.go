@@ -29,7 +29,7 @@ func TestKcpServer(t *testing.T) {
 		fmt.Println("收到数据:" + string(bytes))
 		return bytes
 	})
-	//socket.ListenAddr("localhost:12355")
+	//socket.ListenAddr("127.0.0.1:12355")
 	go socket.ListenAddr("localhost:12355")
 	channel := make(chan int)
 	time.Sleep(time.Second)
@@ -42,7 +42,7 @@ func TestKcpServer(t *testing.T) {
 
 func KcpClient(channel chan int) {
 	//common.Logger().Println("客户端监听:" + Addr)
-	if client, err := kcp.DialWithOptions("localhost:12355", nil, 10, 3); err == nil {
+	if client, err := kcp.DialWithOptions("localhost:12355", nil, 0, 0); err == nil {
 		data := HelloMsg
 		buf := make([]byte, len(data))
 		go func() {

@@ -24,7 +24,7 @@ func (socket *KcpSocket) ListenAddr(addr string) {
 // listenerKcp Kcp监听方法！
 func (socket *KcpSocket) listenerKcp(addr string) {
 	//router.FileLogger().Println("服务器监听:" + addr)
-	lis, err := kcp.ListenWithOptions(addr, nil, 10, 3)
+	lis, err := kcp.ListenWithOptions(addr, nil, 0, 0)
 	if err != nil {
 		panic(err)
 	}
