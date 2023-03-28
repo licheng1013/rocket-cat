@@ -40,10 +40,11 @@ func (socket *KcpSocket) listenerKcp(addr string) {
 }
 
 func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
-	uuid := socket.getNewChan()
-	socket.AsyncResult(uuid, func(bytes []byte) {
+	socketId := socket.getNewChan()
+	socket.AsyncResult(socketId, func(bytes []byte) {
+		//log.Println("写入数据->" + string(bytes))
 		_, err := conn.Write(bytes)
-		if socket.handleErr(err, uuid, "kcp写入错误: ") {
+		if socket.handleErr(err, socketId, "kcp写入错误: ") {
 			return
 		}
 	})
@@ -51,9 +52,10 @@ func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
 	for {
 		// 读取长度 n
 		n, err := conn.Read(buf)
-		if socket.handleErr(err, uuid, "kcp读取错误: ") {
+		if socket.handleErr(err, socketId, "kcp读取错误: ") {
 			break
 		}
-		socket.InvokeMethod(uuid, buf[:n])
+		//log.Println("读取数据->" + string(buf[:n]))
+		socket.InvokeMethod(socketId, buf[:n])
 	}
 }

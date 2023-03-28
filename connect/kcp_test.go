@@ -1,22 +1,24 @@
 package connect
 
 import (
+	"fmt"
 	"github.com/licheng1013/rocket-cat/common"
 	"github.com/xtaci/kcp-go/v5"
 	"io"
 	"log"
 	"testing"
+	"time"
 )
 
 func TestKcpServer(t *testing.T) {
 	channel := make(chan int)
 	socket := KcpSocket{}
-	go func() {
-		socket.ListenBack(func(uuid uint32, bytes []byte) []byte {
-			return bytes
-		})
-		socket.ListenAddr(Addr)
-	}()
+	socket.Pool = common.NewPool()
+	socket.ListenBack(func(uuid uint32, bytes []byte) []byte {
+		return bytes
+	})
+	go socket.ListenAddr("localhost:12355")
+	time.Sleep(time.Second)
 	go KcpClient(channel)
 	select {
 	case ok := <-channel:
@@ -26,12 +28,14 @@ func TestKcpServer(t *testing.T) {
 
 func KcpClient(channel chan int) {
 	//common.Logger().Println("客户端监听:" + Addr)
-	if client, err := kcp.DialWithOptions(Addr, nil, 10, 3); err == nil {
+	if client, err := kcp.DialWithOptions("localhost:12355", nil, 10, 3); err == nil {
 		data := HelloMsg
 		buf := make([]byte, len(data))
 		go func() {
 			for {
+				fmt.Println("发送数据:" + data)
 				_, _ = client.Write([]byte(data))
+				time.Sleep(time.Second * 2)
 			}
 		}()
 		for {
