@@ -129,8 +129,8 @@ type Room struct {
 	UserList []Player
 	// 房间状态
 	RoomStatus
-	// 同步数据
-	List []*SafeMap
+	// 同步数据,索引为帧号
+	List []*SafeList
 	// 十位时间戳
 	LastSyncTime int64
 }
@@ -154,28 +154,28 @@ func (r *Room) StartCustom(f func(),delay time.Duration) {
 			}
 			// 执行每一帧
 			manager.WaitNextFrame(f)
-			r.List = append(r.List, NewSafeMap())
+			r.List = append(r.List, &SafeList{})
 		}
 	}()
 }
 
 
 // AddSyncData 添加同步数据
-func (r *Room) AddSyncData(userId int64, value any) {
+func (r *Room) AddSyncData( value any) {
 	r.LastSyncTime = time.Now().Unix()
 	if len(r.List) == 0 {
 		return
 	}
 	safeMap := r.List[len(r.List)-1]
 	if safeMap != nil {
-		safeMap.Set(userId, value)
+		safeMap.Add(value)
 	}
 }
 
 // GetLastSyncData 获取最后帧的同步数据
-func (r *Room) GetLastSyncData() *SafeMap {
+func (r *Room) GetLastSyncData() *SafeList {
 	if len(r.List) == 0 {
-		return NewSafeMap()
+		return &SafeList{}
 	}
 	return r.List[len(r.List)-1]
 }
