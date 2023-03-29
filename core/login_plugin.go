@@ -27,6 +27,15 @@ type LoginPlugin struct {
 	socketIdMap sync.Map
 }
 
+func (g *LoginPlugin) OnClose(socketId uint32) {
+	// 退出登入
+	userId := g.ExistSocketId(socketId)
+	if userId != 0 {
+		common.Logger().Println("用户断开 -> ", userId)
+		g.userMap.Delete(userId)
+	}
+}
+
 // ExistSocketId 根据socketId判断是否登入
 func (g *LoginPlugin) ExistSocketId(socketId uint32) int64 {
 	value, ok := g.socketIdMap.Load(socketId)

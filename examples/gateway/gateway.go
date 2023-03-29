@@ -5,7 +5,6 @@ import (
 	"github.com/licheng1013/rocket-cat/connect"
 	"github.com/licheng1013/rocket-cat/core"
 	"github.com/licheng1013/rocket-cat/router"
-	"log"
 	"runtime"
 	"time"
 )
@@ -36,14 +35,6 @@ func main() {
 	})
 	socket := &connect.WebSocket{}
 	socket.Debug = false
-	socket.OnClose(func(uuid uint32) {
-		r := gateway.GetPlugin(core.LoginPluginId)
-		login := r.(*core.LoginPlugin)
-		if login.ExistSocketId(uuid) != 0 {
-			log.Println("OnClose -> ", login.ExistSocketId(uuid))
-			login.LogoutByUserId(login.ExistSocketId(uuid))
-		}
-	})
 	gateway.SetSocket(socket)
 	gateway.Start(connect.Addr)
 }

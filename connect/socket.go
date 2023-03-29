@@ -13,6 +13,11 @@ type Socket interface {
 	ListenAddr(addr string)
 	SendSelectMessage(bytes []byte, socketIds ...uint32)
 	SendMessage(bytes []byte)
+	OnClose(close func(socketId uint32))
+}
+
+type SocketClose interface {
+	OnClose(socketId uint32)
 }
 
 //type Broadcast interface {
@@ -112,6 +117,7 @@ func (socket *MySocket) sendChan(value any, data []byte) {
 	value.(chan []byte) <- data
 }
 
+// OnClose 不允许使用此钩子注册,因为会被覆盖,请使用插件并实现SocketClose接口
 func (socket *MySocket) OnClose(close func(socketId uint32)) {
 	socket.onClose = close
 }

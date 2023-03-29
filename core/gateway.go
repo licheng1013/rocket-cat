@@ -34,6 +34,14 @@ type Gateway struct {
 	PluginService
 	// 绑定 socketId 和 ip
 	socketIdIpMap map[uint32]string
+	// 关闭钩子
+	closeHook []connect.SocketClose
+}
+
+func (g *Gateway) OnClose(socketId uint32) {
+	for _, item := range g.closeHook {
+		item.OnClose(socketId)
+	}
 }
 
 func (g *Gateway) SetSocket(socket connect.Socket) {
@@ -92,6 +100,10 @@ func (g *Gateway) Start(addr string) {
 	// 插件初始化
 	for _, item := range g.PluginService.pluginMap {
 		switch item.(type) {
+		case connect.SocketClose:
+			g.closeHook = append(g.closeHook, item.(connect.SocketClose))
+		}
+		switch item.(type) {
 		case GatewayPlugin:
 			item.(GatewayPlugin).SetService(g)
 			break
@@ -99,6 +111,8 @@ func (g *Gateway) Start(addr string) {
 			panic(fmt.Sprintf("此插件: %v 并没有实现 GatewayPlugin 接口", item.GetId()))
 		}
 	}
+	// 设置断开钩子
+	g.socket.OnClose(g.OnClose)
 	log.SetFlags(log.LstdFlags + log.Lshortfile)
 	common.AssertNil(g.socket, "没有设置链接协议")
 	if g.single {
