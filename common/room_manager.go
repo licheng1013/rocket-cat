@@ -137,15 +137,15 @@ type Room struct {
 
 // Start 进行房间的帧同步，以每秒60帧为例，每1/60秒执行一次
 func (r *Room) Start(f func()) {
-	r.StartCustom(f,time.Second/60)
+	r.StartCustom(f, time.Second/60)
 }
 
 // StartCustom 以每秒60帧为例，delay = time.Second/60 为每一帧的执行时间 = 1/60m秒
-func (r *Room) StartCustom(f func(),delay time.Duration) {
+func (r *Room) StartCustom(f func(), delay time.Duration) {
 	// 使用 common.SyncManager 进行帧同步
 	// 帧同步数据
 	r.RoomStatus = Open
-	manager := NewFrameSyncManager(60,delay)
+	manager := NewFrameSyncManager(60, delay)
 	manager.Start()
 	go func() {
 		for true {
@@ -159,9 +159,8 @@ func (r *Room) StartCustom(f func(),delay time.Duration) {
 	}()
 }
 
-
 // AddSyncData 添加同步数据
-func (r *Room) AddSyncData( value any) {
+func (r *Room) AddSyncData(value any) {
 	r.LastSyncTime = time.Now().Unix()
 	if len(r.List) == 0 {
 		return
