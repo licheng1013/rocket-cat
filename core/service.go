@@ -98,11 +98,16 @@ func NewService() *Service {
 	return service
 }
 
+// DefaultService 默认服务
+// 默认注册了一些组件
 func DefaultService() *Service {
 	service := &Service{}
-	service.SetRouter(&router.DefaultRouter{})
-	service.AddPlugin(&LoginPluginService{})
-	service.AddPlugin(&BindPluginService{})
+	service.SetRouter(&router.DefaultRouter{}) // 默认路由
+	service.AddPlugin(&LoginPluginService{})   // 登录插件
+	service.AddPlugin(&BindPluginService{})    // 绑定插件
+	service.SetDecoder(decoder.JsonDecoder{})  // 默认使用json编码
+	service.SetRpcServer(&remote.GrpcServer{}) // 默认使用grpc
+	service.SetRpcClient(&remote.GrpcClient{}) // 默认使用grpc
 	return service
 }
 

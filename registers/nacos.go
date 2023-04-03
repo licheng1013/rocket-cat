@@ -84,6 +84,16 @@ func NewNacos() *Nacos {
 	return &Nacos{}
 }
 
+// DefaultNacos 配置默认的nacos
+func DefaultNacos() *Nacos {
+	nacos := &Nacos{}
+	clientInfo := RegisterInfo{Ip: "localhost", Port: 12008,
+		ServiceName: common.ServiceName, RemoteName: common.GatewayName}
+	nacos.RegisterClient(clientInfo)
+	nacos.Register(RegisterInfo{Ip: "localhost", Port: 8848})
+	return nacos
+}
+
 // TODO 这里作为保留教程
 //func (n *Nacos) allInstances() {
 //	// SelectAllInstance可以返回全部实例列表,包括healthy=false,enable=false,weight<=0 包括关闭得实例
