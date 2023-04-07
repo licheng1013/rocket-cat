@@ -43,7 +43,7 @@ func (g *PluginService) AddPlugin(r Plugin) {
 		g.pluginMap = make(map[uint32]Plugin)
 	}
 	if g.pluginMap[r.GetId()] != nil {
-		panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id已经存在不能重复添加!")
+		common.Logger().Panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id覆盖了其他插件!")
 	}
 	g.pluginMap[r.GetId()] = r
 }
