@@ -17,72 +17,89 @@ type IRoom interface {
 	JoinRoom(player IPlayer)
 	// QuitRoom 退出房间，请通过RoomManager使用
 	QuitRoom(player IPlayer)
-	// LastSyncTime 房间上次心跳时间,如果在一定时间内没有心跳则清理房间
-	LastSyncTime() int64
+	// HeartbeatTime 房间上次心跳时间,如果在一定时间内没有心跳则清理房间
+	HeartbeatTime() int64
 }
 
-// Room 房间
-type Room struct {
-	// Id
+type DefaultRoom struct {
+	// 房间id
 	RoomId int64
 	// 用户Ids
 	UserList []IPlayer
 	// 房间状态
 	RoomStatus
-	// 同步数据,索引为帧号
-	List []*SafeList
-	// 十位时间戳
-	lastSyncTime int64
 	// 创建时间十位时间戳
 	CreateTime int64
+	// 最大人数
+	MaxUser int64
+	// 心跳时间
+	Heartbeat int64
 }
 
-func NewRoom(roomId int64) *Room {
-	return &Room{RoomId: roomId, RoomStatus: Ready, CreateTime: time.Now().Unix()}
+func (d *DefaultRoom) GetRoomId() int64 {
+	return d.RoomId
 }
 
-func (r *Room) LastSyncTime() int64 {
-	return r.lastSyncTime
+func (d *DefaultRoom) GetMaxUser() int64 {
+	return d.MaxUser
 }
 
-func (r *Room) QuitRoom(player IPlayer) {
+func (d *DefaultRoom) GetRoomStatus() RoomStatus {
+	return d.RoomStatus
+}
+
+func (d *DefaultRoom) GetUserIdList() (list []int64) {
+	for _, player := range d.UserList {
+		return append(list, player.UserId())
+	}
+	return
+}
+func (d *DefaultRoom) GetPlayerList() []IPlayer {
+	return d.UserList
+}
+func (d *DefaultRoom) JoinRoom(player IPlayer) {
+	d.UserList = append(d.UserList, player)
+}
+func (d *DefaultRoom) QuitRoom(player IPlayer) {
 	var delIndex int64
-	for i, item := range r.UserList {
+	for i, item := range d.UserList {
 		if item.UserId() == player.UserId() {
 			delIndex = int64(i)
 			break
 		}
 	}
-	r.UserList = append(r.UserList[:delIndex], r.UserList[delIndex+1:]...)
+	d.UserList = append(d.UserList[:delIndex], d.UserList[delIndex+1:]...)
 }
 
-func (r *Room) JoinRoom(player IPlayer) {
-	r.UserList = append(r.UserList, player)
+func (d *DefaultRoom) HeartbeatTime() int64 {
+	return d.Heartbeat
 }
 
-func (r *Room) GetPlayerList() []IPlayer {
-	return r.UserList
+
+
+// SyncRoom 帧同步房间
+type SyncRoom struct {
+	DefaultRoom
+	// 同步数据,索引为帧号
+	List []*SafeList
+	// 创建时间十位时间戳
+	CreateTime int64
 }
 
-func (r *Room) GetRoomId() int64 {
-	return r.RoomId
-}
-
-func (r *Room) GetMaxUser() int64 {
-	return 3
-}
-
-func (r *Room) GetRoomStatus() RoomStatus {
-	return Ready
+func NewRoom(roomId int64) *SyncRoom {
+	r := &SyncRoom{CreateTime: time.Now().Unix()}
+	r.RoomId = roomId
+	r.RoomStatus = Ready
+	return r
 }
 
 // Start 进行房间的帧同步，以每秒60帧为例，每1/60秒执行一次
-func (r *Room) Start(f func()) {
+func (r *SyncRoom) Start(f func()) {
 	r.StartCustom(f, time.Second/60)
 }
 
 // StartCustom 以每秒60帧为例，delay = time.Second/60 为每一帧的执行时间 = 1/60m秒
-func (r *Room) StartCustom(f func(), delay time.Duration) {
+func (r *SyncRoom) StartCustom(f func(), delay time.Duration) {
 	// 使用 common.SyncManager 进行帧同步
 	// 帧同步数据
 	r.RoomStatus = Running
@@ -101,8 +118,8 @@ func (r *Room) StartCustom(f func(), delay time.Duration) {
 }
 
 // AddSyncData 添加同步数据
-func (r *Room) AddSyncData(value any) {
-	r.lastSyncTime = time.Now().Unix()
+func (r *SyncRoom) AddSyncData(value any) {
+	r.Heartbeat = time.Now().Unix()
 	if len(r.List) == 0 {
 		return
 	}
@@ -113,7 +130,7 @@ func (r *Room) AddSyncData(value any) {
 }
 
 // GetLastSyncData 获取最后帧的同步数据
-func (r *Room) GetLastSyncData() *SafeList {
+func (r *SyncRoom) GetLastSyncData() *SafeList {
 	if len(r.List) == 0 {
 		return &SafeList{}
 	}
@@ -121,7 +138,7 @@ func (r *Room) GetLastSyncData() *SafeList {
 }
 
 // GetUserIdList  获取所有用户Id
-func (r *Room) GetUserIdList() (list []int64) {
+func (r *SyncRoom) GetUserIdList() (list []int64) {
 	for _, player := range r.UserList {
 		list = append(list, player.UserId())
 	}

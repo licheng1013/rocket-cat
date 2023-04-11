@@ -79,7 +79,7 @@ func (m *RoomManger) RoomClear(max int64) {
 				room := value.(IRoom)
 				if room.GetRoomStatus() == Running {
 					// 当超过max秒没有同步数据时，清理房间
-					if room.LastSyncTime()+max < time.Now().Unix() {
+					if room.HeartbeatTime()+max < time.Now().Unix() {
 						m.RemoveRoom(room.GetRoomId())
 					}
 				}
