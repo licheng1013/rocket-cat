@@ -6,7 +6,7 @@ import (
 )
 
 type ErrProxy struct {
-	proxy Proxy
+	ProxyFunc
 }
 
 func (e *ErrProxy) InvokeFunc(ctx *Context) {
@@ -27,11 +27,7 @@ func (e *ErrProxy) InvokeFunc(ctx *Context) {
 			debug.PrintStack()
 		}
 	}()
-	e.proxy.InvokeFunc(ctx)
-}
-
-func (e *ErrProxy) SetProxy(proxy Proxy) {
-	e.proxy = proxy
+	e.Proxy.InvokeFunc(ctx)
 }
 
 type ServiceError struct {

@@ -9,13 +9,13 @@ type Proxy interface {
 
 // ProxyFunc 代理模型
 type ProxyFunc struct {
-	proxy Proxy
+	Proxy Proxy
 }
 
 func (p *ProxyFunc) InvokeFunc(ctx *Context) {
-	p.proxy.InvokeFunc(ctx)
+	p.Proxy.InvokeFunc(ctx)
 }
 
 func (p *ProxyFunc) SetProxy(proxy Proxy) {
-	p.proxy = proxy
+	p.Proxy = proxy
 }

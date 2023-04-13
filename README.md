@@ -138,24 +138,55 @@ func WsTest(v chan int) {
 ### 中间件
 
 - 在调用目标路由方法之前或之后处理一些自定义逻辑,需要实现 Proxy 接口
-- 以下为示例。
+- 以下为示例。以异常处理中间件为例
+- 如何加入到中间件链中? -> Gateway.Router().AddProxy(YourProxy)
 
 ```go
-// ProxyFunc 代理模型
-type ProxyFunc struct {
-	proxy Proxy
+package router
+
+import (
+	"github.com/licheng1013/rocket-cat/common"
+	"runtime/debug"
+)
+
+type ErrProxy struct {
+	ProxyFunc
 }
 
-func (p *ProxyFunc) InvokeFunc(ctx Context) []byte {
-	// 之前逻辑
-	return p.proxy.InvokeFunc(ctx)
-	// 之后逻辑
+func (e *ErrProxy) InvokeFunc(ctx *Context) {
+	// 捕获异常
+	defer func() {
+		if err := recover(); err != nil {
+			switch err.(type) {
+			case *ServiceError:
+				errInfo := err.(*ServiceError)
+				ctx.Message.SetMessage(errInfo.Message)
+				ctx.Message.SetBody(errInfo.Message)
+				common.Logger().Println("业务异常 -> ", errInfo.Message)
+				break
+			default:
+				ctx.Message = nil
+				common.Logger().Println("系统异常 -> ", err)
+			}
+			debug.PrintStack()
+		}
+	}()
+	e.Proxy.InvokeFunc(ctx)
 }
 
-func (p *ProxyFunc) SetProxy(proxy Proxy) {
-	p.proxy = proxy
+type ServiceError struct {
+	error
+	Code    int
+	Message string
 }
+
+func NewServiceError(code int, message string) *ServiceError {
+	return &ServiceError{Code: code, Message: message}
+}
+
 ```
+
+
 
 ### 逻辑服互调功能
 
