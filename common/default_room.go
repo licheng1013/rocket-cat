@@ -1,7 +1,11 @@
 package common
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
+// IRoom 房间接口, 其默认实现为DefaultRoom, 所以继承DefaultRoom使用即可
 type IRoom interface {
 	// GetRoomId 获取房间id
 	GetRoomId() int64
@@ -21,6 +25,7 @@ type IRoom interface {
 	HeartbeatTime() int64
 }
 
+// DefaultRoom 默认房间实现,请继承此结构体,并重写方法,线程安全
 type DefaultRoom struct {
 	// 房间id
 	RoomId int64
@@ -34,6 +39,8 @@ type DefaultRoom struct {
 	MaxUser int64
 	// 心跳时间
 	Heartbeat int64
+	// 锁
+	sync.Mutex
 }
 
 func (d *DefaultRoom) GetRoomId() int64 {
@@ -49,18 +56,26 @@ func (d *DefaultRoom) GetRoomStatus() RoomStatus {
 }
 
 func (d *DefaultRoom) GetUserIdList() (list []int64) {
+	defer d.Unlock()
+	d.Lock()
 	for _, player := range d.UserList {
 		return append(list, player.UserId())
 	}
 	return
 }
 func (d *DefaultRoom) GetPlayerList() []IPlayer {
+	defer d.Unlock()
+	d.Lock()
 	return d.UserList
 }
 func (d *DefaultRoom) JoinRoom(player IPlayer) {
+	defer d.Unlock()
+	d.Lock()
 	d.UserList = append(d.UserList, player)
 }
 func (d *DefaultRoom) QuitRoom(player IPlayer) {
+	defer d.Unlock()
+	d.Lock()
 	var delIndex int64
 	for i, item := range d.UserList {
 		if item.UserId() == player.UserId() {
@@ -74,8 +89,6 @@ func (d *DefaultRoom) QuitRoom(player IPlayer) {
 func (d *DefaultRoom) HeartbeatTime() int64 {
 	return d.Heartbeat
 }
-
-
 
 // SyncRoom 帧同步房间
 type SyncRoom struct {

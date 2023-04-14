@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// RoomManger 不允许外部直接创建
+// RoomManger 线程安全
 type RoomManger struct {
 	// 用户id - 房间id
 	userOnRoom sync.Map
