@@ -21,8 +21,9 @@ func TestRoomManager(t *testing.T) {
 }
 
 type Player struct {
+	Uid int64
 }
 
-func (p Player) UserId() int64 {
-	return 1000
+func (p *Player) UserId() int64 {
+	return p.Uid
 }

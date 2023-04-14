@@ -59,7 +59,7 @@ func (d *DefaultRoom) GetUserIdList() (list []int64) {
 	defer d.Unlock()
 	d.Lock()
 	for _, player := range d.UserList {
-		return append(list, player.UserId())
+		list = append(list, player.UserId())
 	}
 	return
 }
