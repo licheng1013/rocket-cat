@@ -42,7 +42,7 @@ func (j *JsonMessage) GetBytesResult() []byte {
 	return MsgKit.StructToBytes(j)
 }
 
-func (j *JsonMessage) SetBody(data interface{}) Message {
+func (j *JsonMessage) SetBody(data interface{}) {
 	switch data.(type) {
 	case []byte:
 		j.Body = data.([]byte)
@@ -54,7 +54,6 @@ func (j *JsonMessage) SetBody(data interface{}) Message {
 		}
 		j.Body = bytes
 	}
-	return j
 }
 
 func (j *JsonMessage) GetMerge() int64 {

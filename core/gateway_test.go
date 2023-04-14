@@ -24,17 +24,16 @@ func TestSingleGateway(t *testing.T) {
 		login := r.(LoginInterface)
 		if login.Login(12345, ctx.SocketId) {
 			fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
-			login.SendAllUserMessage(ctx.Message.SetBody([]byte("用户")).GetBytesResult())
+			ctx.Message.SetBody([]byte("用户"))
+			login.SendAllUserMessage(ctx.Message.GetBytesResult())
 		}
-		gateway.SendMessage(ctx.Message.SetBody([]byte("广播")).GetBytesResult())
+		ctx.Message.SetBody([]byte("广播"))
+		gateway.SendMessage(ctx.Message.GetBytesResult())
 		ctx.Message.SetBody([]byte("业务返回Hi->Ok->2"))
 	})
-	socket := &connect.WebSocket{}
-	socket.Debug = true
-	gateway.SetSocket(socket)
-	gateway.Start(connect.Addr)
+	go gateway.Start(connect.Addr)
 	time.Sleep(time.Second * 1) //等待完全启动
-	//go WsTest(channel)
+	go WsTest(channel)
 	select {
 	case ok := <-channel:
 		time.Sleep(time.Second * 1)
@@ -78,6 +77,7 @@ func WsTest(v chan int) {
 			}
 			// 打印消息
 			fmt.Printf("收到消息: %s\n", p)
+			v <- 0
 		}
 	}()
 

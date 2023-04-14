@@ -38,6 +38,10 @@ type Gateway struct {
 	closeHook []connect.SocketClose
 }
 
+func (g *Gateway) Socket() connect.Socket {
+	return g.socket
+}
+
 func (g *Gateway) OnClose(socketId uint32) {
 	for _, item := range g.closeHook {
 		item.OnClose(socketId)
@@ -91,6 +95,7 @@ func DefaultGateway() *Gateway {
 	g.AddPlugin(&LoginPlugin{})
 	g.AddPlugin(&BindPlugin{})
 	g.SetDecoder(decoder.JsonDecoder{})
+	g.SetSocket(&connect.WebSocket{})
 	return g
 }
 

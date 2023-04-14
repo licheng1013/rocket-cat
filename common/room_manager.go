@@ -42,8 +42,8 @@ func (m *RoomManger) AddRoom(r IRoom) {
 	m.roomIdOnRoom.Store(r.GetRoomId(), r)
 }
 
-// PlayerJoinRoom 加入房间
-func (m *RoomManger) PlayerJoinRoom(player IPlayer, roomId int64) {
+// JoinRoom 加入房间
+func (m *RoomManger) JoinRoom(player IPlayer, roomId int64) {
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {
 		room := value.(IRoom)
 		room.JoinRoom(player)
@@ -51,11 +51,11 @@ func (m *RoomManger) PlayerJoinRoom(player IPlayer, roomId int64) {
 	}
 }
 
-// PlayerQuitRoom 退出房间
-func (m *RoomManger) PlayerQuitRoom(player IPlayer, roomId int64) {
+// QuitRoom 退出房间
+func (m *RoomManger) QuitRoom(player IPlayer, roomId int64) {
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {
 		room := value.(IRoom)
-		m.userOnRoom.Delete(player.UserId)
+		m.userOnRoom.Delete(player.UserId())
 		room.QuitRoom(player)
 	}
 }
@@ -116,9 +116,9 @@ type RoomStatus int
 
 // 房间状态
 const (
-	Ready   RoomStatus = iota // 准备状态
-	Running                   // 运行状态
-	Close                     // 关闭状态
+	Ready   RoomStatus = iota // 准备状态, 未开始
+	Running                   // 运行状态, 已经开始
+	Close                     // 关闭状态, 已经结束
 )
 
 type IPlayer interface {

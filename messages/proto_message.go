@@ -64,7 +64,7 @@ func (p *ProtoMessage) GetBytesResult() []byte {
 	return marshal
 }
 
-func (p *ProtoMessage) SetBody(data interface{}) Message {
+func (p *ProtoMessage) SetBody(data interface{}) {
 	switch data.(type) {
 	case []byte:
 		p.Body = data.([]byte)
@@ -77,7 +77,6 @@ func (p *ProtoMessage) SetBody(data interface{}) Message {
 		p.Body = marshal
 		break
 	}
-	return p
 }
 
 func (p *ProtoMessage) GetHeaders() string {
