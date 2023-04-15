@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-// SafeMap 安全的map，支持并发读写
+// SafeMap 安全的map，支持并发读写,加有序的key
 type SafeMap struct {
 	sync.RWMutex
 	m    map[int64]interface{}
@@ -50,4 +50,17 @@ func (sm *SafeMap) Values() []interface{} {
 		values[i] = sm.m[key]
 	}
 	return values
+}
+
+// Delete 删除值
+func (sm *SafeMap) Delete(key int64) {
+	sm.Lock()
+	defer sm.Unlock()
+	delete(sm.m, key)
+	for i, k := range sm.keys {
+		if k == key {
+			sm.keys = append(sm.keys[:i], sm.keys[i+1:]...)
+			break
+		}
+	}
 }

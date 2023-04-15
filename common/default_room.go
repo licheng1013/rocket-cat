@@ -21,8 +21,10 @@ type IRoom interface {
 	JoinRoom(player IPlayer)
 	// QuitRoom 退出房间，请通过RoomManager使用
 	QuitRoom(player IPlayer)
-	// HeartbeatTime 房间上次心跳时间,如果在一定时间内没有心跳则清理房间
+	// HeartbeatTime 房间上次心跳时间,如果在一定时间内没有心跳则清理房间,10位时间戳
 	HeartbeatTime() int64
+	// GetPlayer 获取某个玩家
+	GetPlayer(userId int64) IPlayer
 }
 
 // DefaultRoom 默认房间实现,请继承此结构体,并重写方法,线程安全
@@ -30,7 +32,7 @@ type DefaultRoom struct {
 	// 房间id
 	RoomId int64
 	// 用户Ids
-	UserList []IPlayer
+	userList []IPlayer
 	// 房间状态
 	RoomStatus
 	// 创建时间十位时间戳
@@ -41,6 +43,17 @@ type DefaultRoom struct {
 	Heartbeat int64
 	// 锁
 	sync.Mutex
+}
+
+func (d *DefaultRoom) GetPlayer(userId int64) IPlayer {
+	defer d.Unlock()
+	d.Lock()
+	for _, player := range d.userList {
+		if player.UserId() == userId {
+			return player
+		}
+	}
+	return nil
 }
 
 func (d *DefaultRoom) GetRoomId() int64 {
@@ -58,7 +71,7 @@ func (d *DefaultRoom) GetRoomStatus() RoomStatus {
 func (d *DefaultRoom) GetUserIdList() (list []int64) {
 	defer d.Unlock()
 	d.Lock()
-	for _, player := range d.UserList {
+	for _, player := range d.userList {
 		list = append(list, player.UserId())
 	}
 	return
@@ -66,24 +79,24 @@ func (d *DefaultRoom) GetUserIdList() (list []int64) {
 func (d *DefaultRoom) GetPlayerList() []IPlayer {
 	defer d.Unlock()
 	d.Lock()
-	return d.UserList
+	return d.userList
 }
 func (d *DefaultRoom) JoinRoom(player IPlayer) {
 	defer d.Unlock()
 	d.Lock()
-	d.UserList = append(d.UserList, player)
+	d.userList = append(d.userList, player)
 }
 func (d *DefaultRoom) QuitRoom(player IPlayer) {
 	defer d.Unlock()
 	d.Lock()
 	var delIndex int64
-	for i, item := range d.UserList {
+	for i, item := range d.userList {
 		if item.UserId() == player.UserId() {
 			delIndex = int64(i)
 			break
 		}
 	}
-	d.UserList = append(d.UserList[:delIndex], d.UserList[delIndex+1:]...)
+	d.userList = append(d.userList[:delIndex], d.userList[delIndex+1:]...)
 }
 
 func (d *DefaultRoom) HeartbeatTime() int64 {
@@ -152,7 +165,7 @@ func (r *SyncRoom) GetLastSyncData() *SafeList {
 
 // GetUserIdList  获取所有用户Id
 func (r *SyncRoom) GetUserIdList() (list []int64) {
-	for _, player := range r.UserList {
+	for _, player := range r.userList {
 		list = append(list, player.UserId())
 	}
 	return
