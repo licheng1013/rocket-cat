@@ -25,6 +25,8 @@ type IRoom interface {
 	HeartbeatTime() int64
 	// GetPlayer 获取某个玩家
 	GetPlayer(userId int64) IPlayer
+	// ClearRoom 清空所有玩家
+	ClearRoom()
 }
 
 // DefaultRoom 默认房间实现,请继承此结构体,并重写方法,线程安全
@@ -43,6 +45,12 @@ type DefaultRoom struct {
 	Heartbeat int64
 	// 锁
 	sync.Mutex
+}
+
+func (d *DefaultRoom) ClearRoom() {
+	defer d.Unlock()
+	d.Lock()
+	d.userList = make([]IPlayer, 0)
 }
 
 func (d *DefaultRoom) GetPlayer(userId int64) IPlayer {

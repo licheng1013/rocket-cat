@@ -67,6 +67,8 @@ func (m *RoomManger) RemoveRoom(roomId int64) {
 		for _, userId := range room.GetUserIdList() {
 			m.userOnRoom.Delete(userId)
 		}
+		// 清理房间
+		room.ClearRoom()
 	}
 	m.roomIdOnRoom.Delete(roomId)
 }
