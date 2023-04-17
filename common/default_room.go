@@ -92,6 +92,12 @@ func (d *DefaultRoom) GetPlayerList() []IPlayer {
 func (d *DefaultRoom) JoinRoom(player IPlayer) {
 	defer d.Unlock()
 	d.Lock()
+	// 判断是否已经在房间内
+	for _, item := range d.userList {
+		if item.UserId() == player.UserId() {
+			return
+		}
+	}
 	d.userList = append(d.userList, player)
 }
 func (d *DefaultRoom) QuitRoom(player IPlayer) {

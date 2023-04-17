@@ -10,8 +10,8 @@ func TestQueue(t *testing.T) {
 	queue := NewMatchQueue(2, func(matches []int64) {
 		fmt.Println("匹配成功 -> ", matches)
 	})
-	queue.AddMatch(1)
-	queue.AddMatch(1)
-	queue.AddMatch(5)
-	queue.AddMatch(4)
+	queue.AddMatch(&DefaultPlayer{Uid: 1})
+	queue.AddMatch(&DefaultPlayer{Uid: 2})
+	queue.AddMatch(&DefaultPlayer{Uid: 3})
+	queue.AddMatch(&DefaultPlayer{Uid: 4})
 }

@@ -120,3 +120,12 @@ const (
 type IPlayer interface {
 	UserId() int64
 }
+
+// DefaultPlayer 默认Player
+type DefaultPlayer struct {
+	Uid int64
+}
+
+func (d *DefaultPlayer) UserId() int64 {
+	return d.Uid
+}
