@@ -38,7 +38,7 @@ func ManyService(port uint16) {
 		ServiceName: common.ServiceName, RemoteName: common.GatewayName} // 测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
 	nacos.RegisterClient(clientInfo)
-	nacos.Register(registers.ClientInfo{Ip: "localhost", Port: 8848})
+	nacos.Register(registers.ServerInfo{Ip: "localhost", Port: 8848})
 	// nacos
 	rpc := &remote.GrpcServer{}
 	// rpc

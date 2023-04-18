@@ -67,7 +67,7 @@ func LogFunc(merge int64, f func(ctx *Context)) {
 	if info == nil {
 		cmd := common.CmdKit.GetCmd(merge)
 		subCmd := common.CmdKit.GetSubCmd(merge)
-		mergeInfo := fmt.Sprint(cmd) + "-" + fmt.Sprint(subCmd)
+		mergeInfo := fmt.Sprint(cmd) + "-" + fmt.Sprint(subCmd) + " -> " + fmt.Sprint(merge)
 		name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 		info = &routerInfo{
 			merge: mergeInfo,

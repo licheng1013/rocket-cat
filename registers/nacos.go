@@ -35,7 +35,7 @@ func (n *Nacos) Close() {
 	}
 }
 
-func (n *Nacos) Register(info ClientInfo) {
+func (n *Nacos) Register(info ServerInfo) {
 	// 创建serverConfig的另一种方式 -> 此处链接nacos的配置
 	serverConfigs := []constant.ServerConfig{
 		*constant.NewServerConfig(info.Ip, uint64(info.Port), constant.WithScheme("http"),
@@ -91,7 +91,7 @@ func DefaultNacos() *Nacos {
 	clientInfo := ClientInfo{Ip: "localhost", Port: 12008,
 		ServiceName: common.ServiceName, RemoteName: common.GatewayName}
 	nacos.RegisterClient(clientInfo)
-	nacos.Register(ClientInfo{Ip: "localhost", Port: 8848})
+	nacos.Register(ServerInfo{Ip: "localhost", Port: 8848})
 	return nacos
 }
 

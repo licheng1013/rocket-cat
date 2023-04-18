@@ -49,7 +49,7 @@ func TestGateway(t *testing.T) {
 		ServiceName: common.GatewayName, RemoteName: common.ServiceName} //测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
 	nacos.RegisterClient(clientInfo)
-	nacos.Register(registers.ClientInfo{Ip: "localhost", Port: 8848})
+	nacos.Register(registers.ServerInfo{Ip: "localhost", Port: 8848})
 
 	gateway.SetClient(&remote.GrpcClient{})
 	gateway.SetServer(&remote.GrpcServer{})

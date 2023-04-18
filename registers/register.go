@@ -11,7 +11,7 @@ type IRegister interface {
 // Register 注册中心必须实现的接口！
 type Register interface {
 	// Register 注册
-	Register(ClientInfo)
+	Register(info ServerInfo)
 	// RegisterClient 注册客户端信息
 	RegisterClient(ClientInfo)
 	// GetIp 获取1个ip
