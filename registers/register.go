@@ -2,23 +2,30 @@ package registers
 
 import "fmt"
 
+// IRegister 注册中心必须实现的接口
+type IRegister interface {
+	GetIp() (ClientInfo, error)
+	ListIp(serverName string) ([]ClientInfo, error)
+}
+
 // Register 注册中心必须实现的接口！
 type Register interface {
 	// Register 注册
-	Register(RegisterInfo)
+	Register(ClientInfo)
 	// RegisterClient 注册客户端信息
-	RegisterClient(RegisterInfo)
+	RegisterClient(ClientInfo)
 	// GetIp 获取1个ip
-	GetIp() (RegisterInfo, error)
+	GetIp() (ClientInfo, error)
 	// ListIp 获取所有ip
-	ListIp(serverName string) ([]RegisterInfo, error)
+	ListIp(serverName string) ([]ClientInfo, error)
 	// Close 用于关机等操作
 	Close()
-	// RegisterInfo 注册信息
-	RegisterInfo() RegisterInfo
+	// ClientInfo  注册信息
+	ClientInfo() ClientInfo
 }
 
-type RegisterInfo struct {
+// ClientInfo 客户端注册的数据
+type ClientInfo struct {
 	// ip
 	Ip string
 	// 端口
@@ -29,6 +36,18 @@ type RegisterInfo struct {
 	RemoteName string
 }
 
-func (v RegisterInfo) Addr() string {
+func (v ClientInfo) Addr() string {
+	return v.Ip + ":" + fmt.Sprint(v.Port)
+}
+
+// ServerInfo 注册中心注册的数据
+type ServerInfo struct {
+	// ip
+	Ip string
+	// 端口
+	Port uint16
+}
+
+func (v ServerInfo) Addr() string {
 	return v.Ip + ":" + fmt.Sprint(v.Port)
 }

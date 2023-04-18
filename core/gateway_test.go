@@ -45,11 +45,11 @@ func TestGateway(t *testing.T) {
 	gateway := NewGateway()
 	gateway.SetSingle(false)
 
-	clientInfo := registers.RegisterInfo{Ip: "192.168.101.10", Port: 12344, //这里是rpc端口
+	clientInfo := registers.ClientInfo{Ip: "192.168.101.10", Port: 12344, //这里是rpc端口
 		ServiceName: common.GatewayName, RemoteName: common.ServiceName} //测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
 	nacos.RegisterClient(clientInfo)
-	nacos.Register(registers.RegisterInfo{Ip: "localhost", Port: 8848})
+	nacos.Register(registers.ClientInfo{Ip: "localhost", Port: 8848})
 
 	gateway.SetClient(&remote.GrpcClient{})
 	gateway.SetServer(&remote.GrpcServer{})

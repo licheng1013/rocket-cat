@@ -37,12 +37,12 @@ type Service struct {
 
 // SendGatewayMessage 广播消息路由 -> 所有网关服
 func (n *Service) SendGatewayMessage(info *protof.RpcInfo) (result [][]byte, err error) {
-	return n.sendMessageByServiceName(n.register.RegisterInfo().RemoteName, info)
+	return n.sendMessageByServiceName(n.register.ClientInfo().RemoteName, info)
 }
 
 // SendServiceMessage 广播消息路由 -> 所有逻辑服
 func (n *Service) SendServiceMessage(bytes []byte) (result [][]byte, err error) {
-	return n.sendMessageByServiceName(n.register.RegisterInfo().ServiceName, protof.RpcBodyBuild(bytes))
+	return n.sendMessageByServiceName(n.register.ClientInfo().ServiceName, protof.RpcBodyBuild(bytes))
 }
 
 // sendMessageByServiceName  广播消息路由
@@ -159,7 +159,7 @@ func (n *Service) Start() {
 	}
 	n.rpcServer.CallbackResult(n.CallbackResult)
 	n.close = append(n.close, n.register.Close)
-	addr := n.register.RegisterInfo().Addr()
+	addr := n.register.ClientInfo().Addr()
 	go n.rpcServer.ListenAddr(addr)
 	common.StopApplication()
 	for _, item := range n.close {

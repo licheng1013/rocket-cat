@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+type H map[string]interface{}
+type M map[string]bool
+
 // Router 路由器功能
 type Router interface {
 	// AddAction 添加路由

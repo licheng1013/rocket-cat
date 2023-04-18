@@ -8,10 +8,12 @@ import (
 )
 
 func TestNacos(t *testing.T) {
+	const localIp = "localhost"
 	nacos := NewNacos()
-	// 这里一致用于测试访问
-	info := RegisterInfo{Ip: "192.168.101.10", Port: 8848}
-	clientInfo := RegisterInfo{Ip: "192.168.101.10", Port: 12345,
+	// nacos的注册地址
+	info := ClientInfo{Ip: localIp, Port: 8848}
+	// 客户端的注册信息
+	clientInfo := ClientInfo{Ip: localIp, Port: 12345,
 		ServiceName: common.ServiceName, RemoteName: common.ServiceName} // 测试时 RemoteName 传递一样的
 	nacos.RegisterClient(clientInfo)
 	nacos.Register(info)

@@ -15,13 +15,13 @@ import (
 // Nacos 请使用构造方法获取实例  NewNacos
 type Nacos struct {
 	namingClient       naming_client.INamingClient
-	registerClientInfo RegisterInfo
+	registerClientInfo ClientInfo
 	registerParam      vo.RegisterInstanceParam
 	logoutParam        vo.DeregisterInstanceParam
 	updateParam        vo.UpdateInstanceParam
 }
 
-func (n *Nacos) RegisterInfo() RegisterInfo {
+func (n *Nacos) ClientInfo() ClientInfo {
 	return n.registerClientInfo
 }
 
@@ -35,7 +35,7 @@ func (n *Nacos) Close() {
 	}
 }
 
-func (n *Nacos) Register(info RegisterInfo) {
+func (n *Nacos) Register(info ClientInfo) {
 	// 创建serverConfig的另一种方式 -> 此处链接nacos的配置
 	serverConfigs := []constant.ServerConfig{
 		*constant.NewServerConfig(info.Ip, uint64(info.Port), constant.WithScheme("http"),
@@ -47,6 +47,7 @@ func (n *Nacos) Register(info RegisterInfo) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(n.registerParam)
 	if success, err := n.namingClient.RegisterInstance(n.registerParam); err != nil || !success {
 		panic(err)
 	}
@@ -55,27 +56,27 @@ func (n *Nacos) Register(info RegisterInfo) {
 }
 
 // GetIp 获取单个ip
-func (n *Nacos) GetIp() (RegisterInfo, error) {
+func (n *Nacos) GetIp() (ClientInfo, error) {
 	// SelectList 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
 	instances, err := n.namingClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
 		ServiceName: n.registerClientInfo.RemoteName,
 		GroupName:   n.registerParam.GroupName,
 	})
 	if err != nil {
-		return RegisterInfo{}, errors.New("获取实例为空")
+		return ClientInfo{}, errors.New("获取实例为空")
 	}
-	return RegisterInfo{Ip: instances.Ip, Port: uint16(instances.Port), ServiceName: instances.ServiceName}, nil
+	return ClientInfo{Ip: instances.Ip, Port: uint16(instances.Port), ServiceName: instances.ServiceName}, nil
 }
 
 // ListIp 获取ip
-func (n *Nacos) ListIp(serverName string) ([]RegisterInfo, error) {
+func (n *Nacos) ListIp(serverName string) ([]ClientInfo, error) {
 	instances := n.SelectList(serverName)
-	infos := make([]RegisterInfo, 0)
+	infos := make([]ClientInfo, 0)
 	if len(instances) == 0 {
 		return infos, errors.New("获取实例为空")
 	}
 	for _, item := range instances {
-		infos = append(infos, RegisterInfo{Ip: item.Ip, Port: uint16(item.Port), ServiceName: item.ServiceName})
+		infos = append(infos, ClientInfo{Ip: item.Ip, Port: uint16(item.Port), ServiceName: item.ServiceName})
 	}
 	return infos, nil
 }
@@ -87,10 +88,10 @@ func NewNacos() *Nacos {
 // DefaultNacos 配置默认的nacos
 func DefaultNacos() *Nacos {
 	nacos := &Nacos{}
-	clientInfo := RegisterInfo{Ip: "localhost", Port: 12008,
+	clientInfo := ClientInfo{Ip: "localhost", Port: 12008,
 		ServiceName: common.ServiceName, RemoteName: common.GatewayName}
 	nacos.RegisterClient(clientInfo)
-	nacos.Register(RegisterInfo{Ip: "localhost", Port: 8848})
+	nacos.Register(ClientInfo{Ip: "localhost", Port: 8848})
 	return nacos
 }
 
@@ -129,14 +130,14 @@ func (n *Nacos) heartbeat() {
 	}
 }
 
-func (n *Nacos) RegisterClient(info RegisterInfo) {
+func (n *Nacos) RegisterClient(info ClientInfo) {
 	n.registerClientInfo = info
 	// 这里是设置注册客户端的参数
 	n.registerParam = vo.RegisterInstanceParam{
 		Ip:          info.Ip,
 		Port:        uint64(info.Port),
 		ServiceName: info.ServiceName,
-		GroupName:   "DEFAULT_GROUP",
+		GroupName:   "DEFAULT_GROUP", // 默认 default_GROUP
 		Weight:      10,
 		Enable:      true,
 		Healthy:     true,
@@ -145,6 +146,7 @@ func (n *Nacos) RegisterClient(info RegisterInfo) {
 		Ip:          n.registerParam.Ip,
 		Port:        n.registerParam.Port,
 		ServiceName: n.registerParam.ServiceName,
+		GroupName:   n.registerParam.GroupName,
 	}
 	n.updateParam = vo.UpdateInstanceParam{
 		Ip:          n.registerParam.Ip,
@@ -153,5 +155,6 @@ func (n *Nacos) RegisterClient(info RegisterInfo) {
 		Enable:      n.registerParam.Enable,
 		Healthy:     n.registerParam.Healthy,
 		ServiceName: n.registerParam.ServiceName,
+		GroupName:   n.registerParam.GroupName,
 	}
 }

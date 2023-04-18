@@ -130,7 +130,7 @@ func (g *Gateway) Start(addr string) {
 				// TODO 这是从 -> 逻辑服发送过来的消息
 				return nil
 			})
-			go g.server.ListenAddr(g.registerClient.RegisterInfo().Addr())
+			go g.server.ListenAddr(g.registerClient.ClientInfo().Addr())
 		}
 	}
 	g.socket.ListenBack(g.ListenBack)
@@ -163,9 +163,9 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 	}
 	remoteIp := g.socketIdIpMap[uuid]
 	if remoteIp != "" {
-		return g.client.InvokeRemoteRpc(remoteIp, &protof.RpcInfo{Body: bytes, SocketId: uuid, Ip: g.registerClient.RegisterInfo().Addr()})
+		return g.client.InvokeRemoteRpc(remoteIp, &protof.RpcInfo{Body: bytes, SocketId: uuid, Ip: g.registerClient.ClientInfo().Addr()})
 	}
-	return g.client.InvokeRemoteRpc(ip.Addr(), &protof.RpcInfo{Body: bytes, SocketId: uuid, Ip: g.registerClient.RegisterInfo().Addr()})
+	return g.client.InvokeRemoteRpc(ip.Addr(), &protof.RpcInfo{Body: bytes, SocketId: uuid, Ip: g.registerClient.ClientInfo().Addr()})
 }
 
 func (g *Gateway) SetServer(r remote.RpcServer) {
