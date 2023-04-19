@@ -46,12 +46,21 @@ func (e *Etcd) GetIp() (ClientInfo, error) {
 func parseIp(ip string) ClientInfo {
 	split := strings.Split(ip, ":")
 	parseInt, _ := strconv.ParseInt(split[1], 10, 64)
-	return ClientInfo{Ip: ip, Port: uint16(parseInt)}
+	return ClientInfo{Ip: split[0], Port: uint16(parseInt)}
 }
 
-func (e *Etcd) ListIp(serverName string) ([]ClientInfo, error) {
-	//TODO implement me
-	panic("implement me")
+func (e *Etcd) ListIp(serverName string) (clients []ClientInfo, errorInfo error) {
+	list, err := e.conn.cli.Get(context.Background(), serverName, clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	}
+	if len(list.Kvs) == 0 {
+		return nil, errors.New("找不到服务")
+	}
+	for _, kv := range list.Kvs {
+		clients = append(clients, parseIp(string(kv.Value)))
+	}
+	return clients, nil
 }
 
 // Run 运行

@@ -16,7 +16,10 @@
 
 - 从架构图可以看出从A获取B的地址是从通过注册中心**Nacos**获取的,当然你也可以自定义其他注册中心。
 - 注:单机模式-不需要nacos即可使用
-- ![struct.png](struct.png)
+- ![struct.png](images/struct.png)
+
+- 新架构图
+- ![struct.png](images/rocket-cat.drawio.png)
 
 ### 描述
 
@@ -46,77 +49,21 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
-	"github.com/licheng1013/rocket-cat/common"
-	"github.com/licheng1013/rocket-cat/connect"
 	"github.com/licheng1013/rocket-cat/core"
-	"github.com/licheng1013/rocket-cat/decoder"
-	"github.com/licheng1013/rocket-cat/messages"
 	"github.com/licheng1013/rocket-cat/router"
-	"log"
-	"net/url"
-	"os"
-	"os/signal"
-	"time"
 )
 
 func main() {
-	socket := &connect.WebSocket{}
-	channel := make(chan int)
-	gateway := core.NewGateway()
-	gateway.SetDecoder(decoder.JsonDecoder{})
-	gateway.Router().AddAction(common.CmdKit.GetMerge(1, 1), func(ctx *router.Context) {
-		socket.SendMessage(ctx.Message.SetBody([]byte("Hi")).GetBytesResult())
-		ctx.Message.SetBody([]byte("Hi Ok 2"))
+	// 构建一个默认服务
+	gateway := core.DefaultGateway()
+	// 添加一个路由
+	gateway.Router().AddAction(1, 1, func(ctx *router.Context) {
+		// 设置返回数据
+		ctx.Message.SetBody(map[string]interface{}{"name": "RocketCat"})
+		ctx.Message.SetMessage("这是消息")
 	})
-	go gateway.Start(connect.Addr, socket)
-	time.Sleep(time.Second / 2) //等待完全启动
-	go WsTest(channel)
-	select {
-	case ok := <-channel:
-		router.FileLogger().Println(ok)
-	}
-}
-
-func WsTest(v chan int) {
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-	u := url.URL{Scheme: "ws", Host: connect.Addr, Path: "/ws"}
-	log.Printf("connecting to %s", u.String())
-
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	defer c.Close()
-	done := make(chan struct{})
-	var count int64
-	go func() {
-		defer close(done)
-		for {
-			_, m, err := c.ReadMessage()
-			jsonDecoder := decoder.JsonDecoder{}
-			dto := jsonDecoder.DecoderBytes(m)
-			if err != nil {
-				router.FileLogger().Println("读取消息错误:", err)
-				return
-			}
-			router.FileLogger().Println("收到消息:", string(dto.GetBody()))
-			count++
-			if count >= 2 {
-				v <- 0
-			}
-		}
-	}()
-	for {
-		jsonMessage := messages.JsonMessage{Body: []byte("HelloWorld")}
-		jsonMessage.Merge = common.CmdKit.GetMerge(1, 1)
-		err := c.WriteMessage(websocket.TextMessage, jsonMessage.GetBytesResult())
-		if err != nil {
-			router.FileLogger().Println("写:", err)
-			return
-		}
-	}
+	// 绑定路由
+	gateway.Start(":10100")
 }
 
 ```

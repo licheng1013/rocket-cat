@@ -4,7 +4,9 @@ import "fmt"
 
 // IRegister 注册中心必须实现的接口
 type IRegister interface {
+	// GetIp 获取单个ip
 	GetIp() (ClientInfo, error)
+	// ListIp 获取所有ip
 	ListIp(serverName string) ([]ClientInfo, error)
 }
 

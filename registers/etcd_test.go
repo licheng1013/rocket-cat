@@ -16,6 +16,8 @@ func TestEtcd(t *testing.T) {
 	for i := 0; i < 6; i++ {
 		ip, _ := a2.GetIp()
 		fmt.Println(ip)
+		list, _ := a2.ListIp(common.ServiceName)
+		fmt.Println(list)
 		time.Sleep(time.Second)
 	}
 	a1.Close()
