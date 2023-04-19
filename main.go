@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"github.com/licheng1013/rocket-cat/connect"
+	"github.com/licheng1013/rocket-cat/core"
+	"github.com/licheng1013/rocket-cat/router"
+)
 
 func main() {
-	fmt.Println("HelloWorld")
+	gateway := core.DefaultGateway()
+	gateway.Router().AddAction(1, 1, func(ctx *router.Context) {
+		ctx.Message.SetBody([]byte("业务返回Hi->Ok->2"))
+	})
+	gateway.Start(connect.Addr)
 }
