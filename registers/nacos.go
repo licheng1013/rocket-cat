@@ -14,31 +14,18 @@ import (
 
 // Nacos 请使用构造方法获取实例  NewNacos
 type Nacos struct {
-	namingClient       naming_client.INamingClient
-	registerClientInfo ClientInfo
-	registerParam      vo.RegisterInstanceParam
-	logoutParam        vo.DeregisterInstanceParam
-	updateParam        vo.UpdateInstanceParam
+	namingClient  naming_client.INamingClient
+	clientInfo    ClientInfo
+	registerParam vo.RegisterInstanceParam
+	logoutParam   vo.DeregisterInstanceParam
+	updateParam   vo.UpdateInstanceParam
+	serverInfo    ServerInfo
 }
 
-func (n *Nacos) ClientInfo() ClientInfo {
-	return n.registerClientInfo
-}
-
-func (n *Nacos) Close() {
-	success, err := n.namingClient.DeregisterInstance(n.logoutParam)
-	if err != nil {
-		common.Logger().Println("注销错误:" + err.Error())
-	}
-	if success {
-		common.Logger().Println("注销成功！")
-	}
-}
-
-func (n *Nacos) Register(info ServerInfo) {
+func (n *Nacos) Run() {
 	// 创建serverConfig的另一种方式 -> 此处链接nacos的配置
 	serverConfigs := []constant.ServerConfig{
-		*constant.NewServerConfig(info.Ip, uint64(info.Port), constant.WithScheme("http"),
+		*constant.NewServerConfig(n.serverInfo.Ip, uint64(n.serverInfo.Port), constant.WithScheme("http"),
 			constant.WithContextPath("/nacos")),
 	}
 	var err error
@@ -51,15 +38,33 @@ func (n *Nacos) Register(info ServerInfo) {
 	if success, err := n.namingClient.RegisterInstance(n.registerParam); err != nil || !success {
 		panic(err)
 	}
-	common.Logger().Println("注册中心:", info.Ip+":"+fmt.Sprint(info.Port))
+	common.Logger().Println("注册中心:", n.serverInfo.Ip+":"+fmt.Sprint(n.serverInfo.Port))
 	go n.heartbeat() // 心跳功能
+}
+
+func (n *Nacos) ClientInfo() ClientInfo {
+	return n.clientInfo
+}
+
+func (n *Nacos) Close() {
+	success, err := n.namingClient.DeregisterInstance(n.logoutParam)
+	if err != nil {
+		common.Logger().Println("注销错误:" + err.Error())
+	}
+	if success {
+		common.Logger().Println("注销成功！")
+	}
+}
+
+func (n *Nacos) RegisterServer(info ServerInfo) {
+	n.serverInfo = info
 }
 
 // GetIp 获取单个ip
 func (n *Nacos) GetIp() (ClientInfo, error) {
 	// SelectList 只返回满足这些条件的实例列表：healthy=${HealthyOnly},enable=true 和weight>0
 	instances, err := n.namingClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
-		ServiceName: n.registerClientInfo.RemoteName,
+		ServiceName: n.clientInfo.RemoteName,
 		GroupName:   n.registerParam.GroupName,
 	})
 	if err != nil {
@@ -91,7 +96,7 @@ func DefaultNacos() *Nacos {
 	clientInfo := ClientInfo{Ip: "localhost", Port: 12008,
 		ServiceName: common.ServiceName, RemoteName: common.GatewayName}
 	nacos.RegisterClient(clientInfo)
-	nacos.Register(ServerInfo{Ip: "localhost", Port: 8848})
+	nacos.RegisterServer(ServerInfo{Ip: "localhost", Port: 8848})
 	return nacos
 }
 
@@ -131,7 +136,7 @@ func (n *Nacos) heartbeat() {
 }
 
 func (n *Nacos) RegisterClient(info ClientInfo) {
-	n.registerClientInfo = info
+	n.clientInfo = info
 	// 这里是设置注册客户端的参数
 	n.registerParam = vo.RegisterInstanceParam{
 		Ip:          info.Ip,

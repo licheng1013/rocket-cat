@@ -46,8 +46,8 @@ func createTest(port uint16) *Etcd {
 	// 本地ip
 	const localIp = "localhost"
 	etcd := &Etcd{}
-	etcd.ServerInfo = ServerInfo{Ip: localIp, Port: 2379}
-	etcd.ClientInfo = ClientInfo{Ip: localIp, Port: port, ServiceName: common.ServiceName,
-		RemoteName: common.ServiceName}
+	etcd.RegisterServer(ServerInfo{Ip: localIp, Port: 2379})
+	etcd.RegisterClient(ClientInfo{Ip: localIp, Port: port, ServiceName: common.ServiceName,
+		RemoteName: common.ServiceName})
 	return etcd
 }

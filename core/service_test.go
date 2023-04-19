@@ -34,17 +34,22 @@ func (m *MyProxy) SetProxy(proxy router.Proxy) {
 
 // 此处测试需要配合注册中心一起测试
 func ManyService(port uint16) {
-	clientInfo := registers.ClientInfo{Ip: "192.168.101.10", Port: port,
-		ServiceName: common.ServiceName, RemoteName: common.GatewayName} // 测试时 RemoteName 传递一样的
-	nacos := registers.NewNacos()
-	nacos.RegisterClient(clientInfo)
-	nacos.Register(registers.ServerInfo{Ip: "localhost", Port: 8848})
-	// nacos
+	clientInfo := registers.ClientInfo{Ip: "192.168.101.100", Port: port,
+		ServiceName: common.ServiceName, RemoteName: common.ServiceName} // 测试时 RemoteName 传递一样的
+	//register := registers.NewNacos()
+	//register.RegisterClient(clientInfo)
+	//register.RegisterServer(registers.ServerInfo{Ip: "localhost", Port: 8848})
+
+	register := registers.NewEtcd()
+	register.RegisterClient(clientInfo)
+	register.RegisterServer(registers.ServerInfo{Ip: "localhost", Port: 2379})
+
+	// register
 	rpc := &remote.GrpcServer{}
 	// rpc
 	service := NewService()
 	service.SetRpcServer(rpc)
-	service.SetRegister(nacos)
+	service.SetRegister(register)
 	// 编码器
 	service.SetDecoder(decoder.JsonDecoder{})
 	service.SetRpcClient(&remote.GrpcClient{})
@@ -74,5 +79,5 @@ func ManyService(port uint16) {
 	jsonMessage := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 1)}
 	rpcClient := &remote.GrpcClient{}
 	rpcClient.InvokeRemoteRpc(clientInfo.Addr(), protof.RpcBodyBuild(jsonMessage.GetBytesResult()))
-	nacos.Close()
+	register.Close()
 }

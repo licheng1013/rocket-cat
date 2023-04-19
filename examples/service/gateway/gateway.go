@@ -13,12 +13,12 @@ func main() {
 		ServiceName: common.GatewayName, RemoteName: common.ServiceName} //测试时 RemoteName 传递一样的
 	nacos := registers.NewNacos()
 	nacos.RegisterClient(clientInfo)
-	nacos.Register(registers.ClientInfo{Ip: "localhost", Port: 8848})
+	nacos.RegisterServer(registers.ServerInfo{Ip: "localhost", Port: 8848})
 
 	gateway := core.DefaultGateway()
 	gateway.SetSingle(false)
 	gateway.SetSocket(&connect.WebSocket{})
 	gateway.SetClient(&remote.GrpcClient{})
-	gateway.SetRegisterClient(nacos)
+	gateway.SetRegister(nacos)
 	gateway.Start(connect.Addr)
 }

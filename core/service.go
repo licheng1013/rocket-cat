@@ -28,7 +28,7 @@ type Service struct {
 	// 编码器
 	decoder decoder.Decoder
 	// 注册中心
-	register registers.Register
+	register registers.IRegister
 	// 线程池,用于请求多逻辑服事使用
 	Pool *common.Pool
 	// 插件系统
@@ -48,13 +48,13 @@ func (n *Service) SendServiceMessage(bytes []byte) (result [][]byte, err error) 
 // sendMessageByServiceName  广播消息路由
 func (n *Service) sendMessageByServiceName(serviceName string, rpcInfo *protof.RpcInfo) (result [][]byte, err error) {
 	ips, err := n.register.ListIp(serviceName)
-	if len(ips) == 0 {
-		common.Logger().Println("注册中心暂无可用的服务!")
-		return [][]byte{}, nil
-	}
 	if err != nil {
 		//common.Logger().Println("注册中心错误 -> " + err.Error())
 		return nil, err
+	}
+	if len(ips) == 0 {
+		common.Logger().Println("注册中心暂无可用的服务!")
+		return [][]byte{}, nil
 	}
 	channel := make(chan []byte)
 	for _, item := range ips {
@@ -158,6 +158,7 @@ func (n *Service) Start() {
 		n.Pool = common.NewPool()
 	}
 	n.rpcServer.CallbackResult(n.CallbackResult)
+	n.register.Run()
 	n.close = append(n.close, n.register.Close)
 	addr := n.register.ClientInfo().Addr()
 	go n.rpcServer.ListenAddr(addr)
@@ -167,7 +168,7 @@ func (n *Service) Start() {
 	}
 }
 
-func (n *Service) SetRegister(register registers.Register) {
+func (n *Service) SetRegister(register registers.IRegister) {
 	n.register = register
 }
 

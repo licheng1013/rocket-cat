@@ -8,22 +8,16 @@ type IRegister interface {
 	GetIp() (ClientInfo, error)
 	// ListIp 获取所有ip
 	ListIp(serverName string) ([]ClientInfo, error)
-}
-
-// Register 注册中心必须实现的接口！
-type Register interface {
-	// Register 注册
-	Register(info ServerInfo)
-	// RegisterClient 注册客户端信息
-	RegisterClient(ClientInfo)
-	// GetIp 获取1个ip
-	GetIp() (ClientInfo, error)
-	// ListIp 获取所有ip
-	ListIp(serverName string) ([]ClientInfo, error)
-	// Close 用于关机等操作
+	// Close 当服务器关闭时调用
 	Close()
 	// ClientInfo  注册信息
 	ClientInfo() ClientInfo
+	// Run 此处用于启动注册中心，如etcd，consul等，你可以在这里设置心跳等操作。
+	Run()
+	// RegisterServer Register 注册
+	RegisterServer(server ServerInfo)
+	// RegisterClient 注册客户端信息
+	RegisterClient(client ClientInfo)
 }
 
 // ClientInfo 客户端注册的数据

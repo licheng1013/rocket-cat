@@ -11,9 +11,14 @@ import (
 	"time"
 )
 
+// NewEtcd  etcd注册中心
+func NewEtcd() *Etcd {
+	return &Etcd{}
+}
+
 type Etcd struct {
-	ClientInfo ClientInfo        // 客户端信息
-	ServerInfo ServerInfo        // 服务端信息
+	clientInfo ClientInfo        // 客户端信息
+	serverInfo ServerInfo        // 服务端信息
 	conn       *ServiceDiscovery // 连接
 	key        string            // key
 	index      int               // 服务索引
@@ -21,10 +26,22 @@ type Etcd struct {
 	ID         clientv3.LeaseID  // 租约ID
 }
 
+func (e *Etcd) RegisterServer(server ServerInfo) {
+	e.serverInfo = server
+}
+
+func (e *Etcd) RegisterClient(client ClientInfo) {
+	e.clientInfo = client
+}
+
+func (e *Etcd) ClientInfo() ClientInfo {
+	return e.clientInfo
+}
+
 func (e *Etcd) GetIp() (ClientInfo, error) {
 	list := e.conn.GetServices()
 	if len(list) == 0 {
-		return ClientInfo{}, errors.New("找不到服务")
+		return ClientInfo{}, errors.New("找不到服务,请检查服务是否正常注册到注册中心")
 	}
 	//fmt.Println("list-", list)
 	// 获取所有value
@@ -66,21 +83,21 @@ func (e *Etcd) ListIp(serverName string) (clients []ClientInfo, errorInfo error)
 // Run 运行
 func (e *Etcd) Run() {
 	// 验证参数
-	if e.ServerInfo.Ip == "" || e.ServerInfo.Port == 0 {
+	if e.serverInfo.Ip == "" || e.serverInfo.Port == 0 {
 		panic("etcd地址错误")
 	}
-	if e.ClientInfo.Ip == "" || e.ClientInfo.Port == 0 || e.ClientInfo.ServiceName == "" || e.ClientInfo.RemoteName == "" {
+	if e.clientInfo.Ip == "" || e.clientInfo.Port == 0 || e.clientInfo.ServiceName == "" || e.clientInfo.RemoteName == "" {
 		panic("etcd客户端地址错误")
 	}
-	e.key = e.ClientInfo.RemoteName + "-" + e.ClientInfo.Addr()
+	e.key = e.clientInfo.RemoteName + "-" + e.clientInfo.Addr()
 	// 注册服务
-	e.conn = NewServiceDiscovery([]string{e.ServerInfo.Addr()})
+	e.conn = NewServiceDiscovery([]string{e.serverInfo.Addr()})
 	// 监听服务
-	err := e.conn.WatchService(e.ClientInfo.RemoteName)
+	err := e.conn.WatchService(e.clientInfo.RemoteName)
 	if err != nil {
 		panic("etcd监听失败" + err.Error())
 	}
-	_, err = e.conn.cli.Put(context.Background(), e.key, e.ClientInfo.Addr())
+	_, err = e.conn.cli.Put(context.Background(), e.key, e.clientInfo.Addr())
 	if err != nil {
 		panic("etcd注册失败" + err.Error())
 	}
@@ -94,7 +111,7 @@ func (e *Etcd) Heartbeat() {
 	if err != nil {
 		panic("etcd心跳失败" + err.Error())
 	}
-	_, err = e.conn.cli.Put(context.Background(), e.key, e.ClientInfo.Addr(), clientv3.WithLease(resp.ID))
+	_, err = e.conn.cli.Put(context.Background(), e.key, e.clientInfo.Addr(), clientv3.WithLease(resp.ID))
 	if err != nil {
 		panic("etcd数据失败" + err.Error())
 	}

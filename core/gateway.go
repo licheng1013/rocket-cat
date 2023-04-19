@@ -28,8 +28,8 @@ type Gateway struct {
 	client remote.RpcClient
 	// Rpc 服务端
 	server remote.RpcServer
-	// Register Client
-	registerClient registers.Register
+	// RegisterServer Client
+	registerClient registers.IRegister
 	// 插件系统
 	PluginService
 	// 绑定 socketId 和 ip
@@ -56,7 +56,7 @@ func (g *Gateway) SetClient(client remote.RpcClient) {
 	g.client = client
 }
 
-func (g *Gateway) SetRegisterClient(registerClient registers.Register) {
+func (g *Gateway) SetRegister(registerClient registers.IRegister) {
 	g.registerClient = registerClient
 }
 

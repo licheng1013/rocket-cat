@@ -15,7 +15,7 @@ func TestNacos(t *testing.T) {
 		ServiceName: common.ServiceName, RemoteName: common.ServiceName} // 测试时 RemoteName 传递一样的
 	nacos.RegisterClient(clientInfo)
 	// nacos的注册地址
-	nacos.Register(ServerInfo{Ip: localIp, Port: 8848})
+	nacos.RegisterServer(ServerInfo{Ip: localIp, Port: 8848})
 	time.Sleep(5 * time.Second)
 	fmt.Println(nacos.GetIp())
 	time.Sleep(10 * time.Second)
