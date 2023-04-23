@@ -21,7 +21,7 @@ func (*LocalContext) GetGID() uint64 {
 func (l *LocalContext) SaveCtx(data interface{}) {
 	defer l.mu.Unlock()
 	l.mu.Lock()
-	background := context.Background() // TODO 暂时不可用
+	background := context.Background()
 	background = context.WithValue(background, l.key, data)
 	l.Ctx[l.GetGID()] = background
 }
@@ -30,11 +30,14 @@ func (l *LocalContext) SaveCtx(data interface{}) {
 func (l *LocalContext) GetCtx() interface{} {
 	defer l.mu.Unlock()
 	l.mu.Lock()
-	return l.Ctx[l.GetGID()].Value(l.key) // TODO 暂时不可用
+	return l.Ctx[l.GetGID()].Value(l.key)
 }
 
 // ClearCtx 清理上下文
 func (l *LocalContext) ClearCtx() {
+	// 加锁
+	defer l.mu.Unlock()
+	l.mu.Lock()
 	delete(l.Ctx, l.GetGID())
 }
 
