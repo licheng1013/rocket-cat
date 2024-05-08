@@ -50,7 +50,7 @@ func (j *JsonMessage) SetBody(data interface{}) {
 	default:
 		bytes, err := json.Marshal(data)
 		if err != nil {
-			common.Logger().Println("Json转换器错误,具体错误: " + err.Error())
+			common.RocketLog.Println("Json转换器错误,具体错误: " + err.Error())
 		}
 		j.Body = bytes
 	}

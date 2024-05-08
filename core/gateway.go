@@ -134,7 +134,7 @@ func (g *Gateway) Start(addr string) {
 		}
 	}
 	g.socket.ListenBack(g.ListenBack)
-	common.Logger().Println("监听Socket:" + addr)
+	common.RocketLog.Println("监听Socket:" + addr)
 	go g.socket.ListenAddr(addr) // 启动线程监听端口
 	common.StopApplication()
 	if !g.single {
@@ -158,7 +158,7 @@ func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 	// 此处调用远程方法
 	ip, err := g.registerClient.GetIp()
 	if err != nil {
-		common.Logger().Println("注册中心错误:" + err.Error())
+		common.RocketLog.Println("注册中心错误:" + err.Error())
 		return []byte{}
 	}
 	remoteIp := g.socketIdIpMap[uuid]
@@ -176,7 +176,7 @@ func (g *Gateway) SetServer(r remote.RpcServer) {
 // CallbackResult 给予远程端的回调方法
 func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
 	if g.pluginMap == nil || g.pluginMap[in.SocketId] == nil {
-		common.Logger().Println("插件不存在")
+		common.RocketLog.Println("插件不存在")
 		return []byte{}
 	}
 	plugin := g.pluginMap[in.SocketId]

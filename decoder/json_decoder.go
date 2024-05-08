@@ -17,7 +17,7 @@ func (d JsonDecoder) EncodeBytes(result interface{}) []byte {
 	}
 	bytes, err := json.Marshal(result)
 	if err != nil {
-		common.Logger().Println("JsonDecoder -> 转换失败")
+		common.RocketLog.Println("JsonDecoder -> 转换失败")
 		return []byte{}
 	}
 	return bytes
@@ -28,7 +28,7 @@ func (d JsonDecoder) DecoderBytes(bytes []byte) messages.Message {
 	msg := messages.JsonMessage{}
 	err := json.Unmarshal(bytes, &msg)
 	if err != nil {
-		common.Logger().Println("JsonDecoder -> 解析失败")
+		common.RocketLog.Println("JsonDecoder -> 解析失败")
 	}
 	return &msg
 }

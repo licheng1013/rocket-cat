@@ -9,7 +9,7 @@ import (
 
 func main() {
 	gateway := core.DefaultGateway()
-	gateway.Router().AddAction(1, 1, func(ctx *router.Context) {
+	gateway.Router().Action(1, 1, func(ctx *router.Context) {
 		var body core.LoginBody
 		_ = ctx.Message.Bind(&body)
 		//log.Println("获取数据 -> ", string(ctx.Message.GetBody()))

@@ -18,7 +18,7 @@ import (
 func TestSingleGateway(t *testing.T) {
 	channel := make(chan int)
 	gateway := DefaultGateway()
-	gateway.Router().AddAction(1, 1, func(ctx *router.Context) {
+	gateway.Router().Action(1, 1, func(ctx *router.Context) {
 		log.Println("获取数据 -> ", string(ctx.Message.GetBody()))
 		r := gateway.GetPlugin(LoginPluginId)
 		login := r.(LoginInterface)
@@ -37,7 +37,7 @@ func TestSingleGateway(t *testing.T) {
 	select {
 	case ok := <-channel:
 		time.Sleep(time.Second * 1)
-		common.Logger().Println(ok)
+		common.RocketLog.Println(ok)
 	}
 }
 

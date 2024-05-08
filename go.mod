@@ -7,6 +7,8 @@ require (
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.1
 	github.com/panjf2000/ants/v2 v2.7.2
 	github.com/xtaci/kcp-go/v5 v5.6.1
+	go.etcd.io/etcd/api/v3 v3.5.8
+	go.etcd.io/etcd/client/v3 v3.5.8
 	google.golang.org/protobuf v1.28.0
 )
 
@@ -52,9 +54,7 @@ require (
 	github.com/templexxx/cpu v0.0.7 // indirect
 	github.com/templexxx/xorsimd v0.4.1 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.8 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.8 // indirect
-	go.etcd.io/etcd/client/v3 v3.5.8 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
 	golang.org/x/sys v0.3.0 // indirect

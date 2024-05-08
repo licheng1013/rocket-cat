@@ -13,21 +13,21 @@ type WebSocket struct {
 	Path string
 }
 
-func (socket *WebSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
-	socket.ProxyMethod = f
+func (ws *WebSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
+	ws.ProxyMethod = f
 }
 
-func (socket *WebSocket) ListenAddr(addr string) {
-	if socket.ProxyMethod == nil {
+func (ws *WebSocket) ListenAddr(addr string) {
+	if ws.ProxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
 	// 判断Path是否为空并设置默认值/ws
-	if socket.Path == "" {
-		socket.Path = "/ws"
+	if ws.Path == "" {
+		ws.Path = "/ws"
 	}
-	http.HandleFunc(socket.Path, socket.ws)
-	if socket.Tls != nil {
-		if err := http.ListenAndServeTLS(addr, socket.Tls.CertFile, socket.Tls.KeyFile, nil); err != nil {
+	http.HandleFunc(ws.Path, ws.ws)
+	if ws.Tls != nil {
+		if err := http.ListenAndServeTLS(addr, ws.Tls.CertFile, ws.Tls.KeyFile, nil); err != nil {
 			panic(err)
 		}
 	} else {
@@ -36,8 +36,9 @@ func (socket *WebSocket) ListenAddr(addr string) {
 		}
 	}
 }
-func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
+func (ws *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	upgrade := websocket.Upgrader{
+		// 排除前端跨域吹
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
@@ -48,10 +49,10 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 
-	uuid := socket.getNewChan()
-	socket.AsyncResult(uuid, func(bytes []byte) {
+	uuid := ws.getNewChan()
+	ws.AsyncResult(uuid, func(bytes []byte) {
 		err = c.WriteMessage(websocket.BinaryMessage, bytes)
-		if socket.handleErr(err, uuid, "websocket写入错误: ") {
+		if ws.handleErr(err, uuid, "websocket写入错误: ") {
 			return
 		}
 	})
@@ -59,10 +60,10 @@ func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
 	for {
 		// 1 字符串，2 字节
 		_, message, err := c.ReadMessage()
-		if socket.handleErr(err, uuid, "websocket读取错误: ") {
+		if ws.handleErr(err, uuid, "websocket读取错误: ") {
 			break
 		}
-		socket.InvokeMethod(uuid, message)
+		ws.InvokeMethod(uuid, message)
 	}
 
 }

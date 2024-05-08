@@ -16,7 +16,7 @@ func (p ProtoDecoder) EncodeBytes(result interface{}) []byte {
 	case proto.Message:
 		bytes, err := proto.Marshal(result.(proto.Message))
 		if err != nil {
-			common.Logger().Println("ProtoDecoder -> 转换失败")
+			common.RocketLog.Println("ProtoDecoder -> 转换失败")
 			break
 		}
 		return bytes
@@ -38,7 +38,7 @@ func (p ProtoDecoder) DecoderBytes(bytes []byte) messages.Message {
 	// 转换反序列话
 	err := proto.Unmarshal(bytes, &msg)
 	if err != nil {
-		common.Logger().Println("ProtoDecoder -> 解析失败")
+		common.RocketLog.Println("ProtoDecoder -> 解析失败")
 	}
 	return &msg
 }

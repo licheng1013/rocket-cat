@@ -25,14 +25,10 @@ func FileLogger() *log.Logger {
 }
 
 var blueBg = color.New(color.FgBlue).SprintFunc()
-var loggerInfo *log.Logger
 
-// Logger 一般日志
-func Logger() *log.Logger {
-	if loggerInfo == nil {
-		lock.Lock()
-		loggerInfo = log.New(os.Stderr, blueBg("[ROCKET CAT] "), log.LstdFlags)
-		lock.Unlock()
-	}
-	return loggerInfo
+// RocketLog 一般日志
+var RocketLog *log.Logger
+
+func init() {
+	RocketLog = log.New(os.Stdout, blueBg("[ROCKET CAT] "), log.LstdFlags)
 }

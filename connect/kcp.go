@@ -10,19 +10,19 @@ type KcpSocket struct {
 	MySocket
 }
 
-func (socket *KcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
-	socket.ProxyMethod = f
+func (kc *KcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
+	kc.ProxyMethod = f
 }
 
-func (socket *KcpSocket) ListenAddr(addr string) {
-	if socket.ProxyMethod == nil {
+func (kc *KcpSocket) ListenAddr(addr string) {
+	if kc.ProxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
-	socket.listenerKcp(addr)
+	kc.listenerKcp(addr)
 }
 
 // listenerKcp Kcp监听方法！
-func (socket *KcpSocket) listenerKcp(addr string) {
+func (kc *KcpSocket) listenerKcp(addr string) {
 	//router.FileLogger().Println("服务器监听:" + addr)
 	lis, err := kcp.ListenWithOptions(addr, nil, 0, 0)
 	if err != nil {
@@ -34,17 +34,17 @@ func (socket *KcpSocket) listenerKcp(addr string) {
 		if err != nil {
 			common.FileLogger().Println("监听异常:", err.Error())
 		}
-		go socket.handleConn(conn)
+		go kc.handleConn(conn)
 	}
 
 }
 
-func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
-	socketId := socket.getNewChan()
-	socket.AsyncResult(socketId, func(bytes []byte) {
+func (kc *KcpSocket) handleConn(conn *kcp.UDPSession) {
+	socketId := kc.getNewChan()
+	kc.AsyncResult(socketId, func(bytes []byte) {
 		//log.Println("写入数据->" + string(bytes))
 		_, err := conn.Write(bytes)
-		if socket.handleErr(err, socketId, "kcp写入错误: ") {
+		if kc.handleErr(err, socketId, "kcp写入错误: ") {
 			return
 		}
 	})
@@ -52,10 +52,10 @@ func (socket *KcpSocket) handleConn(conn *kcp.UDPSession) {
 	for {
 		// 读取长度 n
 		n, err := conn.Read(buf)
-		if socket.handleErr(err, socketId, "kcp读取错误: ") {
+		if kc.handleErr(err, socketId, "kcp读取错误: ") {
 			break
 		}
 		//log.Println("读取数据->" + string(buf[:n]))
-		socket.InvokeMethod(socketId, buf[:n])
+		kc.InvokeMethod(socketId, buf[:n])
 	}
 }

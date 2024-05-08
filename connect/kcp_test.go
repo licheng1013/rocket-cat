@@ -36,7 +36,7 @@ func TestKcpServer(t *testing.T) {
 	go KcpClient(channel)
 	select {
 	case ok := <-channel:
-		common.Logger().Println(ok)
+		common.RocketLog.Println(ok)
 	}
 }
 
@@ -54,13 +54,13 @@ func KcpClient(channel chan int) {
 		}()
 		for {
 			if _, err := io.ReadFull(client, buf); err == nil {
-				common.Logger().Println("获取数据:" + string(buf))
+				common.RocketLog.Println("获取数据:" + string(buf))
 				channel <- 0
 			} else {
 				log.Fatal(err)
 			}
 		}
 	} else {
-		common.Logger().Println("监听异常:", err)
+		common.RocketLog.Println("监听异常:", err)
 	}
 }

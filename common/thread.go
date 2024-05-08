@@ -17,6 +17,6 @@ func NewPool() *Pool {
 func (p *Pool) AddTask(task func()) {
 	err := ants.Submit(task)
 	if err != nil {
-		Logger().Println("线程池错误 -> " + err.Error())
+		RocketLog.Println("线程池错误 -> " + err.Error())
 	}
 }

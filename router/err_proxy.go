@@ -18,11 +18,11 @@ func (e *ErrProxy) InvokeFunc(ctx *Context) {
 				errInfo := err.(*ServiceError)
 				ctx.Message.SetMessage(errInfo.Message)
 				ctx.Message.SetBody(errInfo.Message)
-				common.Logger().Println("业务异常 -> ", errInfo.Message)
+				common.RocketLog.Println("业务异常 -> ", errInfo.Message)
 				break
 			default:
 				ctx.Message = nil
-				common.Logger().Println("系统异常 -> ", err)
+				common.RocketLog.Println("系统异常 -> ", err)
 			}
 			debug.PrintStack()
 		}

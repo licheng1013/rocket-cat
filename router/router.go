@@ -12,8 +12,8 @@ type M map[string]bool
 
 // Router 路由器功能
 type Router interface {
-	// AddAction 添加路由
-	AddAction(cmd, subCmd int64, method func(ctx *Context))
+	// Action 添加路由
+	Action(cmd, subCmd int64, method func(ctx *Context))
 	// ExecuteMethod 执行函数
 	ExecuteMethod(msg *Context)
 	// AddProxy 添加代理
@@ -41,8 +41,8 @@ func (r *DefaultRouter) AddSkipLog(cmd, subCmd int64) {
 	r.SkipLogMap[merge] = true
 }
 
-// AddAction 添加函数
-func (r *DefaultRouter) AddAction(cmd, subCmd int64, method func(msg *Context)) {
+// Action 添加函数
+func (r *DefaultRouter) Action(cmd, subCmd int64, method func(msg *Context)) {
 	merge := common.CmdKit.GetMerge(cmd, subCmd)
 	if r.routerMap == nil {
 		r.routerMap = map[int64]func(msg *Context){}

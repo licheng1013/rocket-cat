@@ -53,7 +53,7 @@ func (n *Service) sendMessageByServiceName(serviceName string, rpcInfo *protof.R
 		return nil, err
 	}
 	if len(ips) == 0 {
-		common.Logger().Println("注册中心暂无可用的服务!")
+		common.RocketLog.Println("注册中心暂无可用的服务!")
 		return [][]byte{}, nil
 	}
 	channel := make(chan []byte)

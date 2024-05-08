@@ -23,9 +23,9 @@ type MyProxy struct {
 }
 
 func (m *MyProxy) InvokeFunc(ctx *router.Context) {
-	common.Logger().Println("代理之前")
+	common.RocketLog.Println("代理之前")
 	m.proxy.InvokeFunc(ctx)
-	common.Logger().Println("代理之后")
+	common.RocketLog.Println("代理之后")
 }
 
 func (m *MyProxy) SetProxy(proxy router.Proxy) {
@@ -56,23 +56,23 @@ func ManyService(port uint16) {
 
 	service.Router().AddProxy(&MyProxy{}) // 自定义注入器
 
-	service.Router().AddAction(1, 2, func(ctx *router.Context) {
+	service.Router().Action(1, 2, func(ctx *router.Context) {
 		ctx.Data = []byte("1")
 	})
-	service.Router().AddAction(1, 1, func(ctx *router.Context) {
+	service.Router().Action(1, 1, func(ctx *router.Context) {
 		jsonMessage := messages.JsonMessage{Merge: common.CmdKit.GetMerge(1, 2)}
 		message, err := service.SendServiceMessage(jsonMessage.GetBytesResult())
 		if err != nil {
-			common.Logger().Println("错误:", err.Error())
+			common.RocketLog.Println("错误:", err.Error())
 			return
 		}
 		for _, item := range message {
-			common.Logger().Println(string(item))
+			common.RocketLog.Println(string(item))
 		}
 	})
 	// 关机钩子
 	service.AddClose(func() {
-		common.Logger().Println("在关机中了")
+		common.RocketLog.Println("在关机中了")
 	})
 	go service.Start()
 	time.Sleep(5 * time.Second)

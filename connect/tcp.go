@@ -12,11 +12,11 @@ type TcpSocket struct {
 	MySocket
 }
 
-func (socket *TcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
-	socket.ProxyMethod = f
+func (tc *TcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
+	tc.ProxyMethod = f
 }
 
-func (socket *TcpSocket) ListenAddr(addr string) {
+func (tc *TcpSocket) ListenAddr(addr string) {
 	host, port, _ := net.SplitHostPort(addr)
 	ip := net.ParseIP(host)
 	parseInt, err := strconv.ParseInt(port, 10, 32)
@@ -42,22 +42,22 @@ func (socket *TcpSocket) ListenAddr(addr string) {
 		// 打印客户端的地址
 		//fmt.Println("client connected from:", conn.RemoteAddr())
 		// 创建一个goroutine，调用处理连接的函数，传入连接对象作为参数
-		go socket.handleConn(conn)
+		go tc.handleConn(conn)
 	}
 }
 
-func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
+func (tc *TcpSocket) handleConn(conn *net.TCPConn) {
 
-	uuid := socket.getNewChan()
+	uuid := tc.getNewChan()
 
-	socket.AsyncResult(uuid, func(bytes []byte) {
+	tc.AsyncResult(uuid, func(bytes []byte) {
 		if len(bytes) == 0 {
 			return
 		}
 		data := &MyProtocol{}
 		data.SetData(bytes)
 		_, err := conn.Write(Encode(data))
-		if socket.handleErr(err, uuid, "tcp写入错误: ") {
+		if tc.handleErr(err, uuid, "tcp写入错误: ") {
 			return
 		}
 	})
@@ -70,12 +70,12 @@ func (socket *TcpSocket) handleConn(conn *net.TCPConn) {
 	for {
 		// 从连接中读取数据，返回读取的字节数和错误
 		n, err := conn.Read(buf)
-		if socket.handleErr(err, uuid, "tcp读取错误: ") {
+		if tc.handleErr(err, uuid, "tcp读取错误: ") {
 			return
 		}
 		// 调用解码函数，将字节切片转换为自定义协议的结构体
 		mp := Decode(buf[:n])
-		socket.InvokeMethod(uuid, mp.Data)
+		tc.InvokeMethod(uuid, mp.Data)
 
 	}
 }

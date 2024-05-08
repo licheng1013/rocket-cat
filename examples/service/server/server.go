@@ -12,12 +12,12 @@ func main() {
 	// rpc
 	service := core.DefaultService()
 	service.SetRegister(nacos)
-	service.Router().AddAction(1, 2, func(ctx *router.Context) {
+	service.Router().Action(1, 2, func(ctx *router.Context) {
 		ctx.Data = []byte("1")
 	})
 	// 关机钩子
 	service.AddClose(func() {
-		common.Logger().Println("在关机中了")
+		common.RocketLog.Println("在关机中了")
 	})
 	service.Start()
 }

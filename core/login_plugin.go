@@ -31,7 +31,7 @@ func (g *LoginPlugin) OnClose(socketId uint32) {
 	// 退出登入
 	userId := g.ExistSocketId(socketId)
 	if userId != 0 {
-		common.Logger().Println("用户断开 -> ", userId)
+		common.RocketLog.Println("用户断开 -> ", userId)
 		g.userMap.Delete(userId)
 	}
 }
@@ -100,7 +100,7 @@ type LoginBody struct {
 func (b *LoginBody) ToMarshal() (data []byte) {
 	data, err := json.Marshal(b)
 	if err != nil {
-		common.Logger().Println("json转换失败: " + err.Error())
+		common.RocketLog.Println("json转换失败: " + err.Error())
 	}
 	if data == nil { //返回空
 		return []byte{}
@@ -112,7 +112,7 @@ func (b *LoginBody) ToMarshal() (data []byte) {
 func (b *LoginBody) ToUnmarshal(data []byte) {
 	err := json.Unmarshal(data, b)
 	if err != nil {
-		common.Logger().Println("json解析失败:" + err.Error())
+		common.RocketLog.Println("json解析失败:" + err.Error())
 	}
 	return
 }
@@ -125,7 +125,7 @@ func (g *LoginPlugin) InvokeResult(bytes []byte) []byte {
 		if l.UserId != 0 && l.SocketId != 0 {
 			l.State = g.Login(l.UserId, l.SocketId)
 		} else {
-			common.Logger().Println("LoginPlugin -> UserId或SocketId为空")
+			common.RocketLog.Println("LoginPlugin -> UserId或SocketId为空")
 		}
 		break
 	case LogoutByUserId:

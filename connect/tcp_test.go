@@ -29,7 +29,7 @@ func TestTcpServer(t *testing.T) {
 	go Client(channel)
 	select {
 	case ok := <-channel:
-		common.Logger().Println(ok)
+		common.RocketLog.Println(ok)
 	}
 }
 
