@@ -14,7 +14,7 @@ jobs:
 
       - name: Get the version
         id: get_version
-        run: echo ::set-output name=VERSION::$(echo $(cat version/version.go) | grep -oP 'Version = "\K(.*)(?=")')
+        run: echo ::set-output name=VERSION::$(echo $(grep -oP 'Version = "\K(.*)(?=")' version/version.go))
 
       - name: Create Release
         id: create_release
