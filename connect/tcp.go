@@ -13,7 +13,7 @@ type TcpSocket struct {
 }
 
 func (socket *TcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
-	socket.proxyMethod = f
+	socket.ProxyMethod = f
 }
 
 func (socket *TcpSocket) ListenAddr(addr string) {

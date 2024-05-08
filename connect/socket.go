@@ -36,7 +36,7 @@ const HelloMsg = "HelloWorld"
 
 // MySocket Socket接口的通用字段
 type MySocket struct {
-	proxyMethod func(socketId uint32, message []byte) []byte //代理方法
+	ProxyMethod func(socketId uint32, message []byte) []byte //代理方法
 	UuidOnCoon  sync.Map                                     // 连接
 	//queue       chan []byte                              //结果
 	Pool    *common.Pool          //线程池
@@ -53,7 +53,7 @@ type Tls struct {
 // InvokeMethod 此处添加至线程池进行远程调用
 func (socket *MySocket) InvokeMethod(socketId uint32, message []byte) {
 	socket.Pool.AddTask(func() {
-		method := socket.proxyMethod(socketId, message)
+		method := socket.ProxyMethod(socketId, message)
 		value, ok := socket.UuidOnCoon.Load(socketId)
 		if ok {
 			socket.sendChan(value, method)

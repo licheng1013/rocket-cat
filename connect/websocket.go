@@ -14,11 +14,11 @@ type WebSocket struct {
 }
 
 func (socket *WebSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
-	socket.proxyMethod = f
+	socket.ProxyMethod = f
 }
 
 func (socket *WebSocket) ListenAddr(addr string) {
-	if socket.proxyMethod == nil {
+	if socket.ProxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
 	// 判断Path是否为空并设置默认值/ws
@@ -37,7 +37,11 @@ func (socket *WebSocket) ListenAddr(addr string) {
 	}
 }
 func (socket *WebSocket) ws(w http.ResponseWriter, r *http.Request) {
-	upgrade := websocket.Upgrader{}
+	upgrade := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
 	c, err := upgrade.Upgrade(w, r, nil)
 	if err != nil {
 		panic(err)

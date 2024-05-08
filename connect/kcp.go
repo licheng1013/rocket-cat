@@ -11,11 +11,11 @@ type KcpSocket struct {
 }
 
 func (socket *KcpSocket) ListenBack(f func(uuid uint32, message []byte) []byte) {
-	socket.proxyMethod = f
+	socket.ProxyMethod = f
 }
 
 func (socket *KcpSocket) ListenAddr(addr string) {
-	if socket.proxyMethod == nil {
+	if socket.ProxyMethod == nil {
 		panic("未注册回调函数: ListenBack")
 	}
 	socket.listenerKcp(addr)
