@@ -53,7 +53,7 @@ func (n *Service) sendMessageByServiceName(serviceName string, rpcInfo *protof.R
 		return nil, err
 	}
 	if len(ips) == 0 {
-		common.RocketLog.Println("注册中心暂无可用的服务!")
+		common.CatLog.Println("注册中心暂无可用的服务!")
 		return [][]byte{}, nil
 	}
 	channel := make(chan []byte)
@@ -113,7 +113,7 @@ func DefaultService() *Service {
 
 // CallbackResult 回调数据
 func (n *Service) CallbackResult(in *protof.RpcInfo) []byte {
-	message := n.decoder.DecoderBytes(in.Body)
+	message := n.decoder.Decoder(in.Body)
 	context := &router.Context{Message: message, SocketId: in.SocketId, RpcIp: in.Ip}
 	context.RpcServer = n.rpcServer
 	for _, plugin := range n.pluginMap {
@@ -126,12 +126,10 @@ func (n *Service) CallbackResult(in *protof.RpcInfo) []byte {
 		}
 	}
 	n.router.ExecuteMethod(context)
-	if context.Data != nil {
-		return context.Data
-	}
-	if context.Message == nil {
+	if context.Data == nil {
 		return []byte{}
 	}
+	context.Message.SetBody(context.Data)
 	return context.Message.GetBytesResult()
 }
 

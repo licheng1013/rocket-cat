@@ -43,7 +43,7 @@ func (g *PluginService) AddPlugin(r Plugin) {
 		g.pluginMap = make(map[uint32]Plugin)
 	}
 	if g.pluginMap[r.GetId()] != nil {
-		common.RocketLog.Panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id覆盖了其他插件!")
+		common.CatLog.Panic("该插件:" + fmt.Sprint(r.GetId()) + "->Id覆盖了其他插件!")
 	}
 	g.pluginMap[r.GetId()] = r
 }
@@ -51,7 +51,7 @@ func (g *PluginService) AddPlugin(r Plugin) {
 func (g *PluginService) GetPlugin(pluginId uint32) Plugin {
 	v := g.pluginMap[pluginId]
 	if v == nil {
-		common.RocketLog.Println("Plugin: " + fmt.Sprint(pluginId) + " -> Id 不存在!")
+		common.CatLog.Println("Plugin: " + fmt.Sprint(pluginId) + " -> Id 不存在!")
 		return nil
 	}
 	return v

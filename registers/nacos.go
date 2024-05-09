@@ -38,7 +38,7 @@ func (n *Nacos) Run() {
 	if success, err := n.namingClient.RegisterInstance(n.registerParam); err != nil || !success {
 		panic(err)
 	}
-	common.RocketLog.Println("注册中心:", n.serverInfo.Ip+":"+fmt.Sprint(n.serverInfo.Port))
+	common.CatLog.Println("注册中心:", n.serverInfo.Ip+":"+fmt.Sprint(n.serverInfo.Port))
 	go n.heartbeat() // 心跳功能
 }
 
@@ -49,10 +49,10 @@ func (n *Nacos) ClientInfo() ClientInfo {
 func (n *Nacos) Close() {
 	success, err := n.namingClient.DeregisterInstance(n.logoutParam)
 	if err != nil {
-		common.RocketLog.Println("注销错误:" + err.Error())
+		common.CatLog.Println("注销错误:" + err.Error())
 	}
 	if success {
-		common.RocketLog.Println("注销成功！")
+		common.CatLog.Println("注销成功！")
 	}
 }
 
@@ -129,7 +129,7 @@ func (n *Nacos) heartbeat() {
 	for true {
 		instance, err := n.namingClient.UpdateInstance(n.updateParam)
 		if err != nil || !instance {
-			common.RocketLog.Println("更新实例失败,请检查Nacos!", err)
+			common.CatLog.Println("更新实例失败,请检查Nacos!", err)
 		}
 		time.Sleep(1 * time.Second)
 	}

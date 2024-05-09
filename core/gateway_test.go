@@ -23,12 +23,12 @@ func TestSingleGateway(t *testing.T) {
 		r := gateway.GetPlugin(LoginPluginId)
 		login := r.(LoginInterface)
 		if login.Login(12345, ctx.SocketId) {
-			fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
+			fmt.Printf("login.GetUserIds(): %v\n", login.GetUserIds())
 			ctx.Message.SetBody([]byte("用户"))
-			login.SendAllUserMessage(ctx.Message.GetBytesResult())
+			login.Push(ctx.Message.GetBytesResult())
 		}
 		ctx.Message.SetBody([]byte("广播"))
-		gateway.SendMessage(ctx.Message.GetBytesResult())
+		gateway.Push(ctx.Message.GetBytesResult())
 		ctx.Message.SetBody([]byte("业务返回Hi->Ok->2"))
 	})
 	go gateway.Start(connect.Addr)
@@ -37,7 +37,7 @@ func TestSingleGateway(t *testing.T) {
 	select {
 	case ok := <-channel:
 		time.Sleep(time.Second * 1)
-		common.RocketLog.Println(ok)
+		common.CatLog.Println(ok)
 	}
 }
 

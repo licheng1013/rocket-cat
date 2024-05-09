@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/licheng1013/rocket-cat/common"
+	"log"
 	"runtime/debug"
 )
 
@@ -18,12 +19,13 @@ func (e *ErrProxy) InvokeFunc(ctx *Context) {
 				errInfo := err.(*ServiceError)
 				ctx.Message.SetMessage(errInfo.Message)
 				ctx.Message.SetBody(errInfo.Message)
-				common.RocketLog.Println("业务异常 -> ", errInfo.Message)
+				common.CatLog.Println("业务异常 -> ", errInfo.Message)
 				break
 			default:
 				ctx.Message = nil
-				common.RocketLog.Println("系统异常 -> ", err)
+				common.CatLog.Println("系统异常 -> ", err)
 			}
+			log.Println("错误信息:", err)
 			debug.PrintStack()
 		}
 	}()

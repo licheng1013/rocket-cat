@@ -9,7 +9,7 @@ import (
 func RpcBodyMarshal(v *RpcInfo) []byte {
 	body, err := proto.Marshal(v)
 	if err != nil {
-		common.RocketLog.Println("Proto编码错误:", err.Error())
+		common.CatLog.Println("Proto编码错误:", err.Error())
 	}
 	return body
 }
@@ -18,7 +18,7 @@ func RpcBodyMarshal(v *RpcInfo) []byte {
 func RpcBodyUnmarshal(body []byte, d *RpcInfo) {
 	err := proto.Unmarshal(body, d)
 	if err != nil {
-		common.RocketLog.Println("Proto解码错误:", err.Error())
+		common.CatLog.Println("Proto解码错误:", err.Error())
 	}
 }
 

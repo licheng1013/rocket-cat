@@ -92,7 +92,7 @@ type BindBody struct {
 func (b *BindBody) ToMarshal() (data []byte) {
 	data, err := json.Marshal(b)
 	if err != nil {
-		common.RocketLog.Println("json转换失败: " + err.Error())
+		common.CatLog.Println("json转换失败: " + err.Error())
 	}
 	if data == nil { //返回空
 		return []byte{}
@@ -104,7 +104,7 @@ func (b *BindBody) ToMarshal() (data []byte) {
 func (b *BindBody) ToUnmarshal(data []byte) {
 	err := json.Unmarshal(data, b)
 	if err != nil {
-		common.RocketLog.Println("json解析失败:" + err.Error())
+		common.CatLog.Println("json解析失败:" + err.Error())
 	}
 	return
 }

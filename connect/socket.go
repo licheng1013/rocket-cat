@@ -73,7 +73,7 @@ func (s *MySocket) AsyncResult(socketId uint32, f func(bytes []byte)) {
 				case bytes, v := <-value.(chan []byte):
 					if v {
 						if s.Debug {
-							common.RocketLog.Println("发送数据:", string(bytes))
+							common.CatLog.Println("发送数据:", string(bytes))
 						}
 						if bytes == nil || len(bytes) == 0 {
 							continue // 返回的数据为空则不写入客户端

@@ -10,13 +10,13 @@ func TestJsonDecoder(t *testing.T) {
 	jsonMessage := messages.JsonMessage{Merge: 10, Code: -1, Message: "测试信息", Headers: "扩展参数", Heartbeat: true}
 	// 优化
 	decoder := JsonDecoder{}
-	bytes := decoder.EncodeBytes(jsonMessage)
-	msg := decoder.DecoderBytes(bytes)
+	bytes := decoder.Encode(jsonMessage)
+	msg := decoder.Decoder(bytes)
 	t.Log(msg)
 
 	// 测试
-	data := decoder.Tool(1, 1, 1)
-	msg = decoder.DecoderBytes(data)
+	data := decoder.Data(1, 1, 1)
+	msg = decoder.Decoder(data)
 	t.Log(string(msg.GetBody()))
 	if string(msg.GetBody()) == "1" {
 		t.Log("测试成功")

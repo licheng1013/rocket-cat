@@ -25,11 +25,11 @@ func server(tls *Tls) {
 	socket := WebSocket{}
 	socket.Tls = tls
 	socket.OnClose(func(uuid uint32) {
-		common.RocketLog.Println(uuid, "关闭了")
+		common.CatLog.Println(uuid, "关闭了")
 	})
 	go func() {
 		socket.ListenBack(func(uuid uint32, message []byte) []byte {
-			common.RocketLog.Println(uuid)
+			common.CatLog.Println(uuid)
 			socket.SendMessage([]byte{}) // 测试空消息是否会返回
 			//return message
 			socket.SendSelectMessage([]byte("ok"), uuid)
@@ -48,7 +48,7 @@ func server(tls *Tls) {
 	for i := 0; i < clientNum*2; i++ {
 		select {
 		case ok := <-channel:
-			common.RocketLog.Println(ok)
+			common.CatLog.Println(ok)
 		}
 	}
 }
@@ -81,10 +81,10 @@ func WsClient(channel chan int, enableTsl bool) {
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
-			common.RocketLog.Println("读取消息错误:", err)
+			common.CatLog.Println("读取消息错误:", err)
 			break
 		}
-		common.RocketLog.Println("获取数据:" + string(msg)) // 此处可能会打印多次,因为 channel <- 0 传输到通道也需要时间
+		common.CatLog.Println("获取数据:" + string(msg)) // 此处可能会打印多次,因为 channel <- 0 传输到通道也需要时间
 		channel <- 0
 	}
 }

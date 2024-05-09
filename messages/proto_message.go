@@ -58,7 +58,7 @@ func (p *ProtoMessage) GetMessage() string {
 func (p *ProtoMessage) GetBytesResult() []byte {
 	marshal, err := proto.Marshal(p)
 	if err != nil {
-		common.RocketLog.Println("ProtoMessage -> 转换失败")
+		common.CatLog.Println("ProtoMessage -> 转换失败")
 		return []byte{}
 	}
 	return marshal
@@ -72,7 +72,7 @@ func (p *ProtoMessage) SetBody(data interface{}) {
 	case proto.Message:
 		marshal, err := proto.Marshal(data.(proto.Message))
 		if err != nil {
-			common.RocketLog.Println("Proto转换器错误,具体错误: ", err.Error())
+			common.CatLog.Println("Proto转换器错误,具体错误: ", err.Error())
 		}
 		p.Body = marshal
 		break

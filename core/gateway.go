@@ -99,6 +99,16 @@ func DefaultGateway() *Gateway {
 	return g
 }
 
+// 使用编码转换对象为数据
+func (g *Gateway) data(data any) []byte {
+	return g.decoder.Encode(data)
+}
+
+func (g *Gateway) ToRouterData(cmd, subCmd int64, data any) []byte {
+	toData := g.data(data)
+	return g.decoder.Data(cmd, subCmd, toData)
+}
+
 func (g *Gateway) Start(addr string) {
 	version.StartLogo()
 	g.router.AddProxy(&router.ErrProxy{}) // 添加错误代理
@@ -134,7 +144,7 @@ func (g *Gateway) Start(addr string) {
 		}
 	}
 	g.socket.ListenBack(g.ListenBack)
-	common.RocketLog.Println("监听Socket:" + addr)
+	common.CatLog.Println("监听Socket:" + addr)
 	go g.socket.ListenAddr(addr) // 启动线程监听端口
 	common.StopApplication()
 	if !g.single {
@@ -144,21 +154,19 @@ func (g *Gateway) Start(addr string) {
 
 func (g *Gateway) ListenBack(uuid uint32, bytes []byte) []byte {
 	if g.single {
-		message := g.decoder.DecoderBytes(bytes)
+		message := g.decoder.Decoder(bytes)
 		context := &router.Context{Message: message, SocketId: uuid}
 		g.router.ExecuteMethod(context)
-		if context.Data != nil {
-			return context.Data
-		}
-		if context.Message == nil { // 没数据,底层socket对于空数据不返回
+		if context.Data == nil {
 			return []byte{}
 		}
+		context.Message.SetBody(context.Data)
 		return context.Message.GetBytesResult()
 	}
 	// 此处调用远程方法
 	ip, err := g.registerClient.GetIp()
 	if err != nil {
-		common.RocketLog.Println("注册中心错误:" + err.Error())
+		common.CatLog.Println("注册中心错误:" + err.Error())
 		return []byte{}
 	}
 	remoteIp := g.socketIdIpMap[uuid]
@@ -176,14 +184,14 @@ func (g *Gateway) SetServer(r remote.RpcServer) {
 // CallbackResult 给予远程端的回调方法
 func (g *Gateway) CallbackResult(in *protof.RpcInfo) []byte {
 	if g.pluginMap == nil || g.pluginMap[in.SocketId] == nil {
-		common.RocketLog.Println("插件不存在")
+		common.CatLog.Println("插件不存在")
 		return []byte{}
 	}
 	plugin := g.pluginMap[in.SocketId]
 	return plugin.(GatewayPlugin).InvokeResult(in.GetBody())
 }
 
-// SendMessage 广播所有
-func (g *Gateway) SendMessage(result []byte) {
+// 发送给所有连接的客户端
+func (g *Gateway) Push(result []byte) {
 	g.socket.SendMessage(result)
 }

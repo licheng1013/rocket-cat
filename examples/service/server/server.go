@@ -13,11 +13,11 @@ func main() {
 	service := core.DefaultService()
 	service.SetRegister(nacos)
 	service.Router().Action(1, 2, func(ctx *router.Context) {
-		ctx.Data = []byte("1")
+		ctx.Result([]byte("1"))
 	})
 	// 关机钩子
 	service.AddClose(func() {
-		common.RocketLog.Println("在关机中了")
+		common.CatLog.Println("在关机中了")
 	})
 	service.Start()
 }

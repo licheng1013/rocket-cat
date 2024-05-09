@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/licheng1013/rocket-cat/common"
 	"github.com/licheng1013/rocket-cat/connect"
 	"github.com/licheng1013/rocket-cat/core"
 	"github.com/licheng1013/rocket-cat/router"
@@ -12,15 +13,15 @@ func main() {
 	gateway.Router().Action(1, 1, func(ctx *router.Context) {
 		var body core.LoginBody
 		_ = ctx.Message.Bind(&body)
-		//log.Println("获取数据 -> ", string(ctx.Message.GetBody()))
+		common.CatLog.Println("获取数据:", body)
 		r := gateway.GetPlugin(core.LoginPluginId)
 		login := r.(core.LoginInterface)
 		if login.Login(body.UserId, ctx.SocketId) {
-			fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
-			//login.SendAllUserMessage(ctx.Message.SetBody([]byte("用户")).GetBytesResult())
+			fmt.Println("登入用户:", login.GetUserIds())
+			//login.Push(gateway.ToRouterData(1, 1, []byte("HelloWorld")))
 		}
-		//gateway.SendMessage(ctx.Message.SetBody([]byte("广播")).GetBytesResult())
-		ctx.Message.SetBody([]byte("业务返回Hi->Ok->2"))
+		//gateway.Push(gateway.ToRouterData(1, 1, []byte("HelloWorld")))
+		ctx.Result([]byte("业务返回Hi->Ok->2"))
 	})
 	socket := &connect.WebSocket{}
 	socket.Debug = false

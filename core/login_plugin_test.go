@@ -17,6 +17,6 @@ func TestLoginBody(t *testing.T) {
 func TestMap(t *testing.T) {
 	login := &LoginPlugin{}
 	login.Login(2, 1)
-	fmt.Printf("login.ListUserId(): %v\n", login.ListUserId())
+	fmt.Printf("login.GetUserIds(): %v\n", login.ListUserId())
 	fmt.Printf("login.ListSocketId(): %v\n", login.ListUserId())
 }

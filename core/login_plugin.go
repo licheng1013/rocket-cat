@@ -23,15 +23,23 @@ const (
 
 type LoginPlugin struct {
 	gateway     *Gateway
-	userMap     sync.Map
+	userMap     sync.Map // userId - socketId
 	socketIdMap sync.Map
+}
+
+func (g *LoginPlugin) GetUserIds() (userIds []int64) {
+	g.userMap.Range(func(key, value any) bool {
+		userIds = append(userIds, key.(int64))
+		return true
+	})
+	return
 }
 
 func (g *LoginPlugin) OnClose(socketId uint32) {
 	// 退出登入
 	userId := g.ExistSocketId(socketId)
 	if userId != 0 {
-		common.RocketLog.Println("用户断开 -> ", userId)
+		common.CatLog.Println("用户断开 -> ", userId)
 		g.userMap.Delete(userId)
 	}
 }
@@ -45,19 +53,18 @@ func (g *LoginPlugin) ExistSocketId(socketId uint32) int64 {
 	return 0
 }
 
-// SendAllUserMessage 广播所有登入用户
-func (g *LoginPlugin) SendAllUserMessage(data []byte) {
-	var socketId []uint32
-	g.userMap.Range(func(key, value any) bool {
-		socketId = append(socketId, value.(uint32))
-		return true
-	})
-	g.gateway.socket.SendSelectMessage(data, socketId...)
-}
-
 // SendByUserIdMessage 根据用户id进行广播
-func (g *LoginPlugin) SendByUserIdMessage(data []byte, userIds ...int64) {
+func (g *LoginPlugin) Push(data []byte, userIds ...int64) {
 	var socketId []uint32
+	// 推送所有用户
+	if len(userIds) == 0 {
+		g.userMap.Range(func(key, value any) bool {
+			socketId = append(socketId, value.(uint32))
+			return true
+		})
+		g.gateway.socket.SendSelectMessage(data, socketId...)
+		return
+	}
 	for _, userId := range userIds {
 		value, ok := g.userMap.Load(userId)
 		if ok {
@@ -67,16 +74,20 @@ func (g *LoginPlugin) SendByUserIdMessage(data []byte, userIds ...int64) {
 	g.gateway.socket.SendSelectMessage(data, socketId...)
 }
 
-func (g *LoginPlugin) SetService(plugin *Gateway) {
-	g.gateway = plugin
+func (g *LoginPlugin) SetService(gateway *Gateway) {
+	g.gateway = gateway
 }
 
 type LoginInterface interface {
+	// 登入
 	Login(userId int64, socketId uint32) bool
+	// 根据用户id退出
 	LogoutByUserId(userId int64) bool
-	ListUserId() (userIds []int64)
-	SendAllUserMessage(data []byte)
-	SendByUserIdMessage(data []byte, userIds ...int64)
+	// 获取所有用户id
+	GetUserIds() (userIds []int64)
+	// 推送数据给客户端，如果userIds为空则广播所有用户
+	Push(data []byte, userIds ...int64)
+	// 判断是否登入了
 	IsLogin(userId int64) bool
 }
 
@@ -100,7 +111,7 @@ type LoginBody struct {
 func (b *LoginBody) ToMarshal() (data []byte) {
 	data, err := json.Marshal(b)
 	if err != nil {
-		common.RocketLog.Println("json转换失败: " + err.Error())
+		common.CatLog.Println("json转换失败: " + err.Error())
 	}
 	if data == nil { //返回空
 		return []byte{}
@@ -112,7 +123,7 @@ func (b *LoginBody) ToMarshal() (data []byte) {
 func (b *LoginBody) ToUnmarshal(data []byte) {
 	err := json.Unmarshal(data, b)
 	if err != nil {
-		common.RocketLog.Println("json解析失败:" + err.Error())
+		common.CatLog.Println("json解析失败:" + err.Error())
 	}
 	return
 }
@@ -125,7 +136,7 @@ func (g *LoginPlugin) InvokeResult(bytes []byte) []byte {
 		if l.UserId != 0 && l.SocketId != 0 {
 			l.State = g.Login(l.UserId, l.SocketId)
 		} else {
-			common.RocketLog.Println("LoginPlugin -> UserId或SocketId为空")
+			common.CatLog.Println("LoginPlugin -> UserId或SocketId为空")
 		}
 		break
 	case LogoutByUserId:
@@ -135,10 +146,10 @@ func (g *LoginPlugin) InvokeResult(bytes []byte) []byte {
 		l.UserIds = g.ListUserId()
 		break
 	case SendAllUserMessage:
-		g.SendAllUserMessage(l.Data)
+		g.Push(l.Data)
 		break
 	case SendByUserIdMessage:
-		g.SendByUserIdMessage(l.Data, l.UserIds...)
+		g.Push(l.Data, l.UserIds...)
 		break
 	case IsLogin:
 		l.State = g.IsLogin(l.UserId)
@@ -201,12 +212,12 @@ type LoginPluginService struct {
 	ctx     *router.Context
 }
 
-func (l *LoginPluginService) SendAllUserMessage(data []byte) {
-	body := LoginBody{Action: SendAllUserMessage, Data: data}
-	_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
-}
-
-func (l *LoginPluginService) SendByUserIdMessage(data []byte, userIds ...int64) {
+func (l *LoginPluginService) Push(data []byte, userIds ...int64) {
+	if len(userIds) == 0 {
+		body := LoginBody{Action: SendAllUserMessage, Data: data}
+		_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
+		return
+	}
 	body := LoginBody{Action: SendByUserIdMessage, Data: data, UserIds: userIds}
 	_, _ = l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
 }
@@ -260,7 +271,7 @@ func (l *LoginPluginService) LogoutByUserId(userId int64) bool {
 	return false
 }
 
-func (l *LoginPluginService) ListUserId() (userIds []int64) {
+func (l *LoginPluginService) GetUserIds() (userIds []int64) {
 	body := LoginBody{Action: ListUserId}
 	message, err := l.service.SendGatewayMessage(&protof.RpcInfo{SocketId: LoginPluginId, Body: body.ToMarshal()})
 	if err != nil {

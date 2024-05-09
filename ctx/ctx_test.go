@@ -10,6 +10,7 @@ func TestCtx(t *testing.T) {
 	fmt.Println("main goroutine id:", localCtx.GetGID())
 	Go(1)
 	Go(2)
+	Go(3)
 	time.Sleep(1 * time.Second) // 等待1秒加入上下文
 	fmt.Println(len(localCtx.Ctx))
 	time.Sleep(5 * time.Second)

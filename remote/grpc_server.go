@@ -27,7 +27,7 @@ func (s *GrpcServer) ListenAddr(addr string) {
 	}
 	v := grpc.NewServer()
 	protof.RegisterRpcServiceServer(v, s)
-	common.RocketLog.Println("服务端Rpc地址:" + addr)
+	common.CatLog.Println("服务端Rpc地址:" + addr)
 	if err := v.Serve(lis); err != nil {
 		log.Fatalf("监听失败: %v", err)
 	}

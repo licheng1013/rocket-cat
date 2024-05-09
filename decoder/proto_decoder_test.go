@@ -15,8 +15,8 @@ func TestProtoDecoder(t *testing.T) {
 	info := &protof.RpcInfo{Body: []byte("Hello")}
 	// 增加简单方法
 	decoder := ProtoDecoder{}
-	data := decoder.Tool(1, 1, info)
-	msg := decoder.DecoderBytes(data)
+	data := decoder.Data(1, 1, info)
+	msg := decoder.Decoder(data)
 	info = &protof.RpcInfo{}
 	_ = msg.Bind(info)
 	t.Log(info)
@@ -30,8 +30,8 @@ func TestProtoDecoder(t *testing.T) {
 	// 测试
 	message := &messages.ProtoMessage{}
 	message.Headers = "HelloWorld"
-	bytes := decoder.EncodeBytes(message)
-	msg = decoder.DecoderBytes(bytes)
+	bytes := decoder.Encode(message)
+	msg = decoder.Decoder(bytes)
 	t.Log(msg)
 	if message.Headers == msg.GetHeaders() {
 		t.Log("测试成功")
