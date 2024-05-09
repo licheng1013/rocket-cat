@@ -16,7 +16,7 @@ func StartLogo() {
 	var blueBg = color.New(color.FgBlue).SprintFunc()
 	var green = color.New(color.FgHiGreen).SprintFunc()
 	// 打印logo
-	log.New(os.Stderr, blueBg("[ROCKET CAT] "), log.LstdFlags).Println(
+	log.New(os.Stdout, blueBg("[ROCKET CAT] "), log.LstdFlags).Println(
 		green("\n" +
 			"      /\\_/\\" +
 			"\n     / o o \\" +
