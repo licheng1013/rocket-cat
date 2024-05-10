@@ -1,6 +1,6 @@
 package main
 
-import "github.com/licheng1013/rocket-cat/common"
+import "github.com/licheng1013/rocket-cat/room"
 
 // RoomManger 房间管理器
-var RoomManger = common.NewRoomManger()
+var RoomManger = room.NewManger()
