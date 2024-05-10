@@ -12,10 +12,9 @@ import (
 func main() {
 	// 构建一个默认服务
 	gateway := core.DefaultGateway()
-	var group = gateway.Router()
 	login := gateway.GetPlugin(core.LoginPluginId).(core.LoginInterface)
 	// 添加一个路由
-	group.Action(1, 1, func(ctx *router.Context) {
+	gateway.Action(1, 1, func(ctx *router.Context) {
 		var pos PosXY
 		_ = ctx.Message.Bind(&pos)
 		if login.Login(pos.UserId, ctx.SocketId) {
@@ -25,7 +24,7 @@ func main() {
 	})
 
 	data := common.SafeList{}
-	group.Action(1, 2, func(ctx *router.Context) {
+	gateway.Action(1, 2, func(ctx *router.Context) {
 		var pos PosXY
 		_ = ctx.Message.Bind(&pos)
 		//log.Println("收到:", pos)

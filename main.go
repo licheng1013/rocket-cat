@@ -8,7 +8,7 @@ import (
 
 func main() {
 	gateway := core.DefaultGateway()
-	gateway.Router().Action(1, 1, func(ctx *router.Context) {
+	gateway.Action(1, 1, func(ctx *router.Context) {
 		ctx.Message.SetBody([]byte("业务返回Hi->Ok->2"))
 	})
 	gateway.Start(connect.Addr)

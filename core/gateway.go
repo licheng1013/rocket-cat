@@ -99,6 +99,10 @@ func DefaultGateway() *Gateway {
 	return g
 }
 
+func (g *Gateway) Action(cmd, subCmd int64, method func(ctx *router.Context)) {
+	g.router.Action(cmd, subCmd, method)
+}
+
 // 使用编码转换对象为数据
 func (g *Gateway) data(data any) []byte {
 	return g.decoder.Encode(data)
