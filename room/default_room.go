@@ -1,6 +1,7 @@
-package common
+package room
 
 import (
+	"github.com/licheng1013/rocket-cat/common"
 	"sync"
 	"time"
 )
@@ -12,7 +13,7 @@ type IRoom interface {
 	// GetMaxUser 获取房间最大人数
 	GetMaxUser() int64
 	// GetRoomStatus 获取房间状态
-	GetRoomStatus() RoomStatus
+	GetRoomStatus() Status
 	// GetUserIdList 获取房间内所有玩家Id
 	GetUserIdList() []int64
 	// GetPlayerList 获取房间内所有玩家
@@ -36,7 +37,7 @@ type DefaultRoom struct {
 	// 用户Ids
 	userList []IPlayer
 	// 房间状态
-	RoomStatus
+	Status
 	// 创建时间十位时间戳
 	CreateTime int64
 	// 最大人数
@@ -72,8 +73,8 @@ func (d *DefaultRoom) GetMaxUser() int64 {
 	return d.MaxUser
 }
 
-func (d *DefaultRoom) GetRoomStatus() RoomStatus {
-	return d.RoomStatus
+func (d *DefaultRoom) GetRoomStatus() Status {
+	return d.Status
 }
 
 func (d *DefaultRoom) GetUserIdList() (list []int64) {
@@ -121,7 +122,7 @@ func (d *DefaultRoom) HeartbeatTime() int64 {
 type SyncRoom struct {
 	DefaultRoom
 	// 同步数据,索引为帧号
-	List []*SafeList
+	List []*common.SafeList
 	// 创建时间十位时间戳
 	CreateTime int64
 }
@@ -129,7 +130,7 @@ type SyncRoom struct {
 func NewRoom(roomId int64) *SyncRoom {
 	r := &SyncRoom{CreateTime: time.Now().Unix()}
 	r.RoomId = roomId
-	r.RoomStatus = Ready
+	r.Status = Ready
 	return r
 }
 
@@ -142,17 +143,17 @@ func (r *SyncRoom) Start(f func()) {
 func (r *SyncRoom) StartCustom(f func(), delay time.Duration) {
 	// 使用 common.SyncManager 进行帧同步
 	// 帧同步数据
-	r.RoomStatus = Running
+	r.Status = Running
 	manager := NewFrameSyncManager(60, delay)
 	manager.Start()
 	go func() {
 		for true {
-			if r == nil || r.RoomStatus == Close {
+			if r == nil || r.Status == Close {
 				return
 			}
 			// 执行每一帧
 			manager.WaitNextFrame(f)
-			r.List = append(r.List, &SafeList{})
+			r.List = append(r.List, &common.SafeList{})
 		}
 	}()
 }
@@ -170,9 +171,9 @@ func (r *SyncRoom) AddSyncData(value any) {
 }
 
 // GetLastSyncData 获取最后帧的同步数据
-func (r *SyncRoom) GetLastSyncData() *SafeList {
+func (r *SyncRoom) GetLastSyncData() *common.SafeList {
 	if len(r.List) == 0 {
-		return &SafeList{}
+		return &common.SafeList{}
 	}
 	return r.List[len(r.List)-1]
 }

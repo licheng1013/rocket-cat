@@ -38,7 +38,7 @@ func (s *GrpcClient) InvokeRemoteRpc(addr string, rpcInfo *protof.RpcInfo) []byt
 
 	result, err := value.(protof.RpcServiceClient).InvokeRemoteFunc(invoke, rpcInfo)
 	if err != nil {
-		common.FileLogger().Println("请检查远程服务,远程错误:" + err.Error())
+		common.CatLog.Println("请检查远程服务,远程错误:" + err.Error())
 		s.clientMap.Delete(addr)
 		return []byte{} //返回空则不返回给客户端
 	}

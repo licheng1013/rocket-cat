@@ -153,7 +153,7 @@ func (s *MySocket) getNewChan() (socketId uint32) {
 // 处理err,如果err不为空则关闭连接
 func (s *MySocket) handleErr(err error, socketId uint32, errInfo string) bool {
 	if err != nil {
-		common.FileLogger().Println(errInfo + err.Error())
+		common.CatLog.Println(errInfo + err.Error())
 		s.close(socketId)
 		return true
 	}

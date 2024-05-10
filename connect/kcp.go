@@ -32,7 +32,7 @@ func (kc *KcpSocket) listenerKcp(addr string) {
 	for {
 		conn, err := lis.AcceptKCP()
 		if err != nil {
-			common.FileLogger().Println("监听异常:", err.Error())
+			common.CatLog.Println("监听异常:", err.Error())
 		}
 		go kc.handleConn(conn)
 	}

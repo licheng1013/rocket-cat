@@ -1,35 +1,36 @@
-package common
+package room
 
 import (
-	mrand "math/rand"
 	"sync"
 	"time"
 )
 
 // RoomManger 线程安全
-type RoomManger struct {
+type Manger struct {
 	// 用户id - 房间id
 	userOnRoom sync.Map
 	// roomId - 房间具体房间
 	roomIdOnRoom sync.Map
 }
 
-func NewRoomManger() *RoomManger {
-	return &RoomManger{}
+func NewManger() *Manger {
+	return &Manger{}
 }
 
 // GetUniqueRoomId 创建房间
-func (m *RoomManger) GetUniqueRoomId() int64 {
-	for {
-		mrand.Seed(time.Now().UnixNano()) // 设置种子为当前时间戳
-		n := mrand.Int63n(100000)
-		if b := m.GetByRoomId(n); b == nil { // 直到不存在房间时赋予id
-			return n
+func (m *Manger) GetUniqueRoomId() int64 {
+	/// 获取最大的房间id+1返回
+	var maxRoodId int64
+	m.roomIdOnRoom.Range(func(key, value any) bool {
+		if key.(int64) > maxRoodId {
+			maxRoodId = key.(int64)
 		}
-	}
+		return true
+	})
+	return maxRoodId + 1
 }
 
-func (m *RoomManger) GetByUserId(userId int64) IRoom {
+func (m *Manger) GetByUserId(userId int64) IRoom {
 	value, ok := m.userOnRoom.Load(userId)
 	if ok {
 		return value.(IRoom)
@@ -38,21 +39,24 @@ func (m *RoomManger) GetByUserId(userId int64) IRoom {
 }
 
 // AddRoom 添加房间
-func (m *RoomManger) AddRoom(r IRoom) {
+func (m *Manger) AddRoom(r IRoom) {
 	m.roomIdOnRoom.Store(r.GetRoomId(), r)
 }
 
-// JoinRoom 加入房间
-func (m *RoomManger) JoinRoom(player IPlayer, roomId int64) {
+// 加入房间，如果成功则返回 true
+func (m *Manger) JoinRoom(player IPlayer, roomId int64) bool {
+	var join bool
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {
 		room := value.(IRoom)
 		room.JoinRoom(player)
 		m.userOnRoom.Store(player.UserId(), room)
+		join = true
 	}
+	return join
 }
 
-// QuitRoom 退出房间
-func (m *RoomManger) QuitRoom(player IPlayer, roomId int64) {
+// 退出房间
+func (m *Manger) QuitRoom(player IPlayer, roomId int64) {
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {
 		room := value.(IRoom)
 		m.userOnRoom.Delete(player.UserId())
@@ -61,7 +65,7 @@ func (m *RoomManger) QuitRoom(player IPlayer, roomId int64) {
 }
 
 // RemoveRoom 移除房间并清理关联用户id
-func (m *RoomManger) RemoveRoom(roomId int64) {
+func (m *Manger) RemoveRoom(roomId int64) {
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {
 		room := value.(IRoom)
 		for _, userId := range room.GetUserIdList() {
@@ -74,7 +78,7 @@ func (m *RoomManger) RemoveRoom(roomId int64) {
 }
 
 // RoomClear 处理已经打开的房间并且30秒没有同步数据的房间 max 最大房间未动秒数
-func (m *RoomManger) RoomClear(max int64) {
+func (m *Manger) RoomClear(max int64) {
 	go func() {
 		for {
 			m.roomIdOnRoom.Range(func(key, value any) bool {
@@ -91,7 +95,7 @@ func (m *RoomManger) RoomClear(max int64) {
 }
 
 // ListRoom 获取房间列表
-func (m *RoomManger) ListRoom() (list []IRoom) {
+func (m *Manger) ListRoom() (list []IRoom) {
 	m.roomIdOnRoom.Range(func(key, value any) bool {
 		list = append(list, value.(IRoom))
 		return true
@@ -100,7 +104,7 @@ func (m *RoomManger) ListRoom() (list []IRoom) {
 }
 
 // GetByRoomId 根据房间id获取房间， 对象,是否存在
-func (m *RoomManger) GetByRoomId(roomId int64) IRoom {
+func (m *Manger) GetByRoomId(roomId int64) IRoom {
 	value, ok := m.roomIdOnRoom.Load(roomId)
 	if ok {
 		return value.(IRoom)
@@ -108,13 +112,13 @@ func (m *RoomManger) GetByRoomId(roomId int64) IRoom {
 	return nil
 }
 
-type RoomStatus int
+type Status int
 
 // 房间状态
 const (
-	Ready   RoomStatus = iota // 准备状态, 未开始
-	Running                   // 运行状态, 已经开始
-	Close                     // 关闭状态, 已经结束
+	Ready   Status = iota // 准备状态, 未开始
+	Running               // 运行状态, 已经开始
+	Close                 // 关闭状态, 已经结束
 )
 
 type IPlayer interface {

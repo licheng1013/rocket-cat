@@ -6,6 +6,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.1
 	github.com/panjf2000/ants/v2 v2.7.2
+	github.com/stretchr/testify v1.8.1
 	github.com/xtaci/kcp-go/v5 v5.6.1
 	go.etcd.io/etcd/api/v3 v3.5.8
 	go.etcd.io/etcd/client/v3 v3.5.8
@@ -43,6 +44,7 @@ require (
 require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.14 // indirect
 	github.com/klauspost/reedsolomon v1.10.0 // indirect
@@ -50,6 +52,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/templexxx/cpu v0.0.7 // indirect
 	github.com/templexxx/xorsimd v0.4.1 // indirect
@@ -59,6 +62,7 @@ require (
 	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 go 1.21
