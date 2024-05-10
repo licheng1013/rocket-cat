@@ -2,10 +2,8 @@ package room
 
 import (
 	"sync"
-	"time"
 )
 
-// RoomManger 线程安全
 type Manger struct {
 	// 用户id - 房间id
 	userOnRoom sync.Map
@@ -40,7 +38,7 @@ func (m *Manger) GetByUserId(userId int64) IRoom {
 
 // AddRoom 添加房间
 func (m *Manger) AddRoom(r IRoom) {
-	m.roomIdOnRoom.Store(r.GetRoomId(), r)
+	m.roomIdOnRoom.Store(r.GetId(), r)
 }
 
 // 加入房间，如果成功则返回 true
@@ -55,20 +53,23 @@ func (m *Manger) JoinRoom(player IPlayer, roomId int64) bool {
 	return join
 }
 
-// 退出房间
+// 退出房间，当房间内没有玩家时，移除房间
 func (m *Manger) QuitRoom(player IPlayer, roomId int64) {
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {
 		room := value.(IRoom)
 		m.userOnRoom.Delete(player.UserId())
 		room.QuitRoom(player)
+		if room.GetPlayerTotal() == 0 {
+			m.RemoveRoom(roomId)
+		}
 	}
 }
 
-// RemoveRoom 移除房间并清理关联用户id
+// 移除房间并清理关联用户id
 func (m *Manger) RemoveRoom(roomId int64) {
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {
 		room := value.(IRoom)
-		for _, userId := range room.GetUserIdList() {
+		for _, userId := range room.GetUserIds() {
 			m.userOnRoom.Delete(userId)
 		}
 		// 清理房间
@@ -77,25 +78,8 @@ func (m *Manger) RemoveRoom(roomId int64) {
 	m.roomIdOnRoom.Delete(roomId)
 }
 
-// RoomClear 处理已经打开的房间并且30秒没有同步数据的房间 max 最大房间未动秒数
-func (m *Manger) RoomClear(max int64) {
-	go func() {
-		for {
-			m.roomIdOnRoom.Range(func(key, value any) bool {
-				room := value.(IRoom)
-				// 当超过max秒没有同步数据时，清理房间
-				if room.HeartbeatTime()+max < time.Now().Unix() {
-					m.RemoveRoom(room.GetRoomId())
-				}
-				return true
-			})
-			time.Sleep(time.Second)
-		}
-	}()
-}
-
-// ListRoom 获取房间列表
-func (m *Manger) ListRoom() (list []IRoom) {
+// 获取房间列表
+func (m *Manger) GetRooms() (list []IRoom) {
 	m.roomIdOnRoom.Range(func(key, value any) bool {
 		list = append(list, value.(IRoom))
 		return true

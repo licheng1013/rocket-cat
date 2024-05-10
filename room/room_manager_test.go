@@ -10,7 +10,7 @@ func TestRoomManager(t *testing.T) {
 	manger := NewManger()
 	roomId := manger.GetUniqueRoomId()
 	room := NewRoom(roomId)
-	assert.Equal(t, room.GetRoomId(), roomId)
+	assert.Equal(t, room.GetId(), roomId)
 	assert.Equal(t, manger.JoinRoom(&player{}, roomId), false)
 
 	manger.AddRoom(room)
@@ -18,14 +18,14 @@ func TestRoomManager(t *testing.T) {
 
 	assert.NotEqual(t, manger.GetByRoomId(roomId), nil)
 
-	assert.Equal(t, len(manger.ListRoom()), 1)
+	assert.Equal(t, len(manger.GetRooms()), 1)
 
-	assert.Equal(t, len(room.GetUserIdList()), 1)
+	assert.Equal(t, len(room.GetUserIds()), 1)
 	manger.QuitRoom(&player{}, roomId)
-	assert.Equal(t, len(room.GetUserIdList()), 0)
+	assert.Equal(t, len(room.GetUserIds()), 0)
 
 	manger.RemoveRoom(roomId)
-	assert.Equal(t, len(manger.ListRoom()), 0)
+	assert.Equal(t, len(manger.GetRooms()), 0)
 }
 
 type player struct {
