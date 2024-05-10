@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div style="display: flex;justify-content: center;align-items: center;height: 100vh">
+    <canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+</div>
+
+</body>
+</html>
+
+<script>
+    let size = 25;
+    let maxXY = 500;
+    let x = 0;
+    let y = 0;
+    // 在canvas上绘制一个矩形
+    let canvas = document.getElementById('myCanvas');
+    let ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(x, y, size, size);
+
+    // 创建websocket
+    let ws = new WebSocket('ws://localhost:10100/ws')
+        // 获取时间戳
+    let timestamp = new Date().getTime()
+    let userId = timestamp
+    ws.onopen = function () {
+        console.log('连接成功')
+        sendMsg(1,1,{userId:userId})
+    }
+    ws.onmessage = function (e) {
+        // 字节转换为字符串
+        //console.log(e.data)
+        // 解析二进制数据
+        let reader = new FileReader()
+        reader.readAsText(e.data)
+        reader.onload = function () {
+            // 转换json
+            let data = JSON.parse(reader.result)
+            console.log(data)
+            let binaryString  = data.body
+            let decodedString = atob(binaryString);
+            let obj = JSON.parse(decodedString);
+            console.log(obj); // 输出: {x: 0, y: 0}
+            if (data.merge === 65538) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (const item of obj) {
+                    ctx.fillRect(item.x, item.y, size, size);
+                }
+            }
+        }
+    }
+    ws.onclose = function () {
+        console.log('连接关闭')
+    }
+    ws.onerror = function () {
+        console.log('连接出错')
+    }
+
+    // 监听键盘事件
+    window.addEventListener('keydown', function (e) {
+        switch (e.key) {
+            case 'ArrowUp':
+                y = y - size;
+                break;
+            case 'ArrowDown':
+                y = y + size;
+                break;
+            case 'ArrowLeft':
+                x = x - size;
+                break;
+            case 'ArrowRight':
+                x = x + size;
+                break;
+        }
+        // 判断是否超出屏幕
+        if (x < 0) {
+            x = 0;
+        }
+        if (x > maxXY - size) {
+            x = maxXY - size;
+        }
+        if (y < 0) {
+            y = 0;
+        }
+        if (y > maxXY - size) {
+            y = maxXY - size;
+        }
+    });
+
+    let intervalId = setInterval(() => {
+        sendMsg(1,2,{x:x,y:y,userId:userId});
+    }, 1000 / 120);
+
+    function sendMsg(cmd,subCmd,body){
+        let merge = (cmd << 16) + subCmd
+        let byte = toByte(JSON.stringify(body));
+        let data = {
+            merge:merge,
+            body: byte
+        }
+        console.log(data)
+        let jsonData = JSON.stringify(data)
+        ws.send(jsonData)
+    }
+
+    // 转换为自己数组
+    function toByte(data){
+        let buffer = new ArrayBuffer(data.length)
+        let view = new DataView(buffer)
+        for (let i = 0; i < data.length; i++) {
+            view.setUint8(i,data.charCodeAt(i))
+        }
+        // 转换为数组格式
+        let uint8Array = new Uint8Array(buffer);
+        return Array.from(uint8Array)
+    }
+
+
+
+</script>
+
