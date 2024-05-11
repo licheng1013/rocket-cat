@@ -24,7 +24,7 @@ const (
 type LoginPlugin struct {
 	gateway     *Gateway
 	userMap     sync.Map // userId - socketId
-	socketIdMap sync.Map
+	socketIdMap sync.Map // socketId - userId
 }
 
 func (g *LoginPlugin) GetUserIds() (userIds []int64) {

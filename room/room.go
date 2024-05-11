@@ -10,9 +10,9 @@ type IRoom interface {
 	GetUserIds() []int64
 	//  获取房间内所有玩家
 	GetPlayers() []IPlayer
-	// JoinRoom 加入房间，请通过RoomManager使用
-	JoinRoom(player IPlayer)
-	// QuitRoom 退出房间，请通过RoomManager使用
+	// JoinRoom 加入房间，
+	JoinRoom(player IPlayer) bool
+	// QuitRoom 退出房间，
 	QuitRoom(player IPlayer)
 	// GetPlayer 获取某个玩家
 	GetPlayer(userId int64) IPlayer

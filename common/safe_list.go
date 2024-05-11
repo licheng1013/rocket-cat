@@ -4,11 +4,11 @@ import "sync"
 
 type SafeList struct {
 	mu    sync.Mutex
-	items []interface{}
+	items []any
 }
 
 // Add 添加元素
-func (l *SafeList) Add(item interface{}) {
+func (l *SafeList) Add(item any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.items = append(l.items, item)
@@ -22,7 +22,7 @@ func (l *SafeList) Len() int {
 }
 
 // Get 获取元素
-func (l *SafeList) Get(index int) interface{} {
+func (l *SafeList) Get(index int) any {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.items[index]
@@ -36,7 +36,7 @@ func (l *SafeList) Remove(index int) {
 }
 
 // GetList 获取列表
-func (l *SafeList) GetList() []interface{} {
+func (l *SafeList) GetList() []any {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.items
