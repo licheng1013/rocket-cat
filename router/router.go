@@ -7,55 +7,44 @@ import (
 	"time"
 )
 
-type H map[string]interface{}
+type H map[string]any
 type M map[string]bool
 
 // Router 路由器功能
 type Router interface {
-	// Action 添加路由
 	Action(cmd, subCmd int64, method func(ctx *Context))
-	// ExecuteMethod 执行函数
 	ExecuteMethod(msg *Context)
-	// AddProxy 添加代理
 	AddProxy(proxy Proxy)
 }
 
 // DefaultRouter 路由功能
 type DefaultRouter struct {
-	// 路由Id : 目标方法
-	routerMap map[int64]func(ctx *Context)
-	// 代理
-	middlewares Proxy
-	// 日志开启
-	DebugLog bool
-	// 跳过某个路由日志
-	SkipLogMap map[int64]bool
+	routerMap  map[int64]func(ctx *Context) // 路由表
+	middlewares Proxy 					  // 代理
+	DebugLog   bool 						  // 是否开启日志
+	SkipLogMap map[int64]bool 			  // 跳过日志
 }
 
-// AddSkipLog 添加排除日志方法
 func (r *DefaultRouter) AddSkipLog(cmd, subCmd int64) {
 	merge := common.CmdKit.GetMerge(cmd, subCmd)
 	if r.SkipLogMap == nil {
-		r.SkipLogMap = map[int64]bool{}
+		r.SkipLogMap = make(map[int64]bool)
 	}
 	r.SkipLogMap[merge] = true
 }
 
-// Action 添加函数
 func (r *DefaultRouter) Action(cmd, subCmd int64, method func(msg *Context)) {
 	merge := common.CmdKit.GetMerge(cmd, subCmd)
 	if r.routerMap == nil {
-		r.routerMap = map[int64]func(msg *Context){}
+		r.routerMap = make(map[int64]func(msg *Context))
 	}
-	if r.routerMap[merge] == nil {
-		r.routerMap[merge] = method
-		LogFunc(merge, method)
-		return
+	if r.routerMap[merge] != nil {
+		panic(fmt.Sprintf("路由重复: %v-%v ", cmd, subCmd))
 	}
-	panic(fmt.Sprintf("路由重复: %v-%v ", cmd, subCmd))
+	r.routerMap[merge] = method
+	LogFunc(merge, method)
 }
 
-// InvokeFunc 代理函数执行
 func (r *DefaultRouter) InvokeFunc(ctx *Context) {
 	merge := ctx.Message.GetMerge()
 	if r.routerMap[merge] == nil {
@@ -63,13 +52,11 @@ func (r *DefaultRouter) InvokeFunc(ctx *Context) {
 		ctx.Message = nil
 		return
 	}
-	// 增加跳过日志打印
 	if r.DebugLog && !r.SkipLogMap[merge] {
 		startTime := time.Now()
 		r.routerMap[merge](ctx)
-		entTime := time.Now()
-		invokeTime := entTime.UnixMilli() - startTime.UnixMilli()
-		LogFuncTime(merge, fmt.Sprint(invokeTime)+"ms")
+		invokeTime := time.Since(startTime).Milliseconds()
+		LogFuncTime(merge, fmt.Sprintf("%dms", invokeTime))
 	} else {
 		r.routerMap[merge](ctx)
 	}
