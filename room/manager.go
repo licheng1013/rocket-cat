@@ -36,32 +36,25 @@ func (m *Manger) GetByUserId(userId int64) IRoom {
 	return nil
 }
 
-// AddRoom 添加房间
+// AddRoom 添加房间, 无需手动使用
 func (m *Manger) AddRoom(r IRoom) {
 	m.roomIdOnRoom.Store(r.GetId(), r)
 }
 
 // 加入房间，如果成功则返回 true
 func (m *Manger) JoinRoom(player IPlayer, roomId int64) bool {
-	var join bool
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {
 		room := value.(IRoom)
-		room.JoinRoom(player)
-		m.userOnRoom.Store(player.UserId(), room)
-		join = true
+		return room.JoinRoom(player)
 	}
-	return join
+	return false
 }
 
 // 退出房间，当房间内没有玩家时，移除房间
 func (m *Manger) QuitRoom(player IPlayer, roomId int64) {
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {
 		room := value.(IRoom)
-		m.userOnRoom.Delete(player.UserId())
 		room.QuitRoom(player)
-		if room.GetPlayerTotal() == 0 {
-			m.RemoveRoom(roomId)
-		}
 	}
 }
 

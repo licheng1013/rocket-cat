@@ -12,11 +12,13 @@ type SyncRoom struct {
 	List []*common.SafeList
 }
 
-func NewRoom(roomId int64) *SyncRoom {
+func NewRoom(manager *Manger) IRoom {
 	r := &SyncRoom{}
 	r.CreateTime = time.Now().Unix()
-	r.RoomId = roomId
+	r.RoomId = manager.GetUniqueRoomId()
 	r.Status = Ready
+	r.manager = manager
+	manager.AddRoom(r)
 	return r
 }
 

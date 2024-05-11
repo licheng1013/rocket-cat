@@ -7,7 +7,7 @@ import (
 
 func TestQueue(t *testing.T) {
 	// 测试匹配队列
-	queue := NewMatchQueue(2, func(matches []int64) {
+	queue := NewMatchQueue(2, func(matches []IPlayer) {
 		fmt.Println("匹配成功 -> ", matches)
 	})
 	queue.AddMatch(&DefaultPlayer{Uid: 1})
