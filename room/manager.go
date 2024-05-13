@@ -73,8 +73,6 @@ func (m *Manger) RemoveRoom(roomId int64) {
 		for _, userId := range room.GetUserIds() {
 			m.userOnRoom.Delete(userId)
 		}
-		// 清理房间
-		room.ClearRoom()
 	}
 	m.roomIdOnRoom.Delete(roomId)
 }
@@ -97,13 +95,13 @@ func (m *Manger) GetByRoomId(roomId int64) IRoom {
 	return nil
 }
 
-type Status int
+type State int
 
 // 房间状态
 const (
-	Ready   Status = iota // 准备状态, 未开始
-	Running               // 运行状态, 已经开始
-	Close                 // 关闭状态, 已经结束
+	Ready   State = iota // 准备状态, 未开始
+	Running              // 运行状态, 已经开始
+	Close                // 关闭状态, 已经结束
 )
 
 type IPlayer interface {

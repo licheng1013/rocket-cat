@@ -35,9 +35,11 @@
         // 获取时间戳
     let timestamp = new Date().getTime()
     let userId = timestamp
+    let starting = false
     ws.onopen = function () {
         console.log('连接成功')
         sendMsg(1,1,{userId:userId})
+        starting = true
     }
     ws.onmessage = function (e) {
         // 字节转换为字符串
@@ -48,11 +50,10 @@
         reader.onload = function () {
             // 转换json
             let data = JSON.parse(reader.result)
-            console.log(data)
+            //console.log(data)
             let binaryString  = data.body
             let decodedString = atob(binaryString);
             let obj = JSON.parse(decodedString);
-            console.log(obj); // 输出: {x: 0, y: 0}
             if (data.merge === 65538) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 for (const item of obj) {
@@ -110,7 +111,7 @@
             merge:merge,
             body: byte
         }
-        console.log(data)
+        //console.log(data)
         let jsonData = JSON.stringify(data)
         ws.send(jsonData)
     }

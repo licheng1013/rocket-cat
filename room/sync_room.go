@@ -15,9 +15,10 @@ type SyncRoom struct {
 func NewRoom(manager *Manger) *SyncRoom {
 	r := &SyncRoom{}
 	r.CreateTime = time.Now().Unix()
+	r.UpdateTime = time.Now().Unix()
 	r.RoomId = manager.GetUniqueRoomId()
 	r.RoomId = manager.GetUniqueRoomId()
-	r.Status = Ready
+	r.State = Ready
 	r.manager = manager
 	manager.AddRoom(r)
 	r.manager = manager
@@ -34,12 +35,12 @@ func (r *SyncRoom) Start(f func()) {
 func (r *SyncRoom) StartCustom(f func(), delay time.Duration) {
 	// 使用 common.SyncManager 进行帧同步
 	// 帧同步数据
-	r.Status = Running
+	r.State = Running
 	manager := NewFrameSyncManager(60, delay)
 	manager.Start()
 	go func() {
 		for {
-			if r == nil || r.Status == Close {
+			if r == nil || r.State == Close || len(r.GetUserIds()) == 0 {
 				return
 			}
 			// 执行每一帧
@@ -51,6 +52,7 @@ func (r *SyncRoom) StartCustom(f func(), delay time.Duration) {
 
 // AddSyncData 添加同步数据
 func (r *SyncRoom) AddSyncData(value any) {
+	r.UpdateTime = time.Now().Unix()
 	if len(r.List) == 0 {
 		return
 	}

@@ -5,7 +5,7 @@ type IRoom interface {
 	// 获取房间id
 	GetId() int64
 	//  获取房间状态
-	GetState() Status
+	GetState() State
 	//  获取房间内所有玩家Id
 	GetUserIds() []int64
 	//  获取房间内所有玩家
@@ -18,6 +18,6 @@ type IRoom interface {
 	GetPlayer(userId int64) IPlayer
 	// 获取玩家数量
 	GetPlayerTotal() int
-	// ClearRoom 清空所有玩家
-	ClearRoom()
+	// 房间更新时间
+	GetUpdateTime() int64
 }
