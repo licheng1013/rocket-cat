@@ -35,7 +35,7 @@ type Gateway struct {
 	// 绑定 socketId 和 ip
 	socketIdIpMap map[uint32]string
 	// 关闭钩子
-	closeHook []connect.SocketClose
+	closeHook []func(socketId uint32)
 }
 
 func (g *Gateway) Socket() connect.Socket {
@@ -44,8 +44,13 @@ func (g *Gateway) Socket() connect.Socket {
 
 func (g *Gateway) OnClose(socketId uint32) {
 	for _, item := range g.closeHook {
-		item.OnClose(socketId)
+		item(socketId)
 	}
+}
+
+// add CloseHook
+func (g *Gateway) AddCloseHook(hook func(socketId uint32)) {
+	g.closeHook = append(g.closeHook, hook)
 }
 
 func (g *Gateway) SetSocket(socket connect.Socket) {
@@ -120,7 +125,7 @@ func (g *Gateway) Start(addr string) {
 	for _, item := range g.PluginService.pluginMap {
 		switch item.(type) {
 		case connect.SocketClose:
-			g.closeHook = append(g.closeHook, item.(connect.SocketClose))
+			g.closeHook = append(g.closeHook, item.(connect.SocketClose).OnClose)
 		}
 		switch item.(type) {
 		case GatewayPlugin:

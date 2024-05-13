@@ -2,16 +2,19 @@ package main
 
 import (
 	"log"
+
 	"github.com/licheng1013/rocket-cat/core"
 	"github.com/licheng1013/rocket-cat/room"
 	"github.com/licheng1013/rocket-cat/router"
 )
 
-func main() {
-	// 构建一个默认服务
-	gateway := core.DefaultGateway()
-	manager := room.NewManger()
+// 构建一个默认服务
+var gateway = core.DefaultGateway()
+var manager = room.NewManger()
+var login = gateway.GetPlugin(core.LoginPluginId).(core.LoginInterface)
 
+
+func main() {
 	match := room.NewMatchQueue(2,func(players []room.IPlayer) {
 		log.Println("匹配成功:", players)
 		room := room.NewRoom(manager)
@@ -28,7 +31,13 @@ func main() {
 		})
 	})
 
-	login := gateway.GetPlugin(core.LoginPluginId).(core.LoginInterface)
+	gateway.AddCloseHook(func(socketId uint32) {
+		if userId := login.(*core.LoginPlugin).GetUserIdBySocketId(socketId); userId != 0 {
+			manager.QuitRoomByUserId(userId)
+		}
+	})
+	
+
 	// 添加一个路由
 	gateway.Action(1, 1, func(ctx *router.Context) {
 		var pos PosXY
@@ -51,6 +60,7 @@ func main() {
 	// 绑定路由
 	gateway.Start(":10100")
 }
+
 
 type PosXY struct {
 	X      int   `json:"x" form:"x"`

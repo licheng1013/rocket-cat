@@ -58,6 +58,14 @@ func (m *Manger) QuitRoom(player IPlayer, roomId int64) {
 	}
 }
 
+// 退出房间，当房间内没有玩家时，移除房间
+func (m *Manger) QuitRoomByUserId(userId int64) {
+	if value, ok := m.userOnRoom.Load(userId); ok {
+		room := value.(IRoom)
+		room.QuitRoom(room.GetPlayer(userId))
+	}
+}
+
 // 移除房间并清理关联用户id
 func (m *Manger) RemoveRoom(roomId int64) {
 	if value, ok := m.roomIdOnRoom.Load(roomId); ok {

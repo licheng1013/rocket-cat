@@ -37,15 +37,17 @@ func (g *LoginPlugin) GetUserIds() (userIds []int64) {
 
 func (g *LoginPlugin) OnClose(socketId uint32) {
 	// 退出登入
-	userId := g.ExistSocketId(socketId)
+	userId := g.GetUserIdBySocketId(socketId)
 	if userId != 0 {
 		common.CatLog.Println("用户断开 -> ", userId)
 		g.userMap.Delete(userId)
 	}
 }
 
-// ExistSocketId 根据socketId判断是否登入
-func (g *LoginPlugin) ExistSocketId(socketId uint32) int64 {
+
+
+
+func (g *LoginPlugin) GetUserIdBySocketId(socketId uint32) int64 {
 	value, ok := g.socketIdMap.Load(socketId)
 	if ok {
 		return value.(int64)
