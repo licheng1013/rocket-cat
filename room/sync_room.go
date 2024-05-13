@@ -16,7 +16,10 @@ func NewRoom(manager *Manger) *SyncRoom {
 	r := &SyncRoom{}
 	r.CreateTime = time.Now().Unix()
 	r.RoomId = manager.GetUniqueRoomId()
+	r.RoomId = manager.GetUniqueRoomId()
 	r.Status = Ready
+	r.manager = manager
+	manager.AddRoom(r)
 	r.manager = manager
 	manager.AddRoom(r)
 	return r

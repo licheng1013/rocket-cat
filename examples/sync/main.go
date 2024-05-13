@@ -32,9 +32,9 @@ func main() {
 	// 添加一个路由
 	gateway.Action(1, 1, func(ctx *router.Context) {
 		var pos PosXY
-		_ = ctx.Message.Bind(&pos)
-		if login.Login(pos.UserId, ctx.SocketId) {
 			log.Println("收到:", pos)
+			match.AddMatch(&room.DefaultPlayer{Uid: pos.UserId})
+			ctx.Result(router.H{"userId": pos.UserId,"message":"等待其他玩家加入"})
 			match.AddMatch(&room.DefaultPlayer{Uid: pos.UserId})
 			ctx.Result(router.H{"userId": pos.UserId,"message":"等待其他玩家加入"})
 		}
