@@ -26,7 +26,7 @@ func (ws *WebSocket) ListenAddr(addr string) {
 	if ws.Path == "" {
 		ws.Path = "/ws"
 	}
-	common.CatLog.Println("监听: ws//localhost" + addr + ws.Path)
+	common.CatLog.Println("监听: ws//" + addr + ws.Path)
 	http.HandleFunc(ws.Path, ws.ws)
 	if ws.Tls != nil {
 		if err := http.ListenAndServeTLS(addr, ws.Tls.CertFile, ws.Tls.KeyFile, nil); err != nil {
