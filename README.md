@@ -56,11 +56,9 @@ ws://localhost:10100/ws
 
 Open `examples/ws-client.html` in a browser after starting the server. It uses Vue from a CDN and can simulate user, chat, and room packets.
 
-Rules for maintaining this page are documented in `docs/ws-client-rules.md`.
+Rules for maintaining example pages are documented in `docs/ws-client-rules.md`.
 
 Open `examples/frame-sync.html` in two browser windows to simulate frame synchronization. Confirm different IDs, join matching from both windows, and the room will start syncing after two clients are matched.
-
-Rules for maintaining this page are documented in `docs/frame-sync-rules.md`.
 
 ## Packet
 
