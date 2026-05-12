@@ -58,6 +58,10 @@ Open `examples/ws-client.html` in a browser after starting the server. It uses V
 
 Rules for maintaining this page are documented in `docs/ws-client-rules.md`.
 
+Open `examples/frame-sync.html` in two browser windows to simulate frame synchronization. Confirm different IDs, join matching from both windows, and the room will start syncing after two clients are matched.
+
+Rules for maintaining this page are documented in `docs/frame-sync-rules.md`.
+
 ## Packet
 
 Requests use JSON:

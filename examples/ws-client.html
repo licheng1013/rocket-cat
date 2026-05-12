@@ -311,6 +311,34 @@
               cmd: 3001,
               subCmd: 5,
               data: { limit: 20 }
+            },
+            {
+              name: '帧同步检查',
+              cmd: 5001,
+              subCmd: 1,
+              data: { clientId: '10001' }
+            },
+            {
+              name: '加入匹配',
+              cmd: 5001,
+              subCmd: 2,
+              data: { clientId: '10001' }
+            },
+            {
+              name: '退出匹配',
+              cmd: 5001,
+              subCmd: 3,
+              data: { clientId: '10001' }
+            },
+            {
+              name: '提交同步帧',
+              cmd: 5001,
+              subCmd: 4,
+              data: {
+                clientId: '10001',
+                roomId: 'sync-10001-10002',
+                input: { seq: 1, value: 1 }
+              }
             }
           ]
         };

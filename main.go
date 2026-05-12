@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/licheng1013/rocket-cat/modules/chat"
+	"github.com/licheng1013/rocket-cat/modules/framesync"
 	"github.com/licheng1013/rocket-cat/modules/room"
 	"github.com/licheng1013/rocket-cat/modules/user"
 	"github.com/licheng1013/rocket-cat/ws"
@@ -16,6 +17,7 @@ func main() {
 	user.Register(router)
 	chat.Register(router)
 	room.Register(router)
+	framesync.Register(router)
 
 	http.Handle("/ws", ws.NewServer(router))
 

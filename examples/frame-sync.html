@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Frame Sync Demo</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: #172033;
+      background: #f4f6f8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 16px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid #d1d9e6;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #9aa4b2;
+    }
+
+    .dot.open {
+      background: #159947;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+    }
+
+    .panel {
+      border: 1px solid #d8dee8;
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      color: #526070;
+      font-size: 13px;
+    }
+
+    input {
+      width: 100%;
+      height: 38px;
+      border: 1px solid #c6d0dd;
+      border-radius: 6px;
+      padding: 0 10px;
+      color: #101827;
+      background: #fff;
+      outline: none;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      height: 38px;
+      border: 0;
+      border-radius: 6px;
+      padding: 0 14px;
+      color: #fff;
+      background: #2563eb;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      color: #172033;
+      background: #e5eaf1;
+    }
+
+    button.danger {
+      background: #d92d20;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid #d8dee8;
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .metric span {
+      display: block;
+      color: #526070;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      display: block;
+      min-height: 24px;
+      overflow-wrap: anywhere;
+      font-size: 18px;
+    }
+
+    .stream {
+      min-height: 360px;
+      max-height: 560px;
+      overflow: auto;
+      border-radius: 6px;
+      background: #111827;
+      color: #e5e7eb;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .empty {
+      color: #9ca3af;
+    }
+
+    @media (max-width: 880px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .layout,
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="page">
+    <header class="topbar">
+      <h1>帧同步模拟</h1>
+      <span class="status">
+        <span class="dot" :class="{ open: connected }"></span>
+        {{ connected ? '已连接' : '未连接' }}
+      </span>
+    </header>
+
+    <main class="layout">
+      <div class="stack">
+        <section class="panel">
+          <h2>连接</h2>
+          <div class="field">
+            <label for="url">WebSocket URL</label>
+            <input id="url" v-model="url">
+          </div>
+          <div class="actions">
+            <button @click="connect" :disabled="connected">连接</button>
+            <button class="danger" @click="disconnect" :disabled="!connected">断开</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>身份</h2>
+          <div class="field">
+            <label for="clientId">ID</label>
+            <input id="clientId" v-model.trim="clientId" :disabled="confirmed" placeholder="例如 10001">
+          </div>
+          <div class="actions">
+            <button @click="confirmId" :disabled="!connected || !clientId || confirmed">确认</button>
+            <button class="secondary" @click="resetId" :disabled="!confirmed">重置</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>匹配</h2>
+          <div class="actions">
+            <button @click="joinMatch" :disabled="!canMatch || matching || roomExists">加入匹配</button>
+            <button class="secondary" @click="exitMatch" :disabled="!canMatch || !matching || roomExists">退出匹配</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="stack">
+        <section class="panel">
+          <h2>状态</h2>
+          <div class="metrics">
+            <div class="metric">
+              <span>ID</span>
+              <strong>{{ clientId || '-' }}</strong>
+            </div>
+            <div class="metric">
+              <span>房间</span>
+              <strong>{{ roomId || '-' }}</strong>
+            </div>
+            <div class="metric">
+              <span>成员</span>
+              <strong>{{ playersText }}</strong>
+            </div>
+            <div class="metric">
+              <span>最新帧</span>
+              <strong>{{ latestFrameIndex || 0 }}</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>帧流</h2>
+          <div class="stream">
+            <span v-if="logs.length === 0" class="empty">等待操作...</span><template v-for="item in logs" :key="item.id">{{ item.text }}
+</template>
+          </div>
+          <div class="actions">
+            <button class="secondary" @click="clearLogs">清空</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          ws: null,
+          connected: false,
+          url: 'ws://localhost:10100/ws',
+          clientId: '',
+          confirmed: false,
+          roomExists: false,
+          matching: false,
+          roomId: '',
+          players: [],
+          latestFrameIndex: 0,
+          timer: null,
+          localSeq: 0,
+          logs: [],
+          logId: 0
+        };
+      },
+      computed: {
+        canMatch() {
+          return this.connected && this.confirmed && !this.roomId;
+        },
+        playersText() {
+          return this.players.length ? this.players.join(', ') : '-';
+        }
+      },
+      methods: {
+        connect() {
+          this.ws = new WebSocket(this.url);
+          this.ws.onopen = () => {
+            this.connected = true;
+            this.pushLog('open', this.url);
+          };
+          this.ws.onmessage = (event) => {
+            const packet = this.parsePacket(event.data);
+            this.pushLog('recv', this.pretty(packet));
+            this.handlePacket(packet);
+          };
+          this.ws.onerror = () => {
+            this.pushLog('error', 'websocket error');
+          };
+          this.ws.onclose = () => {
+            this.connected = false;
+            this.stopSync();
+            this.pushLog('close', this.url);
+          };
+        },
+        disconnect() {
+          if (this.ws) {
+            this.ws.close();
+          }
+        },
+        confirmId() {
+          this.send(5001, 1, { clientId: this.clientId });
+        },
+        resetId() {
+          this.stopSync();
+          this.confirmed = false;
+          this.roomExists = false;
+          this.matching = false;
+          this.roomId = '';
+          this.players = [];
+          this.latestFrameIndex = 0;
+        },
+        joinMatch() {
+          this.send(5001, 2, { clientId: this.clientId });
+        },
+        exitMatch() {
+          this.send(5001, 3, { clientId: this.clientId });
+        },
+        sendFrame() {
+          if (!this.connected || !this.roomId) {
+            return;
+          }
+
+          this.localSeq += 1;
+          this.send(5001, 4, {
+            clientId: this.clientId,
+            roomId: this.roomId,
+            input: {
+              seq: this.localSeq,
+              value: Number((Math.sin(this.localSeq / 4) * 10).toFixed(2))
+            }
+          });
+        },
+        send(cmd, subCmd, data) {
+          const packet = { cmd, subCmd, data };
+          this.ws.send(JSON.stringify(packet));
+          this.pushLog('send', this.pretty(packet));
+        },
+        handlePacket(packet) {
+          if (!packet || packet.cmd !== 5001 || packet.code !== 0) {
+            return;
+          }
+
+          if (packet.subCmd === 1) {
+            this.handleCheck(packet.data || {});
+            return;
+          }
+          if (packet.subCmd === 2) {
+            this.handleJoin(packet.data || {});
+            return;
+          }
+          if (packet.subCmd === 3) {
+            this.matching = false;
+            return;
+          }
+          if (packet.subCmd === 6) {
+            this.handlePush(packet.data || {});
+          }
+        },
+        handleCheck(data) {
+          this.confirmed = true;
+          this.roomExists = Boolean(data.exists);
+          if (!data.exists) {
+            this.pushLog('state', '未发现已有房间，可以加入或退出匹配');
+            return;
+          }
+
+          this.roomId = data.roomId || '';
+          this.players = data.players || [];
+          this.replayFrames(data.frames || []);
+        },
+        handleJoin(data) {
+          this.matching = !data.matched;
+          if (data.matched) {
+            this.startRoom(data.roomId, data.players || []);
+          }
+        },
+        handlePush(data) {
+          if (data.type === 'started') {
+            this.matching = false;
+            this.startRoom(data.roomId, data.players || []);
+            return;
+          }
+          if (data.type === 'frame' && data.frame) {
+            this.applyFrame(data.frame);
+          }
+        },
+        startRoom(roomId, players) {
+          this.roomId = roomId;
+          this.players = players;
+          this.roomExists = true;
+          this.startSync();
+        },
+        replayFrames(frames) {
+          this.pushLog('state', `发现已有房间，从第 1 帧开始追帧，共 ${frames.length} 帧`);
+          this.stopSync();
+          this.latestFrameIndex = 0;
+
+          let index = 0;
+          const replay = () => {
+            if (index >= frames.length) {
+              this.pushLog('state', '追帧完成，继续同步');
+              this.startSync();
+              return;
+            }
+            this.applyFrame(frames[index]);
+            index += 1;
+            window.setTimeout(replay, 60);
+          };
+          replay();
+        },
+        startSync() {
+          if (this.timer || !this.roomId) {
+            return;
+          }
+          this.timer = window.setInterval(this.sendFrame, 500);
+        },
+        stopSync() {
+          if (this.timer) {
+            window.clearInterval(this.timer);
+            this.timer = null;
+          }
+        },
+        applyFrame(frame) {
+          this.latestFrameIndex = Math.max(this.latestFrameIndex, Number(frame.index || 0));
+          this.pushLog('frame', this.pretty(frame));
+        },
+        clearLogs() {
+          this.logs = [];
+        },
+        parsePacket(text) {
+          try {
+            return JSON.parse(text);
+          } catch (_) {
+            return null;
+          }
+        },
+        pretty(value) {
+          if (typeof value === 'string') {
+            try {
+              return JSON.stringify(JSON.parse(value), null, 2);
+            } catch (_) {
+              return value;
+            }
+          }
+          return JSON.stringify(value, null, 2);
+        },
+        pushLog(type, message) {
+          const time = new Date().toLocaleTimeString();
+          this.logs.unshift({
+            id: ++this.logId,
+            text: `[${time}] ${type}\n${message}\n`
+          });
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
