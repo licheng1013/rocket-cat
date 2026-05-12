@@ -166,17 +166,82 @@
       font-size: 18px;
     }
 
-    .stream {
-      min-height: 360px;
-      max-height: 560px;
+    .stage-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 160px;
+      gap: 14px;
+      align-items: start;
+    }
+
+    canvas {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      border: 1px solid #c6d0dd;
+      border-radius: 8px;
+      background: #f8fafc;
+      display: block;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 44px);
+      grid-template-rows: repeat(3, 44px);
+      gap: 8px;
+      justify-content: center;
+      margin: 4px 0 12px;
+    }
+
+    .controls button {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      background: #334155;
+    }
+
+    .controls .up {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .controls .left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .controls .stop {
+      grid-column: 2;
+      grid-row: 2;
+      background: #64748b;
+    }
+
+    .controls .right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    .controls .down {
+      grid-column: 2;
+      grid-row: 3;
+    }
+
+    .hint {
+      margin: 0;
+      color: #526070;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .event-log {
+      min-height: 120px;
+      max-height: 180px;
       overflow: auto;
       border-radius: 6px;
       background: #111827;
       color: #e5e7eb;
-      padding: 12px;
+      padding: 10px;
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 12px;
+      line-height: 1.45;
       white-space: pre-wrap;
     }
 
@@ -191,7 +256,8 @@
       }
 
       .layout,
-      .metrics {
+      .metrics,
+      .stage-wrap {
         grid-template-columns: 1fr;
       }
     }
@@ -266,8 +332,25 @@
         </section>
 
         <section class="panel">
-          <h2>帧流</h2>
-          <div class="stream">
+          <h2>画布</h2>
+          <div class="stage-wrap">
+            <canvas ref="stage" width="800" height="500"></canvas>
+            <div>
+              <div class="controls">
+                <button class="up" @pointerdown="setDirection('up')" @pointerup="setDirection('idle')" @pointerleave="setDirection('idle')" :disabled="!roomId">↑</button>
+                <button class="left" @pointerdown="setDirection('left')" @pointerup="setDirection('idle')" @pointerleave="setDirection('idle')" :disabled="!roomId">←</button>
+                <button class="stop" @click="setDirection('idle')" :disabled="!roomId">■</button>
+                <button class="right" @pointerdown="setDirection('right')" @pointerup="setDirection('idle')" @pointerleave="setDirection('idle')" :disabled="!roomId">→</button>
+                <button class="down" @pointerdown="setDirection('down')" @pointerup="setDirection('idle')" @pointerleave="setDirection('idle')" :disabled="!roomId">↓</button>
+              </div>
+              <p class="hint">同步开始后，可使用方向键或按钮移动自己的方块。位置只在收到服务端帧后更新。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>事件</h2>
+          <div class="event-log">
             <span v-if="logs.length === 0" class="empty">等待操作...</span><template v-for="item in logs" :key="item.id">{{ item.text }}
 </template>
           </div>
@@ -297,6 +380,8 @@
           latestFrameIndex: 0,
           timer: null,
           localSeq: 0,
+          direction: 'idle',
+          positions: {},
           logs: [],
           logId: 0
         };
@@ -309,6 +394,16 @@
           return this.players.length ? this.players.join(', ') : '-';
         }
       },
+      mounted() {
+        window.addEventListener('keydown', this.onKeyDown);
+        window.addEventListener('keyup', this.onKeyUp);
+        this.drawStage();
+      },
+      beforeUnmount() {
+        window.removeEventListener('keydown', this.onKeyDown);
+        window.removeEventListener('keyup', this.onKeyUp);
+        this.stopSync();
+      },
       methods: {
         connect() {
           this.ws = new WebSocket(this.url);
@@ -318,7 +413,6 @@
           };
           this.ws.onmessage = (event) => {
             const packet = this.parsePacket(event.data);
-            this.pushLog('recv', this.pretty(packet));
             this.handlePacket(packet);
           };
           this.ws.onerror = () => {
@@ -346,12 +440,42 @@
           this.roomId = '';
           this.players = [];
           this.latestFrameIndex = 0;
+          this.direction = 'idle';
+          this.positions = {};
+          this.drawStage();
         },
         joinMatch() {
           this.send(5001, 2, { clientId: this.clientId });
         },
         exitMatch() {
           this.send(5001, 3, { clientId: this.clientId });
+        },
+        setDirection(direction) {
+          this.direction = direction;
+          this.sendFrame();
+        },
+        onKeyDown(event) {
+          const map = {
+            ArrowUp: 'up',
+            ArrowDown: 'down',
+            ArrowLeft: 'left',
+            ArrowRight: 'right'
+          };
+          const direction = map[event.key];
+          if (!direction || !this.roomId) {
+            return;
+          }
+          event.preventDefault();
+          if (this.direction !== direction) {
+            this.setDirection(direction);
+          }
+        },
+        onKeyUp(event) {
+          if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+            return;
+          }
+          event.preventDefault();
+          this.setDirection('idle');
         },
         sendFrame() {
           if (!this.connected || !this.roomId) {
@@ -364,14 +488,13 @@
             roomId: this.roomId,
             input: {
               seq: this.localSeq,
-              value: Number((Math.sin(this.localSeq / 4) * 10).toFixed(2))
+              direction: this.direction
             }
           });
         },
         send(cmd, subCmd, data) {
           const packet = { cmd, subCmd, data };
           this.ws.send(JSON.stringify(packet));
-          this.pushLog('send', this.pretty(packet));
         },
         handlePacket(packet) {
           if (!packet || packet.cmd !== 5001 || packet.code !== 0) {
@@ -388,6 +511,7 @@
           }
           if (packet.subCmd === 3) {
             this.matching = false;
+            this.pushLog('state', '已退出匹配');
             return;
           }
           if (packet.subCmd === 6) {
@@ -404,13 +528,16 @@
 
           this.roomId = data.roomId || '';
           this.players = data.players || [];
+          this.ensurePlayers();
           this.replayFrames(data.frames || []);
         },
         handleJoin(data) {
           this.matching = !data.matched;
-          if (data.matched) {
-            this.startRoom(data.roomId, data.players || []);
+          if (!data.matched) {
+            this.pushLog('state', '等待另一个客户端加入');
+            return;
           }
+          this.startRoom(data.roomId, data.players || []);
         },
         handlePush(data) {
           if (data.type === 'started') {
@@ -426,12 +553,18 @@
           this.roomId = roomId;
           this.players = players;
           this.roomExists = true;
+          this.ensurePlayers();
+          this.drawStage();
+          this.pushLog('state', `同步开始：${roomId}`);
           this.startSync();
         },
         replayFrames(frames) {
           this.pushLog('state', `发现已有房间，从第 1 帧开始追帧，共 ${frames.length} 帧`);
           this.stopSync();
           this.latestFrameIndex = 0;
+          this.positions = {};
+          this.ensurePlayers();
+          this.drawStage();
 
           let index = 0;
           const replay = () => {
@@ -450,7 +583,7 @@
           if (this.timer || !this.roomId) {
             return;
           }
-          this.timer = window.setInterval(this.sendFrame, 500);
+          this.timer = window.setInterval(this.sendFrame, 180);
         },
         stopSync() {
           if (this.timer) {
@@ -460,7 +593,79 @@
         },
         applyFrame(frame) {
           this.latestFrameIndex = Math.max(this.latestFrameIndex, Number(frame.index || 0));
-          this.pushLog('frame', this.pretty(frame));
+          const inputs = frame.inputs || {};
+          Object.keys(inputs).forEach((clientId) => {
+            this.movePlayer(clientId, inputs[clientId].input || {});
+          });
+          this.drawStage();
+        },
+        ensurePlayers() {
+          this.players.forEach((clientId, index) => {
+            if (this.positions[clientId]) {
+              return;
+            }
+            this.positions[clientId] = {
+              x: index === 0 ? 180 : 560,
+              y: 250,
+              color: index === 0 ? '#2563eb' : '#dc2626'
+            };
+          });
+        },
+        movePlayer(clientId, input) {
+          if (!this.positions[clientId]) {
+            this.positions[clientId] = { x: 400, y: 250, color: '#16a34a' };
+          }
+
+          const pos = this.positions[clientId];
+          const step = 8;
+          const direction = input.direction || 'idle';
+          if (direction === 'up') {
+            pos.y -= step;
+          } else if (direction === 'down') {
+            pos.y += step;
+          } else if (direction === 'left') {
+            pos.x -= step;
+          } else if (direction === 'right') {
+            pos.x += step;
+          }
+
+          pos.x = Math.max(14, Math.min(786, pos.x));
+          pos.y = Math.max(14, Math.min(486, pos.y));
+        },
+        drawStage() {
+          const canvas = this.$refs.stage;
+          if (!canvas) {
+            return;
+          }
+
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#f8fafc';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.strokeStyle = '#d8dee8';
+          ctx.lineWidth = 1;
+          for (let x = 40; x < canvas.width; x += 40) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+          }
+          for (let y = 40; y < canvas.height; y += 40) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+          }
+
+          Object.keys(this.positions).forEach((clientId) => {
+            const pos = this.positions[clientId];
+            ctx.fillStyle = pos.color;
+            ctx.fillRect(pos.x - 14, pos.y - 14, 28, 28);
+            ctx.fillStyle = '#111827';
+            ctx.font = '14px sans-serif';
+            ctx.fillText(clientId, pos.x - 18, pos.y - 22);
+          });
         },
         clearLogs() {
           this.logs = [];
@@ -472,22 +677,13 @@
             return null;
           }
         },
-        pretty(value) {
-          if (typeof value === 'string') {
-            try {
-              return JSON.stringify(JSON.parse(value), null, 2);
-            } catch (_) {
-              return value;
-            }
-          }
-          return JSON.stringify(value, null, 2);
-        },
         pushLog(type, message) {
           const time = new Date().toLocaleTimeString();
           this.logs.unshift({
             id: ++this.logId,
             text: `[${time}] ${type}\n${message}\n`
           });
+          this.logs = this.logs.slice(0, 20);
         }
       }
     }).mount('#app');
