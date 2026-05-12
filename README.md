@@ -56,6 +56,8 @@ ws://localhost:10100/ws
 
 Open `examples/ws-client.html` in a browser after starting the server. It uses Vue from a CDN and can simulate user, chat, and room packets.
 
+Rules for maintaining this page are documented in `docs/ws-client-rules.md`.
+
 ## Packet
 
 Requests use JSON:
