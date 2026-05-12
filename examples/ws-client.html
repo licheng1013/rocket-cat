@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rocket Cat WS Client</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: #1f2937;
+      background: #f6f7f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #9ca3af;
+    }
+
+    .dot.open {
+      background: #16a34a;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 16px;
+    }
+
+    .panel {
+      border: 1px solid #d8dee8;
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      font-size: 13px;
+      color: #4b5563;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+      color: #111827;
+      outline: none;
+    }
+
+    input,
+    select {
+      height: 38px;
+      padding: 0 10px;
+    }
+
+    textarea {
+      min-height: 210px;
+      resize: vertical;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      height: 38px;
+      border: 0;
+      border-radius: 6px;
+      padding: 0 14px;
+      color: #fff;
+      background: #2563eb;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      color: #1f2937;
+      background: #e5e7eb;
+    }
+
+    button.danger {
+      background: #dc2626;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .log {
+      min-height: 430px;
+      max-height: 620px;
+      overflow: auto;
+      border-radius: 6px;
+      background: #111827;
+      color: #e5e7eb;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .empty {
+      color: #9ca3af;
+    }
+
+    @media (max-width: 860px) {
+      .header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="page">
+    <header class="header">
+      <h1 class="title">Rocket Cat WS Client</h1>
+      <span class="status">
+        <span class="dot" :class="{ open: connected }"></span>
+        {{ connected ? '已连接' : '未连接' }}
+      </span>
+    </header>
+
+    <main class="grid">
+      <section class="panel">
+        <h2>连接</h2>
+        <div class="field">
+          <label for="url">WebSocket URL</label>
+          <input id="url" v-model="url" placeholder="ws://localhost:10100/ws">
+        </div>
+        <div class="actions">
+          <button @click="connect" :disabled="connected">连接</button>
+          <button class="danger" @click="disconnect" :disabled="!connected">断开</button>
+        </div>
+
+          <h2>发包</h2>
+        <div class="field">
+          <label for="preset">预设</label>
+          <select id="preset" v-model="selectedPreset" @change="applyPreset">
+            <option v-for="preset in presets" :key="preset.name" :value="preset.name">
+              {{ preset.name }}
+            </option>
+          </select>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="cmd">cmd</label>
+            <input id="cmd" v-model.number="cmd" type="number">
+          </div>
+          <div class="field">
+            <label for="subCmd">subCmd</label>
+            <input id="subCmd" v-model.number="subCmd" type="number">
+          </div>
+        </div>
+        <div class="field">
+          <label for="data">data JSON</label>
+          <textarea id="data" v-model="dataText" spellcheck="false"></textarea>
+        </div>
+        <div class="actions">
+          <button @click="send" :disabled="!connected">发送</button>
+          <button class="secondary" @click="formatData">格式化</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>日志</h2>
+        <div class="log">
+          <span v-if="logs.length === 0" class="empty">等待连接和消息...</span><template v-for="item in logs" :key="item.id">{{ item.text }}
+</template>
+        </div>
+        <div class="actions">
+          <button class="secondary" @click="clearLogs">清空日志</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          ws: null,
+          connected: false,
+          url: 'ws://localhost:10100/ws',
+          cmd: 1001,
+          subCmd: 1,
+          selectedPreset: '用户登录',
+          dataText: JSON.stringify({
+            account: 'demo',
+            password: '123456'
+          }, null, 2),
+          logs: [],
+          logId: 0,
+          presets: [
+            {
+              name: '用户登录',
+              cmd: 1001,
+              subCmd: 1,
+              data: { account: 'demo', password: '123456' }
+            },
+            {
+              name: '用户退出',
+              cmd: 1001,
+              subCmd: 2,
+              data: { token: 'token-demo' }
+            },
+            {
+              name: '用户信息',
+              cmd: 1001,
+              subCmd: 3,
+              data: { uid: 10001 }
+            },
+            {
+              name: '发送聊天',
+              cmd: 2001,
+              subCmd: 2,
+              data: { toUid: 10002, content: 'hello' }
+            },
+            {
+              name: '聊天列表',
+              cmd: 2001,
+              subCmd: 5,
+              data: { limit: 20 }
+            },
+            {
+              name: '创建房间',
+              cmd: 3001,
+              subCmd: 2,
+              data: { name: 'Lobby' }
+            },
+            {
+              name: '房间列表',
+              cmd: 3001,
+              subCmd: 5,
+              data: { limit: 20 }
+            }
+          ]
+        };
+      },
+      methods: {
+        connect() {
+          this.ws = new WebSocket(this.url);
+          this.ws.onopen = () => {
+            this.connected = true;
+            this.pushLog('open', this.url);
+          };
+          this.ws.onmessage = (event) => {
+            this.pushLog('recv', this.pretty(event.data));
+          };
+          this.ws.onerror = () => {
+            this.pushLog('error', 'websocket error');
+          };
+          this.ws.onclose = () => {
+            this.connected = false;
+            this.pushLog('close', this.url);
+          };
+        },
+        disconnect() {
+          if (this.ws) {
+            this.ws.close();
+          }
+        },
+        send() {
+          let data = {};
+          try {
+            data = JSON.parse(this.dataText || '{}');
+          } catch (err) {
+            this.pushLog('error', `invalid data JSON: ${err.message}`);
+            return;
+          }
+
+          const packet = {
+            cmd: Number(this.cmd),
+            subCmd: Number(this.subCmd),
+            data
+          };
+          const text = JSON.stringify(packet);
+          this.ws.send(text);
+          this.pushLog('send', JSON.stringify(packet, null, 2));
+        },
+        applyPreset() {
+          const preset = this.presets.find((item) => item.name === this.selectedPreset);
+          if (!preset) {
+            return;
+          }
+
+          this.cmd = preset.cmd;
+          this.subCmd = preset.subCmd;
+          this.dataText = JSON.stringify(preset.data, null, 2);
+        },
+        formatData() {
+          try {
+            this.dataText = JSON.stringify(JSON.parse(this.dataText || '{}'), null, 2);
+          } catch (err) {
+            this.pushLog('error', `invalid data JSON: ${err.message}`);
+          }
+        },
+        clearLogs() {
+          this.logs = [];
+        },
+        pretty(text) {
+          try {
+            return JSON.stringify(JSON.parse(text), null, 2);
+          } catch (_) {
+            return text;
+          }
+        },
+        pushLog(type, message) {
+          const time = new Date().toLocaleTimeString();
+          this.logs.unshift({
+            id: ++this.logId,
+            text: `[${time}] ${type}\n${message}\n`
+          });
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

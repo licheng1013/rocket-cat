@@ -52,6 +52,10 @@ The WebSocket endpoint is:
 ws://localhost:10100/ws
 ```
 
+## Example Client
+
+Open `examples/ws-client.html` in a browser after starting the server. It uses Vue from a CDN and can simulate user, chat, and room packets.
+
 ## Packet
 
 Requests use JSON:
