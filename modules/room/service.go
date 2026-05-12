@@ -2,6 +2,7 @@ package room
 
 import "errors"
 
+// QueryService 查询单个房间信息。
 func QueryService(req *QueryReq) (*RoomResp, error) {
 	if req == nil || req.RoomId <= 0 {
 		return nil, errors.New("roomId required")
@@ -14,6 +15,7 @@ func QueryService(req *QueryReq) (*RoomResp, error) {
 	}, nil
 }
 
+// CreateService 创建房间。
 func CreateService(req *CreateReq, owner int64) (*RoomResp, error) {
 	if req == nil || req.Name == "" {
 		return nil, errors.New("name required")
@@ -26,6 +28,7 @@ func CreateService(req *CreateReq, owner int64) (*RoomResp, error) {
 	}, nil
 }
 
+// ListService 查询房间列表。
 func ListService(req *ListReq) (*ListResp, error) {
 	limit := 20
 	if req != nil && req.Limit > 0 {

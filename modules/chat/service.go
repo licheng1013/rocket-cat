@@ -2,6 +2,7 @@ package chat
 
 import "errors"
 
+// QueryService 查询单条聊天消息。
 func QueryService(req *QueryReq) (*MessageResp, error) {
 	if req == nil || req.MessageId <= 0 {
 		return nil, errors.New("messageId required")
@@ -14,6 +15,7 @@ func QueryService(req *QueryReq) (*MessageResp, error) {
 	}, nil
 }
 
+// CreateService 创建一条聊天消息。
 func CreateService(req *CreateReq, fromUid int64) (*MessageResp, error) {
 	if req == nil || req.ToUid <= 0 || req.Content == "" {
 		return nil, errors.New("toUid and content required")
@@ -26,6 +28,7 @@ func CreateService(req *CreateReq, fromUid int64) (*MessageResp, error) {
 	}, nil
 }
 
+// ListService 查询聊天消息列表。
 func ListService(req *ListReq) (*ListResp, error) {
 	limit := 20
 	if req != nil && req.Limit > 0 {

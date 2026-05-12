@@ -7,6 +7,7 @@ import (
 
 var ErrEmptyPacket = errors.New("empty packet")
 
+// Bind 将请求包中的 data 字段绑定到指定请求结构。
 func Bind[T any](ctx *Context) (*T, error) {
 	var req T
 	if ctx == nil || ctx.Packet == nil {
