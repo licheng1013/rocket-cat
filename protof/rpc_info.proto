@@ -1,9 +1,0 @@
-syntax = "proto3";
-// 使用rpc的时需要设置包目录
-option go_package = "github.com/licheng1013/rocket-cat/protof";
-message RpcInfo{
-  bytes body = 1;
-  // 此字段用于传递插件id或socketId
-  uint32 socketId = 2;
-  string ip = 3;
-}
