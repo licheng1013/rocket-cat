@@ -8,20 +8,22 @@ import (
 
 var state = newSyncState()
 
+// syncState 保存帧同步模块的内存状态。
 type syncState struct {
-	mu          sync.Mutex
-	waiting     []string
-	rooms       map[string]*syncRoom
-	clientRooms map[string]string
+	mu          sync.Mutex           // 状态锁
+	waiting     []string             // 等待匹配的客户端 ID
+	rooms       map[string]*syncRoom // 同步房间表
+	clientRooms map[string]string    // 客户端到房间 ID 的映射
 }
 
+// syncRoom 表示一个同步房间。
 type syncRoom struct {
-	id      string
-	players []string
-	frames  []*Frame
+	id      string   // 房间 ID
+	players []string // 房间成员 ID
+	frames  []*Frame // 历史同步帧
 }
 
-// CheckService checks whether the client already has a sync room.
+// CheckService 检查客户端是否已有同步房间。
 func CheckService(req *CheckReq) (*CheckResp, error) {
 	if req == nil || req.ClientId == "" {
 		return nil, errors.New("clientId required")
@@ -43,7 +45,7 @@ func CheckService(req *CheckReq) (*CheckResp, error) {
 	}, nil
 }
 
-// JoinMatchService joins the client into the matching queue.
+// JoinMatchService 将客户端加入匹配队列。
 func JoinMatchService(req *JoinMatchReq) (*JoinMatchResp, *PushEvent, error) {
 	if req == nil || req.ClientId == "" {
 		return nil, nil, errors.New("clientId required")
@@ -90,7 +92,7 @@ func JoinMatchService(req *JoinMatchReq) (*JoinMatchResp, *PushEvent, error) {
 	return resp, event, nil
 }
 
-// ExitMatchService removes the client from the matching queue.
+// ExitMatchService 将客户端从匹配队列移除。
 func ExitMatchService(req *ExitMatchReq) (*ExitMatchResp, error) {
 	if req == nil || req.ClientId == "" {
 		return nil, errors.New("clientId required")
@@ -109,7 +111,7 @@ func ExitMatchService(req *ExitMatchReq) (*ExitMatchResp, error) {
 	return &ExitMatchResp{Exited: false}, nil
 }
 
-// SubmitService appends a client input and creates the next sync frame.
+// SubmitService 追加客户端输入并生成下一帧。
 func SubmitService(req *SubmitReq) (*SubmitResp, *PushEvent, error) {
 	if req == nil || req.ClientId == "" || req.RoomId == "" {
 		return nil, nil, errors.New("clientId and roomId required")
@@ -146,7 +148,7 @@ func SubmitService(req *SubmitReq) (*SubmitResp, *PushEvent, error) {
 	return &SubmitResp{Frame: cloneFrame(frame)}, event, nil
 }
 
-// RoomPlayers returns the current member ids of a room.
+// RoomPlayers 返回房间当前成员 ID。
 func RoomPlayers(roomId string) []string {
 	state.mu.Lock()
 	defer state.mu.Unlock()
@@ -158,6 +160,7 @@ func RoomPlayers(roomId string) []string {
 	return append([]string(nil), room.players...)
 }
 
+// newSyncState 创建帧同步内存状态。
 func newSyncState() *syncState {
 	return &syncState{
 		waiting:     make([]string, 0, 16),
@@ -166,6 +169,7 @@ func newSyncState() *syncState {
 	}
 }
 
+// roomByClient 根据客户端 ID 查找同步房间。
 func (s *syncState) roomByClient(clientId string) *syncRoom {
 	roomId := s.clientRooms[clientId]
 	if roomId == "" {
@@ -174,10 +178,12 @@ func (s *syncState) roomByClient(clientId string) *syncRoom {
 	return s.rooms[roomId]
 }
 
+// isWaiting 判断客户端是否正在等待匹配。
 func (s *syncState) isWaiting(clientId string) bool {
 	return contains(s.waiting, clientId)
 }
 
+// contains 判断字符串列表中是否包含目标值。
 func contains(items []string, target string) bool {
 	for _, item := range items {
 		if item == target {
@@ -187,6 +193,7 @@ func contains(items []string, target string) bool {
 	return false
 }
 
+// cloneFrames 深拷贝同步帧列表。
 func cloneFrames(frames []*Frame) []*Frame {
 	cloned := make([]*Frame, 0, len(frames))
 	for _, frame := range frames {
@@ -195,6 +202,7 @@ func cloneFrames(frames []*Frame) []*Frame {
 	return cloned
 }
 
+// cloneFrame 深拷贝单个同步帧。
 func cloneFrame(frame *Frame) *Frame {
 	if frame == nil {
 		return nil
@@ -213,6 +221,7 @@ func cloneFrame(frame *Frame) *Frame {
 	}
 }
 
+// cloneInput 复制输入快照。
 func cloneInput(input map[string]any) map[string]any {
 	cloned := make(map[string]any, len(input))
 	for key, value := range input {

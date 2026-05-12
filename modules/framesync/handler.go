@@ -6,9 +6,10 @@ import (
 	"github.com/licheng1013/rocket-cat/ws"
 )
 
+// sessions 保存客户端 ID 到当前连接会话的映射。
 var sessions sync.Map
 
-// Register explicitly registers frame sync routes.
+// Register 显式注册帧同步模块路由。
 func Register(router *ws.Router) {
 	router.Register(Cmd, Check, CheckHandler)
 	router.Register(Cmd, JoinMatch, JoinMatchHandler)
@@ -16,7 +17,7 @@ func Register(router *ws.Router) {
 	router.Register(Cmd, Submit, SubmitHandler)
 }
 
-// CheckHandler handles sync room existence checks.
+// CheckHandler 处理已有同步房间检查请求。
 func CheckHandler(ctx *ws.Context) {
 	req, err := ws.Bind[CheckReq](ctx)
 	if err != nil {
@@ -33,7 +34,7 @@ func CheckHandler(ctx *ws.Context) {
 	ws.OK(ctx, resp)
 }
 
-// JoinMatchHandler handles joining the matching queue.
+// JoinMatchHandler 处理加入匹配请求。
 func JoinMatchHandler(ctx *ws.Context) {
 	req, err := ws.Bind[JoinMatchReq](ctx)
 	if err != nil {
@@ -53,7 +54,7 @@ func JoinMatchHandler(ctx *ws.Context) {
 	}
 }
 
-// ExitMatchHandler handles exiting the matching queue.
+// ExitMatchHandler 处理退出匹配请求。
 func ExitMatchHandler(ctx *ws.Context) {
 	req, err := ws.Bind[ExitMatchReq](ctx)
 	if err != nil {
@@ -69,7 +70,7 @@ func ExitMatchHandler(ctx *ws.Context) {
 	ws.OK(ctx, resp)
 }
 
-// SubmitHandler handles client input submission.
+// SubmitHandler 处理客户端输入提交请求。
 func SubmitHandler(ctx *ws.Context) {
 	req, err := ws.Bind[SubmitReq](ctx)
 	if err != nil {
@@ -89,6 +90,7 @@ func SubmitHandler(ctx *ws.Context) {
 	}
 }
 
+// bindSession 绑定客户端 ID 与当前连接会话。
 func bindSession(clientId string, session *ws.Session) {
 	if clientId == "" || session == nil {
 		return
@@ -96,6 +98,7 @@ func bindSession(clientId string, session *ws.Session) {
 	sessions.Store(clientId, session)
 }
 
+// pushToPlayers 将事件推送给指定客户端列表。
 func pushToPlayers(players []string, event *PushEvent) {
 	for _, player := range players {
 		value, ok := sessions.Load(player)
