@@ -25,7 +25,7 @@
     .page {
       max-width: 1180px;
       margin: 0 auto;
-      padding: 28px 20px 40px;
+      padding: 16px 18px;
     }
 
     .topbar {
@@ -33,7 +33,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
     }
 
     h1 {
@@ -72,19 +72,19 @@
     .layout {
       display: grid;
       grid-template-columns: 360px 1fr;
-      gap: 16px;
+      gap: 12px;
     }
 
     .panel {
       border: 1px solid #d8dee8;
       border-radius: 8px;
       background: #fff;
-      padding: 16px;
+      padding: 12px;
     }
 
     .stack {
       display: grid;
-      gap: 16px;
+      gap: 12px;
     }
 
     .field {
@@ -141,14 +141,14 @@
 
     .metrics {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
     }
 
     .metric {
       border: 1px solid #d8dee8;
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px;
       background: #fbfcfe;
     }
 
@@ -163,7 +163,23 @@
       display: block;
       min-height: 24px;
       overflow-wrap: anywhere;
-      font-size: 18px;
+      font-size: 17px;
+    }
+
+    .progress {
+      height: 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e5eaf1;
+      margin-top: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: #2563eb;
+      transition: width 120ms linear;
     }
 
     .stage-wrap {
@@ -175,7 +191,7 @@
 
     canvas {
       width: 100%;
-      aspect-ratio: 16 / 10;
+      aspect-ratio: 16 / 9;
       border: 1px solid #c6d0dd;
       border-radius: 8px;
       background: #f8fafc;
@@ -232,8 +248,8 @@
     }
 
     .event-log {
-      min-height: 120px;
-      max-height: 180px;
+      min-height: 76px;
+      max-height: 112px;
       overflow: auto;
       border-radius: 6px;
       background: #111827;
@@ -328,6 +344,13 @@
               <span>最新帧</span>
               <strong>{{ latestFrameIndex || 0 }}</strong>
             </div>
+            <div class="metric">
+              <span>追帧</span>
+              <strong>{{ replayLabel }}</strong>
+              <div class="progress">
+                <div class="progress-bar" :style="{ width: replayPercent + '%' }"></div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -381,6 +404,9 @@
           timer: null,
           localSeq: 0,
           direction: 'idle',
+          replaying: false,
+          replayDone: 0,
+          replayTotal: 0,
           positions: {},
           logs: [],
           logId: 0
@@ -392,6 +418,18 @@
         },
         playersText() {
           return this.players.length ? this.players.join(', ') : '-';
+        },
+        replayPercent() {
+          if (this.replayTotal <= 0) {
+            return 0;
+          }
+          return Math.min(100, Math.round((this.replayDone / this.replayTotal) * 100));
+        },
+        replayLabel() {
+          if (this.replayTotal <= 0) {
+            return this.replaying ? '0%' : '-';
+          }
+          return `${this.replayDone}/${this.replayTotal}`;
         }
       },
       mounted() {
@@ -441,6 +479,9 @@
           this.players = [];
           this.latestFrameIndex = 0;
           this.direction = 'idle';
+          this.replaying = false;
+          this.replayDone = 0;
+          this.replayTotal = 0;
           this.positions = {};
           this.drawStage();
         },
@@ -553,6 +594,9 @@
           this.roomId = roomId;
           this.players = players;
           this.roomExists = true;
+          this.replaying = false;
+          this.replayDone = 0;
+          this.replayTotal = 0;
           this.ensurePlayers();
           this.drawStage();
           this.pushLog('state', `同步开始：${roomId}`);
@@ -562,20 +606,32 @@
           this.pushLog('state', `发现已有房间，从第 1 帧开始追帧，共 ${frames.length} 帧`);
           this.stopSync();
           this.latestFrameIndex = 0;
+          this.replaying = true;
+          this.replayDone = 0;
+          this.replayTotal = frames.length;
           this.positions = {};
           this.ensurePlayers();
           this.drawStage();
 
+          if (frames.length === 0) {
+            this.replaying = false;
+            this.pushLog('state', '追帧完成，继续同步');
+            this.startSync();
+            return;
+          }
+
           let index = 0;
           const replay = () => {
             if (index >= frames.length) {
+              this.replaying = false;
               this.pushLog('state', '追帧完成，继续同步');
               this.startSync();
               return;
             }
             this.applyFrame(frames[index]);
             index += 1;
-            window.setTimeout(replay, 60);
+            this.replayDone = index;
+            window.setTimeout(replay, 30);
           };
           replay();
         },
